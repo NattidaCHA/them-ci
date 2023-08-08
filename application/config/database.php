@@ -75,11 +75,11 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => '',
-	'password' => '',
-	'database' => '',
-	'dbdriver' => 'mysqli',
+	'hostname' => '10.51.249.87',
+	'username' => 'NpiNoti_usr01',
+	'password' => 'NpiNoti01@2022',
+	'database' => 'NpiNotification_Dev',
+	'dbdriver' => 'sqlsrv',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
 	'db_debug' => (ENVIRONMENT !== 'production'),
@@ -94,3 +94,11 @@ $db['default'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+
+
+if (ENVIRONMENT == 'production') {
+    $db['default']['hostname'] = '10.51.249.165';
+    $db['default']['username'] = 'Npinoti_usr01';
+    $db['default']['password'] = 'Noti22@PRD';
+    $db['default']['database'] = 'NpiNotification';
+}

@@ -49,7 +49,7 @@ class MY_Controller extends CI_Controller
         //     }
         //     redirect('access?back_url=' . rawurlencode($lastPath));
         // }
-
+        $this->load->database();
         // Default Site Config
         $this->data = [
             'site_name' => $this->config->item('site_name'),
