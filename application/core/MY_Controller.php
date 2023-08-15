@@ -335,4 +335,5 @@ class MY_Controller extends CI_Controller
         }
         return $result;
     }
+    
 } // End of class

@@ -1,14 +1,14 @@
 <nav class="navbar navbar-top navbar-expand navbar-dashboard navbar-dark ps-0 pe-2 pb-0">
     <div class="container-fluid px-0">
         <div class="d-flex justify-content-between w-100" id="navbarSupportedContent">
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center mb-3">
                 <h5>Dashboard</h5>
                 <!-- <?php if (!empty($page_header)) { ?>
                 <h5><?php echo $page_header; ?></h5>
                 <?php } ?> -->
             </div>
 
-            <ul class="navbar-nav align-items-center">
+            <!-- <ul class="navbar-nav align-items-center">
                 <li class="nav-item dropdown ms-lg-3">
                     <a class="nav-link dropdown-toggle pt-1 px-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <div class="media d-flex align-items-center">
@@ -28,7 +28,7 @@
                         </a>
                     </div>
                 </li>
-            </ul>
+            </ul> -->
         </div>
     </div>
 </nav>

@@ -23356,8 +23356,8 @@ fieldset:disabled .btn {
 }
 
 .content {
-    overflow: hidden;
-    padding: 0 1rem 0 1rem;
+    /* overflow: hidden; */
+    padding: 20px 120px 1rem 120px;
     transition: all 0.3s;
 }
 
@@ -23367,11 +23367,11 @@ fieldset:disabled .btn {
     }
 }
 
-@media (min-width: 992px) {
+/* @media (min-width: 992px) {
     .content {
         margin-left: 260px;
     }
-}
+} */
 
 .sidebar-toggle {
     font-size: 1.3rem;
