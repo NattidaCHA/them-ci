@@ -946,8 +946,10 @@ div.dataTables_wrapper div.dataTables_paginate {
 
 		.input-search {
 			width: 30%;
-			/* margin-bottom: 3%;
-            margin-right: 3%; */
+		}
+
+		.input-search-2 {
+			width: 25%;
 		}
 
 		.box-text {
@@ -974,6 +976,21 @@ div.dataTables_wrapper div.dataTables_paginate {
 		.input-search {
 			width: 30%;
 			margin-right: 3%;
+		}
+	}
+}
+
+.section-filter-2 {
+	display: flex;
+	flex-direction: column;
+
+	.box-search {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+
+		.input-search-2 {
+			width: 27%;
 		}
 	}
 }

@@ -300,7 +300,7 @@ function get_ip() {
 
 
 function genRandomString($length = 8, $notSpecial = FALSE) {
-    $characters = ($notSpecial) ? '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' : '123456789#^!_abcdefghijklmnopqrstuvwxyz#^!_ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $characters = ($notSpecial) ? '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' : '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
     for ($i = 0; $i < $length; $i++) {

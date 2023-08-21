@@ -23373,6 +23373,12 @@ fieldset:disabled .btn {
     }
 } */
 
+@media (max-width: 991px) {
+    .content {
+        padding: 20px 30px 1rem 30px;
+    }
+}
+
 .sidebar-toggle {
     font-size: 1.3rem;
 }
@@ -29828,3 +29834,34 @@ article .h6 {
 .file-field svg {
     cursor: pointer;
 }
+
+.group-invoice {
+	display: flex;
+	flex-direction: column;
+
+	.list-invoice {
+		display: grid;
+		grid-row: 1;
+	    grid-template-columns: 18% 22% 22% 22%;
+		margin-bottom: 3px;
+
+        @media (max-width: 767px) {
+            grid-template-columns:auto ;
+        }
+
+		@media(min-width: 600px) and (max-width: 767px) {
+			grid-template-columns:auto auto;
+        }
+        
+        @media(min-width: 768px) and (max-width: 991px) {
+            grid-template-columns:auto auto auto;
+        }
+	}	
+}
+
+.total-invoice {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
