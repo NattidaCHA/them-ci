@@ -18,7 +18,7 @@
     <!-- Favicon -->
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" sizes="120x120" href="/assets/img/favicon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon/favicon-33.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon/favicon-16.png">
     <link rel="mask-icon" href="/assets/img/favicon/safari-pinned-tab.svg" color="#ffffff">
     <meta name="msapplication-TileColor" content="#ffffff">

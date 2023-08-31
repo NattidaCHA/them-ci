@@ -1,5 +1,7 @@
 {
     "require": {
-        "mpdf/mpdf": "*"
+        "mpdf/mpdf": "*",
+        "picqer/php-barcode-generator": "^2.3",
+        "smhg/sepa-qr": "^3.1"
     }
 }

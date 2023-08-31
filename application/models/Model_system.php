@@ -25,9 +25,9 @@ class Model_system extends MY_Model
     public function getTypeBusiness()
     {
         $result = [];
-        $sql = $this->db->select('msaleorg')
-            ->group_by('msaleorg')
-            ->get('vw_billpay_txt02');
+        $sql = $this->db
+            ->order_by('msort')
+            ->get('saleorg');
         $result = $sql->result();
         $sql->free_result();
         return  $result;
@@ -52,6 +52,19 @@ class Model_system extends MY_Model
             ->group_by('msendto')
             ->get('vw_Customer_DWH');
         $result = $sql->result();
+        $sql->free_result();
+        return  $result;
+    }
+
+
+    public function getSendDate($id)
+    {
+        $result = [];
+        $sql = $this->db->select('mday')
+            ->where("(mcustno ='$id' AND mday != 'NO FAX')")
+            ->group_by('mday')
+            ->get('cust_notification');
+        $result = $sql->row();
         $sql->free_result();
         return  $result;
     }

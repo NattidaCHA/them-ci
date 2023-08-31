@@ -3,8 +3,8 @@
 class Model_invoice extends MY_Model
 {
 
-    private $tableAllowFieldsInvoice = ['uuid', 'cus_main', 'cus_no', 'bill_no', 'is_email', 'created_date'];
-    private $tableAllowFieldsInvoiceDatail = ['uuid', 'bill_no', 'bill_id', 'macctdoc', 'cus_no', 'cus_main'];
+    private $tableAllowFieldsInvoice = ['uuid', 'cus_main', 'cus_no', 'bill_no', 'is_email', 'created_date', 'is_sms', 'is_bill_email', 'start_date', 'end_date', 'created_by','is_receive_bill'];
+    private $tableAllowFieldsInvoiceDatail = ['uuid', 'bill_no', 'bill_id', 'macctdoc', 'cus_no', 'cus_main', 'mdoctype', 'mbillno', 'mpostdate', 'mduedate', 'msaleorg', 'mpayterm', 'mnetamt', 'mtext', 'msort'];
 
     public function __construct()
     {
@@ -21,13 +21,14 @@ class Model_invoice extends MY_Model
             $this->db->where('T1.mcustno', $val->cus_no);
         }
 
-        if (!empty($val->type)) {
-            $this->db->where('T1.msaleorg', $val->type);
-        }
+        // if (!empty($val->type)) {
+        //     $this->db->where('T1.msaleorg', $val->type);
+        // }
 
         $sql = $this->db->select('T1.mcustno,T1.mdoctype,SUM(T1.mnetamt) as total_mnetamt,MAX(T1.mcustname) as cus_name,MAX(T1.msaleorg) as msaleorg,MAX(T1.mduedate) as end_date,MAX(T1.mpostdate) as start_date,MAX(T3.mday) as send_date')
             ->where("(T1.mpostdate >='$val->startDate' AND T1.mduedate <='$val->endDate')")
             ->join('cust_notification T3', 'T3.mforsend1 = T1.mcustno', 'T3.mforsend2 = T1.mcustno', 'left')
+            // ->join('cust_notification T3', 'T3.mcustno = T1.mcustno', 'left')
             ->where('T3.mday', $val->dateSelect)
             ->group_by('T1.mdoctype')
             ->group_by('T1.mcustno')
@@ -85,14 +86,22 @@ class Model_invoice extends MY_Model
         return  $this->calculateTotall($lists);
     }
 
-    public function getCustomerChain($result)
+    // public function getCustomerChain($result)
+    // {
+
+    //     $lists = [];
+    //     foreach ($result as $rows) {
+    //         $val = $this->findChildCustomer((object)['cus_no' => $rows->cus_no]);
+    //         $lists[$rows->cus_no] = $val;
+    //     }
+    //     return $lists;
+    // }
+
+    public function getCustomerChain($id)
     {
 
         $lists = [];
-        foreach ($result as $rows) {
-            $val = $this->findChildCustomer((object)['cus_no' => $rows->cus_no]);
-            $lists[$rows->cus_no] = $val;
-        }
+        $lists = $this->findChildCustomer((object)['cus_no' => $id]);
         return $lists;
     }
 
@@ -124,16 +133,30 @@ class Model_invoice extends MY_Model
         return $result;
     }
 
+    // public function findChildCustomer($condition)
+    // {
+    //     $result = [];
+    //     $sql = $this->db->select('MAX(T1.mcustno) as cus_no, MAX(T2.mcustname) as cus_name,MAX(T2.msaleorg) as saleorg')
+    //         ->where('T1.mcustno_sendto', $condition->cus_no)
+    //         // ->where('T1.mcustno_sendto', '0002000386')
+    //         ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.mcustno', 'left')
+    //         ->group_by('T1.mcustno')
+    //         ->get('cust_notifcation_sendto T1');
+    //     $result = $sql->result();
+    //     $sql->free_result();
+    //     return  $result;
+    // }
+
     public function findChildCustomer($condition)
     {
         $result = [];
-        $sql = $this->db->select('MAX(T1.mcustno) as cus_no, MAX(T2.mcustname) as cus_name,MAX(T2.msaleorg) as saleorg')
-            ->where('T1.mcustno_sendto', $condition->cus_no)
-            ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.mcustno', 'left')
-            ->group_by('T1.mcustno')
-            ->get('cust_notifcation_sendto T1');
+        $sql = $this->db->select('MAX(mcustno) as cus_no,MAX(mcustname) as cus_name,MAX(msaleorg) as msaleorg')
+            ->where('msendto', $condition->cus_no)
+            ->group_by('mcustno')
+            ->get('vw_Customer_DWH');
         $result = $sql->result();
         $sql->free_result();
+
         return  $result;
     }
 
@@ -142,6 +165,7 @@ class Model_invoice extends MY_Model
         $result = [];
         $sql = $this->db->select('T1.macctdoc,T1.mdoctype,T1.mnetamt,T1.msaleorg,T1.mduedate,T1.mbillno')
             ->where("(T1.mcustno = '$condition->cus_no' AND T1.mpostdate >='$condition->start_date' AND T1.mduedate <='$condition->end_date')")
+            // ->where("(T1.mcustno = '0002000387' AND T1.mpostdate >='$condition->start_date' AND T1.mduedate <='$condition->end_date')")
             ->join('cust_notification T2', 'T2.mcustno = T1.mcustno', 'left')
             ->where('T2.mday', $condition->send_date)
             ->get('vw_billpay_txt02 T1');
@@ -150,48 +174,38 @@ class Model_invoice extends MY_Model
         return $result;
     }
 
-    public function getDetailCustomer($id)
+    public function getDetailCustomer($res)
     {
         $childs = [];
-        if (!empty($id)) {
-            $sql = $sql = $this->db->select('mcustname')->where('mcustno', $id)->get('tbl_custtel');
+        $val = json_decode(json_encode($res));
+
+        if (!empty($val)) {
+            $sql = $sql = $this->db->select('mcustname')->where('mcustno', $val->cus_no)->get('tbl_custtel');
             $customer = $sql->row();
-
-            if ($_COOKIE["startDate"] && $_COOKIE["endDate"] && $_COOKIE["dateSelect"]) {
-                $condition = (object)[
-                    'cus_no' => $id,
-                    'start_date' => $_COOKIE["startDate"],
-                    'end_date' => $_COOKIE["endDate"],
-                    'send_date' => $_COOKIE["dateSelect"],
+            $res = $this->findChildCustomer($val);
+            foreach ($res as $bill) {
+                $val->cus_no = $bill->cus_no;
+                $bills = $this->getBillChild($val);
+                $data = (object)[
+                    'info' => (object)[
+                        'cus_no' => $bill->cus_no,
+                        'cus_name' => $bill->cus_name,
+                        'saleorg' =>  $bill->msaleorg
+                    ],
+                    'bills' => [],
+                    'balance' => 0
                 ];
-
-                $res = $this->findChildCustomer($condition);
-                foreach ($res as $bill) {
-                    $condition->cus_no = $bill->cus_no;
-                    $bills = $this->getBillChild($condition);
-                    $data = (object)[
-                        'info' => (object)[
-                            'cus_no' => $bill->cus_no,
-                            'cus_name' => $bill->cus_name,
-                            'saleorg' =>  $bill->saleorg
-                        ],
-                        'bills' => [],
-                        'balance' => 0
-                    ];
-                    if (!empty($bills)) {
-                        $data->bills = $bills;
-                        $data->balance = $this->calculateTotallChild($bills);
-                        $childs[$bill->cus_no] = $data;
-                    }
+                if (!empty($bills)) {
+                    $data->bills = $bills;
+                    $data->balance = $this->calculateTotallChild($bills);
+                    $childs[$bill->cus_no] = $data;
                 }
             }
         }
-        // echo '<pre>';
-        // var_dump($childs);
-        // echo '</pre>';
+
         $sql->free_result();
         $lists = (object) [
-            'cus_no' => $id,
+            'cus_no' => $val->cus_no,
             'cus_name' => !empty($customer) && !empty($customer->mcustname)  ? $customer->mcustname : '-',
             'childs' => $childs,
         ];
@@ -325,6 +339,14 @@ class Model_invoice extends MY_Model
             ->group_by('T1.bill_no')
             ->get('report_notification T1');
         $result = $sql->result();
+        $sql->free_result();
+        return $result;
+    }
+
+    public function getItem($macctdoc)
+    {
+        $sql = $this->db->where('macctdoc', $macctdoc)->get('vw_billpay_txt02');
+        $result = $sql->row();
         $sql->free_result();
         return $result;
     }

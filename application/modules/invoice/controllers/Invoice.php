@@ -14,23 +14,27 @@ class Invoice extends MY_Controller
     public function index()
     {
         $days = $this->config->item('day');
-        $type = $this->config->item('type');
+        // $type = $this->config->item('type');
+        $dateSelect = $this->input->get('dateSelect') ? $this->input->get('dateSelect') : '';
+        $startDate = $this->input->get('startDate') ? $this->input->get('startDate') : date('Y-m-d');
+        $endDate = $this->input->get('endDate') ? $this->input->get('endDate') : date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
+        $cus_no = $this->input->get('customer') ? $this->input->get('customer') : '';
+        $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
         $result = [];
         $this->data['days'] = [];
         $condition = [
-            'dateSelect' => $this->input->get('dateSelect'),
-            'startDate' => $this->input->get('startDate'),
-            'endDate' => $this->input->get('endDate'),
-            'cus_no' => $this->input->get('customer'),
-            'type' => $type
+            'dateSelect' => $dateSelect,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'cus_no' => $cus_no,
+            'type' => $typeSC
         ];
 
-        setcookie("dateSelect", $this->input->get('dateSelect'), time() + 3600, "/");
-        setcookie("startDate", $this->input->get('startDate'), time() + 3600, "/");
-        setcookie("endDate", $this->input->get('endDate'), time() + 3600, "/");
-        setcookie("cus_no", $this->input->get('customer'), time() + 3600, "/");
-        setcookie("type", $this->input->get('type'), time() + 3600, "/");
+        $o = $this->model_system->getTypeBusiness();
 
+        foreach ($o as $v) {
+            $this->data['types'][$v->msaleorg] = $v;
+        }
 
         foreach ($days as $day) {
             $this->data['days'][$day->id] = $day;
@@ -38,11 +42,17 @@ class Invoice extends MY_Controller
 
         $result = $this->model_invoice->getInvoice($condition);
 
+        // var_dump($result);
+        // exit;
         $this->data['lists'] = $result;
-        $this->data['childLists'] = !empty($result) ? $this->model_invoice->getCustomerChain($result) : [];
         $this->data['selectDays'] = $this->model_system->getDateSelect();
-        $this->data['types'] = $this->model_system->getTypeBusiness();
         $this->data['customers'] = $this->model_system->getCustomer();
+        $this->data['typeSC'] = $typeSC;
+        $this->data['dateSelect'] = $dateSelect;
+        $this->data['startDate'] = $startDate;
+        $this->data['endDate'] = $endDate;
+        $this->data['cus_no'] = $cus_no;
+        $this->data['page_header'] = 'Invoice';
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('search_invoice');
     }
@@ -50,20 +60,36 @@ class Invoice extends MY_Controller
     public function detail($id)
     {
         $result = [];
-        if (!empty($id)) {
-            $result = $this->model_invoice->getDetailCustomer($id);
+        $start = $this->input->get('start');
+        $end = $this->input->get('end');
+        $send = $this->input->get('send');
+
+        $condition = (object)[
+            'cus_no' => $id,
+            'start_date' => $start,
+            'end_date' => $end,
+            'send_date' => $send,
+        ];
+
+        if (!empty($id) && !empty($start) && !empty($end) && !empty($send)) {
+            $result = $this->model_invoice->getDetailCustomer($condition);
         }
 
         $this->data['main_id'] = $id;
         $this->data['lists'] = $result;
+        $this->data['start'] = $start;
+        $this->data['end'] = $end;
+        $this->data['page_header'] = 'รายละเอียด';
         $this->view('invoice_detail');
     }
 
 
-    public function create($cus_main)
+    public function create($cus_main, $start, $end)
     {
+
         $output = $this->apiDefaultOutput();
         $params = $this->input->post();
+
 
         if (!empty($params)) {
             array_walk_recursive($params, function (&$v) {
@@ -87,28 +113,29 @@ class Invoice extends MY_Controller
                     'cus_main' => $cus_main,
                     'cus_no' => $key,
                     'is_email' => FALSE,
-                    'created_date' => date("Y-m-d")
+                    'is_bill_email' => TRUE,
+                    'is_sms' => FALSE,
+                    'start_date' => $start,
+                    'end_date' => $end,
+                    'created_by' => '',
+                    'created_date' => date("Y-m-d H:i:s")
                 ];
 
                 $this->model_invoice->createInvoice($data);
                 $report = $this->model_invoice->getReportUuid($uuid);
+                $genData = [];
 
                 if (!empty($report)) {
-                    foreach ($res as $val) {
-                        $data = [
-                            'uuid' => genRandomString(16),
-                            'bill_no' => $report->bill_no,
-                            'bill_id' => $report->uuid,
-                            'macctdoc' => $val,
-                            'cus_no' => $key,
-                            'cus_main' => $cus_main,
-                        ];
+                    $genData = $this->genInvoiceDetail($report, $res, $key, $cus_main);
 
-                        $this->model_invoice->createDetailInvoice($data);
+                    if (!empty($genData)) {
+                        $output['status'] = 200;
+                        $output['data'] = $report;
+                    } else {
+                        $result['status'] = 500;
+                        $result['msg'] = 'Data Timeout';
+                        $result['error'] = 'Data Timeout';
                     }
-
-                    $output['status'] = 200;
-                    $output['data'] = $report;
                 }
             }
         }
@@ -117,11 +144,44 @@ class Invoice extends MY_Controller
         $this->responseJSON($output);
     }
 
+    public function genInvoiceDetail($report, $res, $key, $cus_main)
+    {
+        set_time_limit(10000);
+        // foreach ($result as $res) {
+        foreach ($res as $val) {
+            $item = $this->model_invoice->getItem($val);
+            if (!empty($item)) {
+                $data = [
+                    'uuid' => genRandomString(16),
+                    'bill_no' => $report->bill_no,
+                    'bill_id' => $report->uuid,
+                    'macctdoc' => $val,
+                    'cus_no' => $key,
+                    'cus_main' => $cus_main,
+                    'mdoctype' => $item->mdoctype,
+                    'mbillno' => $item->mbillno,
+                    'mpostdate' => $item->mpostdate,
+                    'mduedate' => $item->mduedate,
+                    'msaleorg' => $item->msaleorg,
+                    'mpayterm' => $item->mpayterm,
+                    'mnetamt' => $item->mnetamt,
+                    'mtext' => $item->mtext,
+                    'msort' => $this->genType($item->mdoctype)
+                ];
+
+                $this->model_invoice->createDetailInvoice($data);
+            }
+        }
+
+        return true;
+        // }
+    }
+
     public function ramdomBillNo($main_id)
     {
 
         $random = $this->runNumber($main_id);
-        $num = 'N' . substr($main_id, 6) . substr(date('Ymd'), 2) . $random;
+        $num = '8' . substr($main_id, 6) . substr(date('Ymd'), 2) . $random;
         return $num;
     }
 
@@ -180,55 +240,51 @@ class Invoice extends MY_Controller
         return $num;
     }
 
-
-    public function report()
+    public function genType($res)
     {
-        $condition = [
-            'created_date' => $this->input->get('created_date'),
-            'bill_no' => $this->input->get('bill_no'),
-            'cus_no' => $this->input->get('customer')
-        ];
-
-        $result = $this->model_invoice->getBill($condition);
-
-        $billNos = $this->model_invoice->getBillNo();
-        // var_dump($billNos);
-        $this->data['lists'] = $result;
-        $this->data['billNos'] = !empty($billNos) ? $billNos : [];
-        $this->data['customers'] = $this->model_system->getCustomer();
-        $this->loadAsset(['dataTables', 'datepicker', 'select2']);
-        $this->view('report_lists');
+        $sortType = 0;
+        if (!empty($res == 'RA')) {
+            $sortType  = 1;
+        }
+        if (!empty($res == 'RD')) {
+            $sortType  = 2;
+        }
+        if (!empty($res == 'DC')) {
+            $sortType  = 5;
+        }
+        if (!empty($res == 'RB')) {
+            $sortType  = 4;
+        }
+        if (!empty($res == 'RC')) {
+            $sortType  = 3;
+        }
+        if (!empty($res == 'RE')) {
+            $sortType  = 6;
+        }
+        return  $sortType;
     }
 
-    public function pdf()
+
+
+    public function genCustomerChild($id)
     {
-        require_once  './vendor/autoload.php';
+        $result = ['status' => 500, 'msg' => 'Can not check data !'];
 
-        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-        $fontDirs = $defaultConfig['fontDir'];
 
-        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-        $fontData = $defaultFontConfig['fontdata'];
+        if (!empty($id)) {
+            $childLists = $this->model_invoice->getCustomerChain($id);
 
-        $mpdf = new \Mpdf\Mpdf([
-            'fontDir' => array_merge($fontDirs, ['./assets/fonts']),
-            'fontdata' => $fontData + [
-                    'sarabun' => [
-                        'R' => 'THSarabunNew.ttf',
-                        'I' => 'THSarabunNew Italic.ttf',
-                        'B' =>  'THSarabunNew Bold.ttf',
-                    ]
-                ],
-            'default_font' => 'sarabun'
-        ]);
+            if (!empty($childLists)) {
+                $result['status'] = 200;
+                $result['msg'] = 'OK';
+                $result['data'] = $childLists;
+            } else {
+                $result['status'] = 204;
+                $result['msg'] = 'empty data';
+                $result['data'] = false;
+            }
+        }
 
-        $html = $this->load->view('report_pdf', 55555, TRUE);
-        $title = 'Invoice YouTube Revenue ';
-        $name = 'Invoice_YouTube_Revenue_';
-
-        $mpdf->SetTitle($title);
-        $mpdf->WriteHTML($html);
-        $mpdf->Output($name.'.pdf', 'I');
+        $this->responseJSON($result);
     }
-
 }

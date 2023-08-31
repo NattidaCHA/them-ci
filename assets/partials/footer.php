@@ -1,4 +1,4 @@
-<div class="card theme-settings bg-gray-800 theme-settings-expand" id="theme-settings-expand">
+<!-- <div class="card theme-settings bg-gray-800 theme-settings-expand" id="theme-settings-expand">
     <div class="card-body bg-gray-800 text-white rounded-top p-3 py-2">
         <span class="fw-bold d-inline-flex align-items-center h6">
             <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -7,9 +7,9 @@
             Settings
         </span>
     </div>
-</div>
+</div> -->
 
-<footer class="bg-white rounded shadow p-2 mb-1 mt-4">
+<!-- <footer class="bg-white rounded shadow p-2 mb-1 mt-4">
     <div class="row">
         <div class="col-12 col-md-4 col-xl-6">
             <p class="mb-0 text-center text-lg-start text-muted">
@@ -20,7 +20,7 @@
             </p>
         </div>
     </div>
-</footer>
+</footer> -->
 
 <script>
     var menu_active = '<?php echo $m_active; ?>';

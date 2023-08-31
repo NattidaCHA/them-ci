@@ -236,7 +236,7 @@
 
     .table-list {
         width: 100%;
-        height: 61%;
+        height: 77%;
     }
 
     .full-table-2 {
@@ -580,47 +580,7 @@
 </style>
 
 <div class="pdf">
-    <div class="header">
-        <div class="half-10">
-            <img src="/assets/img/logo-300.png" class="logo" />
-        </div>
-        <div class="half-30">
-            <img src="/assets/img/nawaplastic_logo.gif" class="logo-nawa" />
-        </div>
-        <div class="box-title">
-            <div class="text-header">บริษัท นวพลาสติกอุตสาหกรรม (สระบุรี) จํากัด</div>
-            <div class="text-boder">เลขที่ 1 ถนนปูนซีเมนต์ไทย แขวงบางซื่อ เขตบางซื่อ กรุงเทพมหานคร 10800</div>
-            <div class="text-boder">โทร. 02-555-0888 โทรสาร 02-586-2929</div>
-            <div class="text-boder">Tax-ID: 0-1055-33141-54-4</div>
-        </div>
-    </div>
-    <div class="border-bottom-header"></div>
     <div class="content">
-        <div class="box-summary">
-            <div class="invoice-title">ใบสรุปรายการแจ้งยอดหนี้ชำระ</div>
-            <div class="detail-summary">
-                <table class="full-table">
-                    <tbody>
-                        <tr>
-                            <td class="title">รหัสลูกค้า :</td>
-                            <td class="des-bold"><?php echo $data->report->info->mcustno; ?> <?php echo $data->report->info->mcustname; ?></td>
-                            <td class="title-bill-no"><span>เลขที่เอกสารอ้างอิง</span>&nbsp;:&nbsp;<span class="bill-no"><?php echo $data->report->bill_info->bill_no; ?></span></td>
-                        </tr>
-                        <tr>
-                            <td class="title">รหัสผู้แทนขาย :</td>
-                            <td class="no"><?php echo $data->report->info->msalegrp; ?></td>
-                            <td class="date-send">วันที่ออกเอกสาร&nbsp;:&nbsp;<?php echo date('d.m.Y', strtotime($data->report->bill_info->created_date)); ?></td>
-                        </tr>
-                        <tr>
-                            <td class="title"><span>สกุลเงิน&nbsp;:&nbsp;</td>
-                            <td class="no">THB&nbsp;(บาท)&nbsp;รวมภาษีมูลค่าเพิ่ม</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- <div class=""> -->
         <div class="sumary-title">สรุปรายการแจ้งยอดหนี้ชำระ</div>
         <div class="page-brack">
             <div class="table-list">
@@ -647,7 +607,7 @@
                                         <td class="text-center"><?php if ($data->index == 1) {
                                                                     echo $key + 1;
                                                                 } else {
-                                                                    echo (($data->index - 1) * $data->size) + $key + 1;
+                                                                    echo (($data->index - 1) *  $data->size) + $key + 1;
                                                                 }; ?></td>
                                         <td class="text-right"><?php echo  $item->type ?></td>
                                         <td class="text-center"><?php echo !empty($item->mbillno) ? $item->mbillno : '-'; ?></td>
@@ -667,7 +627,6 @@
             <div class="total-list">ยอดรวมชําระต่อหน้าเอกสาร <?php echo !empty($data->report->lists['total']) ? number_format($data->report->lists['total'], 2) : 0
                                                                 ?> จํานวน <?php echo count($data->report->lists) - 1
                                                                             ?> รายการ</div>
-
             <div style="border-bottom: 1px solid #777;"></div>
             <div>
                 <?php if ($data->report->total_page == $data->index) { ?>
@@ -698,7 +657,7 @@
                         <div class="text-amount">จํานวนเอกสารทั้งหมด&nbsp;<?php echo $data->report->total_items ?>&nbsp;รายการ</div>
                         <div>
                             <div class="mt-05 text-total">สอบถามข้อมูลการชําระเงิน ติดต่อ หน่วยยงานบริหารสินเชื่อ ติดต่อ 02-586-2482, 02-586-5172</div>
-                            <div class="text-total">*ประเภท RA = ยอด Invoice, RD = ยอดเพิ่มหนี้, RC = ยอดลดหนี้, RB= ยอดเงินเหลือ,  DC= ยอด Rebate, RE = ยอดเงินเหลือในใบเสร็จ</div>
+                            <div class="text-total">*ประเภท RA = ยอด Invoice, RD = ยอดเพิ่มหนี้, RC = ยอดลดหนี้, RB= ยอดเงินเหลือ, DC= ยอด Rebate, RE = ยอดเงินเหลือในใบเสร็จ</div>
                         </div>
                     </div>
                 <?php } ?>

@@ -12,7 +12,10 @@
                     <a class="nav-link active" aria-current="page" href="/invoice">Invoice</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link"  href="/report">Report</a>
+                    <a class="nav-link" href="/report">Report</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/customer">Customer</a>
                 </li>
             </ul>
             <div class="d-block">
@@ -54,9 +57,21 @@
                 <span class="mt-1 ms-1 sidebar-text">Notification system</span>
             </li>
             <li class="nav-item" id="_menu-dashboard">
-                <a href="/dashboard" class="nav-link">
+                <a href="/invoice" class="nav-link">
                     <span class="sidebar-icon"><i class="bi bi-speedometer2"></i></span>
-                    <span class="sidebar-text">Dashboard</span>
+                    <span class="sidebar-text">Invoice</span>
+                </a>
+            </li>
+            <li class="nav-item" id="_menu-dashboard">
+                <a href="/report" class="nav-link">
+                    <span class="sidebar-icon"><i class="bi bi-speedometer2"></i></span>
+                    <span class="sidebar-text">Report</span>
+                </a>
+            </li>
+            <li class="nav-item" id="_menu-dashboard">
+                <a href="/customer" class="nav-link">
+                    <span class="sidebar-icon"><i class="bi bi-speedometer2"></i></span>
+                    <span class="sidebar-text">Customer</span>
                 </a>
             </li>
             <li role="separator" class="dropdown-divider border-gray-700"></li>

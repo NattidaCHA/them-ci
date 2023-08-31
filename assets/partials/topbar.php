@@ -2,10 +2,9 @@
     <div class="container-fluid px-0">
         <div class="d-flex justify-content-between w-100" id="navbarSupportedContent">
             <div class="d-flex align-items-center mb-3">
-                <h5>Dashboard</h5>
-                <!-- <?php if (!empty($page_header)) { ?>
-                <h5><?php echo $page_header; ?></h5>
-                <?php } ?> -->
+                <?php if (!empty($page_header)) { ?>
+                    <h3 class="text-muted"><?php echo $page_header; ?></h5>
+                <?php } ?>
             </div>
 
             <!-- <ul class="navbar-nav align-items-center">
