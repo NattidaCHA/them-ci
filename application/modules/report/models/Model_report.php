@@ -107,7 +107,7 @@ class Model_report extends MY_Model
             $this->db->where("(T1.created_date >='$startDate' AND T1.created_date <='$endDate')");
         }
 
-        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_bill_email)) as is_bill_email,MAX(CONVERT(int,T1.is_receive_bill)) as is_receive_bill,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as mcustname,MAX(T1.created_by) as created_by,MAX(T1.receive_call) as receive_call')
+        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_bill_email)) as is_bill_email,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as mcustname,MAX(T1.created_by) as created_by,MAX(T1.end_date) as end_date')
             ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.cus_no', 'left')
             ->group_by('T1.uuid')
             ->group_by('T1.bill_no')
@@ -202,7 +202,9 @@ class Model_report extends MY_Model
                 $count = ceil(count($itemLists) / $size);
                 $data->total_page = $count;
                 $data->total = $this->calculateTotallChild($itemLists);
-                $code =  "|0105562170352\n00\n" . $info->mcustno .  "\n" . str_replace('N', '8', $bill_info->bill_no) .   "\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
+                //"|010556217035200\n . $info->mcustno .\n. str_replace('N', '8', $bill_info->bill_no) .\n0"
+                //$code =  "|010556217035200\r\n" . $info->mcustno .  "\r\n" . str_replace('N', '8', $bill_info->bill_no) .   "\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
+                $code = "|010556217035200\r\n$info->mcustno\r\n$bill_info->bill_no\r\n0";
                 $data->qrcode = $this->qrcode($code);
                 $data->barcode->image = $this->barcode($code);
                 $data->barcode->code = $code;

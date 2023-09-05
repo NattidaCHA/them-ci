@@ -1,7 +1,7 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 // $config = array(
-//     "protocol" => "mail",
+//     "protocol" => "mail",smtp
 //     "smtp_host" => "smtp.office365.com",
 //     "smtp_port" => 587, //587
 //     "smtp_crypto" => "tls",
@@ -28,7 +28,7 @@ $config['smtp_pass'] = "!Ohsehun1228";
 $config['smtp_crypto'] = 'tls';
 $config['smtp_timeout'] = 7;
 $config['charset'] = "utf-8";
-$config['mailtype'] = "text"; //html
+$config['mailtype'] = "html"; //html
 $config['crlf'] = "\r\n";
 $config['newline'] = "\r\n";
 $config['wordwrap'] = TRUE;
