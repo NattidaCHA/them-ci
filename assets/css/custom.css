@@ -1255,3 +1255,7 @@ div.dataTables_wrapper div.dataTables_paginate {
 	background-color: #cdcdcd;
 	outline: 1px solid #cdcdcd;
 }
+
+.form-check {
+	/* padding-left: 1.22em !important; */
+}

@@ -22,7 +22,6 @@
                 <a type="button" class="btn btn-success" href="/customer/process/create">+ สร้างข้อมูลลูกค้า</a>
             </div>
         </form>
-
         <div class="table-responsive">
             <table id="customerLists" class="table table-centered table-striped w-100">
                 <thead class="thead-light">
@@ -40,7 +39,39 @@
                             <tr>
                                 <td><?php echo !empty($res->cus_name) ? $res->cus_name . ' (' . $res->cus_no . ')' : '-'; ?>
                                 </td>
-                                <td><?php echo !empty($res->contact) ? $res->contact : '-'; ?></td>
+                                <td>
+                                    <?php if (!empty($res->uuid)) { ?>
+                                        <div id="contact_<?php echo $res->uuid ?>">
+                                            <div class="" id="contact_heading_<?php echo $res->uuid ?>">
+                                                <?php if (!empty($tels[$res->cus_no])) { ?>
+                                                    <?php if (count($tels[$res->cus_no]) > 3) { ?>
+                                                        <?php foreach (array_slice($tels[$res->cus_no], 0, 3) as $key => $value) { ?>
+                                                            <?php echo (($key < 2)) ? $value->contact . ',' : $value->contact; ?><?php } ?>
+                                            </div>
+                                            <div id="contact_collapse_<?php echo $res->uuid ?>" class="accordion-collapse collapse" aria-labelledby="contact_heading_<?php echo $res->uuid ?>" data-parent="#contact_<?php echo $res->uuid ?>">
+                                                <?php $count = count(array_slice($tels[$res->cus_no], 3)); ?>
+                                                <?php $i = 0; ?>
+                                                <?php foreach (array_slice($tels[$res->cus_no], 3) as $key => $value) { ?>
+                                                    <?php echo ((++$i == $count)) ? $value->contact : $value->contact . ','; ?>
+                                                <?php } ?>
+                                            </div>
+                                        <?php } else { ?>
+                                            <?php if (count($tels[$res->cus_no]) > 1) { ?>
+                                                <?php foreach (array_slice($tels[$res->cus_no], 0, 2) as $key => $value) { ?>
+                                                    <?php echo (($key == 1)) ? $value->contact : $value->contact . ','; ?><?php } ?>
+                                                <?php } else {
+                                                            echo !empty($value->contact) ?  $value->contact : '-';
+                                                        } ?>
+                                            <?php } ?>
+                                            <?php if (count($tels[$res->cus_no]) > 3) { ?>
+                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#contact_collapse_<?php echo $res->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
+                                            <?php } ?>
+                                        <?php } else {
+                                                    echo '-';
+                                                } ?>
+                                        </div>
+                                    <?php } ?>
+                                </td>
                                 <td>
                                     <?php if (!empty($res->uuid)) { ?>
                                         <div id="accordion_<?php echo $res->uuid ?>">

@@ -3,7 +3,7 @@
 class Model_invoice extends MY_Model
 {
 
-    private $tableAllowFieldsInvoice = ['uuid', 'cus_main', 'cus_no', 'bill_no', 'is_email', 'created_date', 'is_sms', 'is_bill_email', 'start_date', 'end_date', 'created_by','is_receive_bill'];
+    private $tableAllowFieldsInvoice = ['uuid', 'cus_main', 'cus_no', 'bill_no', 'is_email', 'created_date', 'is_sms', 'start_date', 'end_date', 'created_by', 'is_receive_bill'];
     private $tableAllowFieldsInvoiceDatail = ['uuid', 'bill_no', 'bill_id', 'macctdoc', 'cus_no', 'cus_main', 'mdoctype', 'mbillno', 'mpostdate', 'mduedate', 'msaleorg', 'mpayterm', 'mnetamt', 'mtext', 'msort'];
 
     public function __construct()

@@ -113,7 +113,6 @@ class Invoice extends MY_Controller
                     'cus_main' => $cus_main,
                     'cus_no' => $key,
                     'is_email' => FALSE,
-                    'is_bill_email' => TRUE,
                     'is_sms' => FALSE,
                     'start_date' => $start,
                     'end_date' => $end,

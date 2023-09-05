@@ -19,12 +19,13 @@
             </div>
         </form>
 
-        <?php if (!empty($loading)) {
-            echo '<span class="spinner-border spinner-border-lg mt-5" role="status"></span>';
-        } ?>
-
+        <!-- <?php //if (!empty($loading)) {
+                //echo '<span class="spinner-border spinner-border-lg mt-5 text-center <?php echo count((array)$info) > 0 
+                ?>" role="status"></span>';
+        } ?> -->
+        <!-- <span class="spinner-border spinner-border-lg mt-5 text-center <?php //echo !empty($loading) ? 'd-flex' : 'd-none' ?>" role="status"></span> -->
         <?php if (!empty($info) && count((array)$info) > 0) { ?>
-            <form id="customerForm" class="mb-4">
+            <form id="customerForm" class="mb-4 <?php //echo !empty($loading) ? 'd-none' : 'd-flex' ?>">
                 <div class="customer-page">
                     <div class="bg-customer">
                         <h4 class="mb-3 text-muted">ข้อมูลลูกค้า</h4>

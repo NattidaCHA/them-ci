@@ -16,6 +16,9 @@ class Report extends MY_Controller
         $bill_no = !empty($this->input->get('bill_no')) ? $this->input->get('bill_no') : '';
         $cus_no = !empty($this->input->get('customer')) ? $this->input->get('customer') : '';
         $lists = [];
+        $tels = [];
+        $emails = [];
+        $receiveCall = [];
 
         $condition = [
             'created_date' => $created_date,
@@ -26,16 +29,26 @@ class Report extends MY_Controller
         $result = $this->model_report->getBill($condition);
         foreach ($result as $res) {
             $lists[$res->uuid] = $res;
+            $tels[$res->uuid] = !empty($this->model_report->getTelById($res->cus_no, $res->cus_main)) ? $this->model_report->getTelById($res->cus_no, $res->cus_main)[$res->cus_no] : [];
+            $emails[$res->uuid] = !empty($this->model_report->getEmailById($res->cus_no, $res->cus_main)) ? $this->model_report->getEmailById($res->cus_no, $res->cus_main)[$res->cus_no] : [];
+            $receiveCall = $this->model_report->getCfCall($res->uuid);
         }
 
+        // echo '<pre>';
+        // var_dump($receiveCall);
+        // echo '</pre>';
         $billNos = $this->model_report->getBillNo();
-        // var_dump($billNos);
+        $cfCall = $this->model_report->getCfCall();
         $this->data['lists'] = $lists;
+        $this->data['tels'] = $tels;
+        $this->data['emails'] = $emails;
         $this->data['billNos'] = !empty($billNos) ? $billNos : [];
         $this->data['customers'] = $this->model_system->getCustomer();
         $this->data['created_date'] = $created_date;
         $this->data['bill_no'] = $bill_no;
+        $this->data['receives'] = $receiveCall;
         $this->data['cus_no'] = $cus_no;
+        $this->data['cf_call'] = !empty($cfCall) ? $cfCall : [];
         $this->data['page_header'] = 'Report';
         $this->loadAsset(['dataTables', 'datepicker', 'select2', 'parsley']);
         $this->view('report_lists');
@@ -158,10 +171,47 @@ class Report extends MY_Controller
     {
         $output = $this->apiDefaultOutput();
         $params = $this->input->post();
+        $data = [];
 
         if (!empty($params)) {
-            $params['is_call'] = !empty($params['is_call']) ? 1 : 0;
-            $this->model_report->update($params['uuid'], $params);
+            if (empty($params['uuid'])) {
+                foreach ($params['report_uuid'] as $key => $val) {
+                    $data['report_uuid'] = $val;
+                    $data['uuid'] = genRandomString(16);
+                    $data['cf_call'] = !empty($params['cf_call'][$key]) ? 1 : 0;
+                    $data['receive_call'] = !empty($params['receive_call'][$key]) ? $params['receive_call'][$key] : NULL;
+                    $data['cus_main'] = $params['cus_main'][$key];
+                    $data['tel'] = $params['tel'][$key];
+                    $this->model_report->createCfCall($data);
+                }
+            } else {
+                foreach ($params['report_uuid'] as $key => $val) {
+                    $data['report_uuid'] = $val;
+                    $data['receive_call'] = !empty($params['receive_call'][$key]) ? $params['receive_call'][$key] : NULL;
+                    $data['cus_main'] = $params['cus_main'][$key];
+                    $data['tel'] = $params['tel'][$key];
+
+                    if (!empty($params['cf_call'])) {
+                        $find = in_array($params['tel'][$key], $params['cf_call']);
+                        if (!empty($find)) {
+                            $data['cf_call'] = 1;
+                        } else {
+                            $data['cf_call'] = 0;
+                        }
+                    } else {
+                        $data['cf_call'] = 0;
+                    }
+                    if (!empty($params['uuid'][$key])) {
+                        $data['uuid'] = $params['uuid'][$key];
+                        $this->model_report->updateCfCall($params['uuid'][$key], $data);
+                    } else {
+                        $data['uuid'] = genRandomString(16);
+                        $this->model_report->createCfCall($data);
+                    }
+                }
+            }
+
+
 
             $output['status'] = 200;
             $output['data'] = $params;

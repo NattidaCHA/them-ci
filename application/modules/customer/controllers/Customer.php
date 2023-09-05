@@ -24,23 +24,20 @@ class Customer extends MY_Controller
 
         if (!empty($lists)) {
             foreach ($lists as $key => $val) {
-                $tel  = $this->model_customer->getTelById($val->cus_no);
-                $email  = $this->model_customer->getEmailById($val->cus_no);
+                $tel  = $this->model_customer->getTel($val->cus_no);
+                $email  = $this->model_customer->getEmail($val->cus_no);
                 foreach ($tel as $k => $res) {
-                    $tels[$res->cus_main][] = $res;
+                    $tels[$k] = $res;
                 }
 
                 foreach ($email as $k => $res) {
-                    $emails[$res->cus_main][] = $res;
+                    $emails[$k] = $res;
                 }
             }
         }
 
-        // echo '<pre>';
-        // var_dump($contacts);
-        // echo '</pre>';
 
-        $this->data['page_header'] = 'Customer';
+        $this->data['page_header'] = 'ลูกค้า';
         $this->data['customers'] = $result;
         $this->data['lists'] = $lists;
         $this->data['tels'] = $tels;
@@ -48,6 +45,10 @@ class Customer extends MY_Controller
         $this->data['cus_no'] = $cus_no;
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('customer_lists');
+        // echo '<pre>';
+        // var_dump($tels);
+        // echo '</pre>';
+
     }
 
     public function process($action)
@@ -62,20 +63,19 @@ class Customer extends MY_Controller
         $isCheck = [];
         $tels = [];
         $emails = [];
-        $loading = false;
+        $loading = !empty($cus_no) && $action == 'create' ? true :  false;
 
         foreach ($days as $day) {
             $this->data['days'][$day->id] = $day;
         }
 
         if ($action == 'create') {
-            $loading = true;
             $main = $this->model_customer->findMain($cus_no);
             if (!empty($main->cus_no)) {
-                $loading = false;
                 $customerChild = $this->model_customer->findChildList($cus_no);
                 $sendDate =  !empty($this->model_system->getSendDate($cus_no)) ? $this->model_system->getSendDate($cus_no)->mday : '';
                 $customer = $this->model_customer->findChild($main->msendto);
+                $loading = false;
 
                 if (!empty($customer->tel)) {
                     if (strpos($customer->tel, ",") > 0) {
@@ -101,13 +101,13 @@ class Customer extends MY_Controller
             } else {
                 $child = $this->model_customer->findChild($cus_no);
                 if (!empty($child->cus_no)) {
-                    $loading = false;
                     $customer = $this->model_customer->findChild($child->msendto);
                     $type = 'child';
                     $customer = $child;
                     $customerMain = $this->model_customer->findChild($child->msendto);
                     array_push($customerChild, (object)['cus_no' => $customerMain->cus_no, 'cus_name' => $customerMain->cus_name, 'type' => 'main'], (object)['cus_no' => $child->cus_no, 'cus_name' => $child->cus_name]);
                     $sendDate = !empty($this->model_system->getSendDate($cus_no)) ? $this->model_system->getSendDate($cus_no)->mday : '';
+                    $loading = false;
                 }
             }
         } else {
@@ -220,6 +220,9 @@ class Customer extends MY_Controller
                             }
                         }
                     }
+                    // var_dump($checkCustomer);
+                    // exit;
+
                     $output['status'] = 200;
                     $output['data'] = $params;
                 } else {
@@ -230,7 +233,6 @@ class Customer extends MY_Controller
             } else {
                 $id = $this->input->get('id');
                 $customer['updated_date'] =  date("Y-m-d H:i:s");
-
                 $this->model_customer->updateInfo($params['id'], $customer);
 
                 if (!empty($params['noCheckChild'])) {
@@ -248,21 +250,32 @@ class Customer extends MY_Controller
                         $customerMain = $this->model_customer->findChild($val);
                         $res = $this->model_customer->checkSendTo($val, $customerMain->msendto);
                         $checkToChild = $this->model_customer->checkSendToChild($val);
-                        // var_dump($res);
-                        // exit;
                         $sendto['is_check'] = 1;
+
                         if (!empty($params['noCheckChildId'])) {
+                            $uuid = !empty($res) ? $res->uuid : $checkToChild->uuid;
                             if ((!empty($res) || !empty($checkToChild)) && (!in_array($val, $params['noCheckChildId']))) {
-                                $this->model_customer->updateSendTo($res->uuid, $sendto);
+                                $this->model_customer->updateSendTo($uuid, $sendto);
                             }
                         } else {
-                            if (empty($res) || empty($checkToChild)) {
-                                $sendto['uuid'] = genRandomString(16);
-                                $sendto['cus_no'] = $val;
-                                $sendto['cus_main'] = $params['cus_no'];
-                                $this->model_customer->createSendto($sendto);
+                            if ($params['type'] == 'main') {
+                                if (!empty($res)) {
+                                    $this->model_customer->updateSendTo($res->uuid, $sendto);
+                                } else {
+                                    $sendto['uuid'] = genRandomString(16);
+                                    $sendto['cus_no'] = $val;
+                                    $sendto['cus_main'] = $params['cus_no'];
+                                    $this->model_customer->createSendto($sendto);
+                                }
                             } else {
-                                $this->model_customer->updateSendTo($res->uuid, $sendto);
+                                if (!empty($checkToChild)) {
+                                    $this->model_customer->updateSendTo($checkToChild->uuid, $sendto);
+                                } else {
+                                    $sendto['uuid'] = genRandomString(16);
+                                    $sendto['cus_no'] = $val;
+                                    $sendto['cus_main'] = $params['cus_no'];
+                                    $this->model_customer->createSendto($sendto);
+                                }
                             }
                         }
                     }
@@ -271,7 +284,7 @@ class Customer extends MY_Controller
                 if (!empty($params['tel'])) {
                     $id = $params['uuid_tel'];
                     $tel = $params['tel'];
-                    
+
                     foreach ($id as $key => $val) {
                         if (!empty($tel[$key])) {
                             $conatct = [
@@ -316,6 +329,8 @@ class Customer extends MY_Controller
                     }
                 }
 
+                // var_dump($output);
+                // exit;
                 $output['status'] = 200;
                 $output['data'] = $params;
             }

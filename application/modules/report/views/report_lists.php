@@ -58,37 +58,37 @@
                 </thead>
                 <tbody>
                     <?php if (!empty($lists)) {
-                        foreach ($lists as $invoice) { ?>
+                        foreach ($lists as $key => $invoice) { ?>
                             <tr>
                                 <td><?php echo $invoice->bill_no; ?></td>
                                 <td><?php echo !empty($invoice->mcustname) ? $invoice->mcustname . ' (' . $invoice->cus_no . ')' : '-'; ?>
                                 </td>
                                 <td>
                                     <?php if (!empty($invoice->uuid)) { ?>
-                                        <div id="tel_<?php echo $invoice->uuid ?>">
-                                            <div class="" id="tel_heading_<?php echo $invoice->uuid ?>">
-                                                <?php if (!empty($invoice->memail)) { ?>
-                                                    <?php if (count(explode(',', $invoice->memail)) > 3) { ?>
-                                                        <?php foreach (array_slice(explode(',', $invoice->memail), 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value . ',' : $value; ?><?php } ?>
+                                        <div id="email_<?php echo $invoice->uuid ?>">
+                                            <div class="" id="email_heading_<?php echo $invoice->uuid ?>">
+                                                <?php if (!empty($emails[$invoice->uuid])) { ?>
+                                                    <?php if (count($emails[$invoice->uuid]) > 3) { ?>
+                                                        <?php foreach (array_slice($emails[$invoice->uuid], 0, 3) as $key => $value) { ?>
+                                                            <?php echo (($key < 2)) ? $value->email . ',' : $value->email; ?><?php } ?>
                                             </div>
-                                            <div id="tel_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="tel_heading_<?php echo $invoice->uuid ?>" data-parent="#tel_<?php echo $invoice->uuid ?>">
-                                                <?php $count = count(array_slice(explode(',', $invoice->memail), 3)); ?>
+                                            <div id="email_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="email_heading_<?php echo $invoice->uuid ?>" data-parent="#email_<?php echo $invoice->uuid ?>">
+                                                <?php $count = count(array_slice($emails[$invoice->uuid], 3)); ?>
                                                 <?php $i = 0; ?>
-                                                <?php foreach (array_slice(explode(',', $invoice->memail), 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value : $value . ','; ?>
+                                                <?php foreach (array_slice($emails[$invoice->uuid], 3) as $key => $value) { ?>
+                                                    <?php echo ((++$i == $count)) ? $value->email : $value->email . ','; ?>
                                                 <?php } ?>
                                             </div>
                                         <?php } else { ?>
-                                            <?php if (count(explode(',', $invoice->memail)) > 1) { ?>
-                                                <?php foreach (array_slice(explode(',', $invoice->memail), 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value : $value . ','; ?><?php } ?>
+                                            <?php if (count($emails[$invoice->uuid]) > 1) { ?>
+                                                <?php foreach (array_slice($emails[$invoice->uuid], 0, 3) as $key => $value) { ?>
+                                                    <?php echo (($key == 2)) ? $value->email  : $value->email . ','; ?><?php } ?>
                                                 <?php } else {
-                                                            echo $invoice->memail;
+                                                            echo $emails[$invoice->uuid]->email;
                                                         } ?>
                                             <?php } ?>
-                                            <?php if (count(explode(',', $invoice->memail)) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#tel_collapse_<?php echo $res->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
+                                            <?php if (count($emails[$invoice->uuid]) > 3) { ?>
+                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#email_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
                                             <?php } ?>
                                         <?php } else {
                                                     echo '-';
@@ -100,28 +100,28 @@
                                     <?php if (!empty($invoice->uuid)) { ?>
                                         <div id="tel_<?php echo $invoice->uuid ?>">
                                             <div class="" id="tel_heading_<?php echo $invoice->uuid ?>">
-                                                <?php if (!empty($invoice->mtel)) { ?>
-                                                    <?php if (count(explode(',', $invoice->mtel)) > 3) { ?>
-                                                        <?php foreach (array_slice(explode(',', $invoice->mtel), 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value . ',' : $value; ?><?php } ?>
+                                                <?php if (!empty($tels[$invoice->uuid])) { ?>
+                                                    <?php if (count($tels[$invoice->uuid]) > 3) { ?>
+                                                        <?php foreach (array_slice($tels[$invoice->uuid], 0, 3) as $key => $value) { ?>
+                                                            <?php echo (($key < 2)) ? $value->tel . ',' : $value->tel; ?><?php } ?>
                                             </div>
                                             <div id="tel_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="tel_heading_<?php echo $invoice->uuid ?>" data-parent="#tel_<?php echo $invoice->uuid ?>">
-                                                <?php $count = count(array_slice(explode(',', $invoice->mtel), 3)); ?>
+                                                <?php $count = count(array_slice($tels[$invoice->uuid], 3)); ?>
                                                 <?php $i = 0; ?>
-                                                <?php foreach (array_slice(explode(',', $invoice->mtel), 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value : $value . ','; ?>
+                                                <?php foreach (array_slice($tels[$invoice->uuid], 3) as $key => $value) { ?>
+                                                    <?php echo ((++$i == $count)) ? $value->tel : $value->tel . ','; ?>
                                                 <?php } ?>
                                             </div>
                                         <?php } else { ?>
-                                            <?php if (count(explode(',', $invoice->mtel)) > 1) { ?>
-                                                <?php foreach (array_slice(explode(',', $invoice->mtel), 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value : $value . ','; ?><?php } ?>
+                                            <?php if (count($tels[$invoice->uuid]) > 1) { ?>
+                                                <?php foreach (array_slice($tels[$invoice->uuid], 0, 3) as $key => $value) { ?>
+                                                    <?php echo (($key == 2)) ? $value->tel : $value->tel . ','; ?><?php } ?>
                                                 <?php } else {
-                                                            echo $invoice->mtel;
+                                                            echo $tels[$invoice->uuid]->tel;
                                                         } ?>
                                             <?php } ?>
-                                            <?php if (count(explode(',', $invoice->mtel)) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#tel_collapse_<?php echo $res->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
+                                            <?php if (count($tels[$invoice->uuid]) > 3) { ?>
+                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#tel_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
                                             <?php } ?>
                                         <?php } else {
                                                     echo '-';
@@ -129,9 +129,74 @@
                                         </div>
                                     <?php } ?>
                                 </td>
-                                <td><?php echo !empty($invoice->is_call) ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>'; ?></td>
-                                <td><?php echo !empty($invoice->mcontact) ? $invoice->mcontact : '-'; ?></td>
-                                <td><?php echo !empty($invoice->receive_call) ? $invoice->receive_call : '-'; ?></td>
+                                <td><?php echo !empty($tels[$invoice->uuid]) ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>'; ?></td>
+                                <td>
+                                    <?php if (!empty($invoice->uuid)) { ?>
+                                        <div id="contact_<?php echo $invoice->uuid ?>">
+                                            <div class="" id="contact_heading_<?php echo $invoice->uuid ?>">
+                                                <?php if (!empty($tels[$invoice->uuid])) { ?>
+                                                    <?php if (count($tels[$invoice->uuid]) > 3) { ?>
+                                                        <?php foreach (array_slice($tels[$invoice->uuid], 0, 3) as $key => $value) { ?>
+                                                            <?php echo (($key < 2)) ? $value->contact . ',' : $value->contact; ?><?php } ?>
+                                            </div>
+                                            <div id="contact_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="contact_heading_<?php echo $invoice->uuid ?>" data-parent="#contact_<?php echo $invoice->uuid ?>">
+                                                <?php $count = count(array_slice($tels[$invoice->uuid], 3)); ?>
+                                                <?php $i = 0; ?>
+                                                <?php foreach (array_slice($tels[$invoice->uuid], 3) as $key => $value) { ?>
+                                                    <?php echo ((++$i == $count)) ? $value->contact : $value->contact . ','; ?>
+                                                <?php } ?>
+                                            </div>
+                                        <?php } else { ?>
+                                            <?php if (count($tels[$invoice->uuid]) > 1) { ?>
+                                                <?php foreach (array_slice($tels[$invoice->uuid], 0, 2) as $key => $value) { ?>
+                                                    <?php echo (($key == 1)) ? $value->contact : $value->contact . ','; ?><?php } ?>
+                                                <?php } else {
+                                                            echo !empty($tels[$invoice->uuid]->contact) ? $tels[$invoice->uuid]->contact : '-';
+                                                        } ?>
+                                            <?php } ?>
+                                            <?php if (count($tels[$invoice->uuid]) > 3) { ?>
+                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#contact_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
+                                            <?php } ?>
+                                        <?php } else {
+                                                    echo '-';
+                                                } ?>
+                                        </div>
+                                    <?php } ?>
+                                </td>
+                                <td>
+                                    <?php if (!empty($invoice->uuid)) { ?>
+                                        <div id="receives_<?php echo $invoice->uuid ?>">
+                                            <div class="" id="receives_heading_<?php echo $invoice->uuid ?>">
+                                                <?php if (!empty($receives[$invoice->uuid])) { ?>
+                                                    <?php if (count($receives[$invoice->uuid]) > 3) { ?>
+                                                        <?php foreach (array_slice($receives[$invoice->uuid], 0, 3) as $key => $value) { ?>
+                                                            <?php echo (($key < 2)) ? $value->receive_call . ',' : $value->receive_call; ?><?php
+                                                                                                                                        } ?>
+                                            </div>
+                                            <div id="receives_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="receives_heading_<?php echo $invoice->uuid ?>" data-parent="#receives_<?php echo $invoice->uuid ?>">
+                                                <?php $count = count(array_slice($receives[$invoice->uuid], 3)); ?>
+                                                <?php $i = 0; ?>
+                                                <?php foreach (array_slice($receives[$invoice->uuid], 3) as $key => $value) { ?>
+                                                    <?php echo ((++$i == $count)) ? $value->receive_call : $value->receive_call . ','; ?>
+                                                <?php } ?>
+                                            </div>
+                                        <?php } else { ?>
+                                            <?php if (count($receives[$invoice->uuid]) > 1) { ?>
+                                                <?php foreach (array_slice($receives[$invoice->uuid], 0, 2) as $key => $value) { ?>
+                                                    <?php echo (($key == 1)) ? $value->receive_call : $value->receive_call . ','; ?><?php } ?>
+                                                <?php } else {
+                                                            echo !empty($receives[$invoice->uuid]->receive_call) ? $receives[$invoice->uuid]->receive_call : '-';
+                                                        } ?>
+                                            <?php } ?>
+                                            <?php if (count($receives[$invoice->uuid]) > 3) { ?>
+                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#receives_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
+                                            <?php } ?>
+                                        <?php } else {
+                                                    echo '-';
+                                                } ?>
+                                        </div>
+                                    <?php } ?>
+                                </td>
                                 <td>
                                     <a class="btn btn-sm btn-success modalStatus" type="button" data-bs-toggle="modal" data-bs-target="#modal_status" data-uuid="<?php echo $invoice->uuid ?>">
                                         <i class="bi bi-file-earmark"></i>
@@ -160,7 +225,7 @@
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body status">
                 <div class="table-responsive">
                     <table id="status" class="table table-centered table-striped w-100">
                         <thead class="thead-light">
@@ -193,20 +258,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form class="updateAction" id="updateAction">
-                <div class="modal-body">
-                    <div class="form-check">
-                        <input class="form-check-input uuid" type="hidden" id="uuid" name="uuid">
-                        <input class="form-check-input is_call" type="checkbox" id="is_call" name="is_call">
-                        <label class="form-check-label" for="is_call">
-                            โทรแจ้ง
-                        </label>
-                    </div>
-                    <div class="mb-3 row">
-                        <label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control receive_call" id="receive_call" name="receive_call" required autocomplete="off">
-                        </div>
-                    </div>
+                <div class="modal-body cfCall">
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-primary loading" type="button" disabled style="display: none;">
@@ -223,6 +275,9 @@
 <script>
     $(function() {
         var lists = <?php echo !empty($lists) ? json_encode($lists) : '[]'; ?>;
+        var tels = <?php echo !empty($tels) ? json_encode($tels) : '[]'; ?>;
+        var cf_call = <?php echo !empty($cf_call) ? json_encode($cf_call) : '[]'; ?>;
+
         let formUpdate = $('.updateAction').parsley();
 
         $('#created_date').datepicker({
@@ -264,7 +319,7 @@
                 e.preventDefault();
                 let id = $(this).attr("data-uuid")
                 let created_by = lists[id].created_by ? lists[id].created_by : '-'
-                let is_bill = lists[id].is_bill_email == 1 ? 'ส่งรายงานเรียบร้อยแล้ว' : 'ยังไม่ส่งรายงาน'
+                let is_bill = lists[id].is_email == 1 ? 'ส่งรายงานเรียบร้อยแล้ว' : 'ยังไม่ส่งรายงาน'
                 let is_receive_bill = lists[id].is_receive_bill == 1 ? 'ได้รับแล้ว' : 'ยังไม่ได้รับ'
                 let html = '<tr>' +
                     '<td>' + lists[id].created_date + '</td>' +
@@ -291,12 +346,41 @@
                 e.preventDefault();
                 let id = $(this).attr("data-uuid")
                 $('.uuid').val(id)
-                let is_call = lists[id].is_call ? true : false
-                let receive_call = lists[id].receive_call ? lists[id].receive_call : ''
-                $('.uuid').val(id)
-                $('.is_call').prop('checked', is_call)
-                $('.receive_call').val(receive_call)
+                let html = '';
+                if (cf_call[id] && cf_call[id] != 'undefined') {
+                    tels[id].map((o, i) => {
+                        let receive_call = cf_call[id][o.tel] && cf_call[id][o.tel] != 'undefined' ? cf_call[id][o.tel].receive_call : ''
+                        let cf_call_uuid = cf_call[id][o.tel] && cf_call[id][o.tel] != 'undefined' ? cf_call[id][o.tel].uuid : ''
+                        let check = cf_call[id][o.tel] && cf_call[id][o.tel] != 'undefined' ? cf_call[id][o.tel].cf_call ? 'checked' : '' : ''
+                        let lastIndex = tels[id].length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
+                        let _k = i + 1
+                        html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check"><input class="form-check-input" type="hidden" id="uuid" name="uuid[]" value="' + cf_call_uuid + '">' +
+                            '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
+                            '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
+                            '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + lists[id].cus_no + '">' +
+                            '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ' + check + ' id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
+                            '<div class="mb-3 row"><label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
+                            '<input type="text" class="form-control receive_call" id="receive_call" value="' + receive_call + '" name="receive_call[]" autocomplete="off"></div></div><div class="' + lastIndex + '"></div></div>';
+                    });
+                } else {
+                    tels[id].length > 0 ? tels[id].map(o => {
+                        let lastIndex = tels[id].length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
+                        html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check">' +
+                            '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
+                            '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
+                            '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + lists[id].cus_no + '">' +
+                            '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cf_call" name="cf_call[]">' + '<label class="form-check-label" for="is_call">โทรแจ้ง</label></div></div>' +
+                            '<div class="mb-3 row"><label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
+                            '<input type="text" class="form-control receive_call" id="receive_call" name="receive_call[]" autocomplete="off"></div></div><div class="' + lastIndex + '"></div></div>';
+                    }) : html = '<p class="text-center mt-3">ไม่พบข้อมูล</p>'
+                }
 
+                $('.cfCall').html(html)
+                if (tels[id].length > 2) {
+                    $('.cfCall').addClass('cf_call_list')
+                } else {
+                    $('.cfCall').removeClass('cf_call_list')
+                }
 
             });
         $('.dataTables_filter label').hide();
@@ -306,6 +390,7 @@
             readyProcess(true);
             if (formUpdate.validate() === true) {
                 let formData = $('.updateAction').serializeArray();
+                console.log(formData)
                 $.post("/report/update", formData).done(function(res) {
                     $('.modalUpdate').modal('hide')
                     if (res.status === 200) {
@@ -362,13 +447,13 @@
         $('.dataTables_filter label').hide();
 
         function readyProcess(wait = false) {
-            if (wait) {
-                $('.submit-action').hide();
-                $('.loading').show();
-            } else {
-                $('.submit-action').show();
-                $('.loading').hide();
-            }
+            // if (wait) {
+            //     $('.submit-action').hide();
+            //     $('.loading').show();
+            // } else {
+            //     $('.submit-action').show();
+            //     $('.loading').hide();
+            // }
         }
     });
 </script>

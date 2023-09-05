@@ -220,6 +220,8 @@ class Model_customer extends MY_Model
 
     public function updateSendTo($id, $sendTo)
     {
+        // var_dump($id, $sendTo);
+        // exit;
         $sql = $this->db->where('uuid', $id)->update('sendto_customer', $sendTo);
         if (!empty($sql)) {
             return $sql;
@@ -291,33 +293,31 @@ class Model_customer extends MY_Model
         return  $result;
     }
 
-    public function getEmailById($cus_no)
+    public function getEmail()
     {
         $result = [];
         $lists = [];
-        $sql = $this->db->where('cus_main', $cus_no)->get('email_customer');
+        $sql = $this->db->get('email_customer');
         $result = $sql->result();
         $sql->free_result();
 
         foreach ($result as $val) {
-            $lists[$val->cus_main] = $val;
+            $lists[$val->cus_main][] = $val;
         }
-
-        return  $result;
+        return  $lists;
     }
 
-    public function getTelById($cus_no)
+    public function getTel()
     {
         $result = [];
         $lists = [];
-        $sql = $this->db->where('cus_main', $cus_no)->get('tel_customer');
+        $sql = $this->db->get('tel_customer');
         $result = $sql->result();
         $sql->free_result();
 
         foreach ($result as $val) {
-            $lists[$val->cus_main] = $val;
+            $lists[$val->cus_main][] = $val;
         }
-
         return  $lists;
     }
 }

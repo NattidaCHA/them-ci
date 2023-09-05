@@ -6,6 +6,7 @@ use Mpdf\Tag\Em;
 
 class Model_report extends MY_Model
 {
+    private $tableAllowFieldsCfCall = ['uuid', 'report_uuid', 'tel', 'cus_main', 'cf_call', 'receive_call'];
 
     public function __construct()
     {
@@ -19,6 +20,72 @@ class Model_report extends MY_Model
         $result = $sql->result();
         $sql->free_result();
         return $result;
+    }
+
+    public function getEmailById($cus_no, $cus_main)
+    {
+        $result = [];
+        $lists = [];
+        $isCheck = $this->checkSendto($cus_no, $cus_main);
+
+
+        foreach ($isCheck as $val) {
+            $sql = $this->db->where('cus_main', $val->cus_main)->get('email_customer');
+            $result = $sql->result();
+            $sql->free_result();
+
+            foreach ($result as $val) {
+                $lists[$cus_no][] = $val;
+            }
+        }
+
+        return  $lists;
+    }
+
+    public function getTelById($cus_no, $cus_main)
+    {
+        $result = [];
+        $lists = [];
+        $isCheck = $this->checkSendto($cus_no, $cus_main);
+
+        foreach ($isCheck as $val) {
+            $sql = $this->db->where('cus_main', $val->cus_main)->get('tel_customer');
+            $result = $sql->result();
+            $sql->free_result();
+
+            foreach ($result as $val) {
+                $lists[$cus_no][] = $val;
+            }
+        }
+        return  $lists;
+    }
+
+    public function getReceivecall($reportUuid)
+    {
+        $result = [];
+        $lists = [];
+        $sql = $this->db->where('report_uuid', $reportUuid)->where('receive_call !=', NULL)->get('cf_call_report');
+        $result = $sql->result();
+        $sql->free_result();
+
+        foreach ($result as $val) {
+            $lists[$result->report_uuid][] = $val;
+        }
+
+        return  $lists;
+    }
+
+    public function checkSendto($cus_no, $cus_main)
+    {
+        $result = (object)[];
+        $sql = $this->db->select("cus_main,MAX(CONVERT(int,is_check)) as is_check")
+            ->where("(cus_main = '$cus_no' OR cus_main = '$cus_main')")
+            ->where("is_check =", 1)
+            ->group_by('cus_main')
+            ->get('sendto_customer');
+        $result = $sql->result();
+        $sql->free_result();
+        return  $result;
     }
 
     public function getBill($condition)
@@ -40,9 +107,8 @@ class Model_report extends MY_Model
             $this->db->where("(T1.created_date >='$startDate' AND T1.created_date <='$endDate')");
         }
 
-        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_bill_email)) as is_bill_email,MAX(CONVERT(int,T1.is_receive_bill)) as is_receive_bill,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T3.memail) as memail,MAX(T3.mtel) as mtel,MAX(T2.mcustname) as mcustname,MAX(T1.created_by) as created_by,MAX(T3.mcontact) as mcontact,,MAX(CONVERT(int,T1.is_call)) as is_call,MAX(T1.receive_call) as receive_call')
+        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_bill_email)) as is_bill_email,MAX(CONVERT(int,T1.is_receive_bill)) as is_receive_bill,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as mcustname,MAX(T1.created_by) as created_by,MAX(T1.receive_call) as receive_call')
             ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.cus_no', 'left')
-            ->join('tbl_custtel T3', 'T3.mcustno = T1.cus_main', 'left')
             ->group_by('T1.uuid')
             ->group_by('T1.bill_no')
             ->order_by('bill_no', 'desc')
@@ -291,5 +357,46 @@ class Model_report extends MY_Model
         return FALSE;
     }
 
-    
+
+    public function createCfCall($params)
+    {
+        // var_dump($params);
+        // exit;
+        $checkFields = array_fill_keys($this->tableAllowFieldsCfCall, 0);
+        $create = array_intersect_key($params, $checkFields);
+        $res = $this->db->insert('cf_call_report', $create);
+        // var_dump($res);
+        // exit;
+        if (!empty($res)) {
+            return $res;
+        }
+        // var_dump($res);
+        // exit;
+        return FALSE;
+    }
+
+    public function updateCfCall($id, $update)
+    {
+        $sql = $this->db->where('uuid', $id)->update('cf_call_report', $update);
+        if (!empty($sql)) {
+            return $sql;
+        }
+
+        return FALSE;
+    }
+
+    public function getCfCall()
+    {
+        $result = [];
+        $lists = [];
+        $sql = $this->db->get('cf_call_report');
+        $result = $sql->result();
+        $sql->free_result();
+
+        foreach ($result as $res) {
+            $lists[$res->report_uuid][$res->tel] = $res;
+        }
+
+        return $lists;
+    }
 }

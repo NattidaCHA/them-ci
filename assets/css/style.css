@@ -29877,4 +29877,13 @@ article .h6 {
 	font-size: 12px;
 }
 
+.form-check {
+	padding-left: 1.22em !important;
+}
 
+
+.cf_call_list {
+	overflow: hidden;
+	overflow-y: scroll;
+	height: 420px;
+}
