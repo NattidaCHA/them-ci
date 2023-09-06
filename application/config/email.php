@@ -13,10 +13,10 @@
 //     "crlf" => "\r\n",
 //     "charset" => "utf-8",
 //     "smtp_timeout" => 7,
-//     "wordwrap" => FALSE
+//     "wordwrap" => FALSEsmtp
 // );
 
-$config['protocol'] = "smtp";
+$config['protocol'] = "mail";
 $config['smtp_host'] = 'smtp.office365.com';
 // $config['smtp_host'] = "soms.scg.com";
 // $config['smtp_host'] = 'ssl://soms.scg.com';

@@ -66,44 +66,47 @@ class Report extends MY_Controller
     {
         $output = ['status' => 500, 'msg' => 'Can not send email !'];
         $params = $this->input->post();
-        $content = $this->genPDF($params['uuid'], 'email');
-        $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date']))];
-        $genEmail =  $this->model_report->getEmailById($params['cus_no'], $params['cus_main']);
-        $emails = [];
+
+        if (!empty($params)) {
+            $content = $this->genPDF($params['uuid'], 'email');
+            $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date']))];
+            $genEmail =  $this->model_report->getEmailById($params['cus_no'], $params['cus_main']);
+            $emails = [];
 
 
-        if (!empty($genEmail[$params['cus_no']])) {
-
-            foreach ($genEmail[$params['cus_no']] as $val) {
-                array_push($emails, $val->email);
-            }
-
-
-            $mesg = $this->load->view('email_tem', $data, TRUE);
-            $from_email = "nan_zen0003@hotmail.com";
-            // $from_email = "nattidac@scg.com";
-            $this->load->library('email');
-            $this->email->clear();
-            $this->email->from($from_email, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
-            $this->email->to($emails);
-            $this->email->subject('เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date'])));
-            $this->email->message($mesg);
-            $this->email->attach($content, 'attachment', 'Report_' . $params['bill_no'] . '.pdf', 'application/pdf');
-            $result =  $this->email->send();
+            if (!empty($genEmail[$params['cus_no']])) {
+                foreach ($genEmail[$params['cus_no']] as $val) {
+                    array_push($emails, $val->email);
+                }
 
 
-            if ($result) {
-                $output['status'] = 200;
-                $output['data'] = (object)['data' => $params, 'email' => $emails];
+                $mesg = $this->load->view('email_tem', $data, TRUE);
+                $from_email = "nan_zen0003@hotmail.com";
+                // $from_email = "nattidac@scg.com";
+                $this->load->library('email');
+                $this->email->clear();
+                $this->email->from($from_email, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
+                $this->email->to($emails);
+                $this->email->subject('เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date'])));
+                $this->email->message($mesg);
+                $this->email->attach($content, 'attachment', 'Report_' . $params['bill_no'] . '.pdf', 'application/pdf');
+                $result =  $this->email->send();
+
+
+                if ($result) {
+                    $this->model_report->updateEmail($params['uuid']);
+                    $output['status'] = 200;
+                    $output['data'] = (object)['data' => $params, 'email' => $emails];
+                } else {
+                    $output['status'] = 500;
+                    $output['msg'] = $this->email->print_debugger();
+                    $output['error'] = $this->email->print_debugger();
+                }
             } else {
-                $output['status'] = 500;
-                $output['msg'] = $this->email->print_debugger();
-                $output['error'] = $this->email->print_debugger();
+                $output['status'] = 204;
+                $output['msg'] = 'No email';
+                $output['data'] = false;
             }
-        } else {
-            $output['status'] = 204;
-            $output['msg'] = 'No email';
-            $output['data'] = false;
         }
 
         $this->responseJSON($output);

@@ -107,7 +107,7 @@ class Model_report extends MY_Model
             $this->db->where("(T1.created_date >='$startDate' AND T1.created_date <='$endDate')");
         }
 
-        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_bill_email)) as is_bill_email,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as mcustname,MAX(T1.created_by) as created_by,MAX(T1.end_date) as end_date')
+        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as mcustname,MAX(T1.created_by) as created_by,MAX(T1.end_date) as end_date')
             ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.cus_no', 'left')
             ->group_by('T1.uuid')
             ->group_by('T1.bill_no')
@@ -362,18 +362,14 @@ class Model_report extends MY_Model
 
     public function createCfCall($params)
     {
-        // var_dump($params);
-        // exit;
         $checkFields = array_fill_keys($this->tableAllowFieldsCfCall, 0);
         $create = array_intersect_key($params, $checkFields);
         $res = $this->db->insert('cf_call_report', $create);
-        // var_dump($res);
-        // exit;
+
         if (!empty($res)) {
             return $res;
         }
-        // var_dump($res);
-        // exit;
+
         return FALSE;
     }
 
@@ -400,5 +396,15 @@ class Model_report extends MY_Model
         }
 
         return $lists;
+    }
+
+    public function updateEmail($id)
+    {
+        $data = ['is_email' => 1, 'updated_date' => date("Y-m-d H:i:s")];
+        $sql = $this->db->where('uuid', $id)->update('report_notification', $data);
+        if (!empty($sql)) {
+            return $sql;
+        }
+        return FALSE;
     }
 }

@@ -35,7 +35,7 @@
                                                             </div>
                                                         </div>
                                                         <p>ชนิดบิล : </p>
-                                                        <p class="ms-2">
+                                                        <p class="ms-2 mdoctype-<?php echo $bill->macctdoc; ?>">
                                                             <?php echo !empty($bill->mdoctype) ? $bill->mdoctype : '-'; ?>
                                                         </p>
                                                     </div>
@@ -144,13 +144,16 @@
                 let check = $(this);
                 let checkTotal = check.parents('.invoice-list');
                 let am_total = checkTotal.find('.am_total').text();
+                let type = checkTotal.find('.mdoctype-' + genVal[0]).text();
+                // console.log(type.trim())
                 let key = checkTotal.find('.key-id').val();
                 let cf_mnetamt = checkTotal.find('.cf-mnetamt-' + genVal[0]).text();
                 if ($(this).is(":checked")) {
                     let invoice = {
                         'id': key,
                         'value': genVal[0],
-                        'balance': parseFloat(cf_mnetamt)
+                        'balance': cf_mnetamt.trim(),
+                        'mdoctype': type.trim()
                     }
 
                     let checkData = data.filter(o => genVal[0] == o.value && key == o.id)
@@ -182,7 +185,8 @@
                         let invoice = {
                             'id': value,
                             'value': o.macctdoc,
-                            'balance': parseFloat(o.mnetamt)
+                            'balance': o.mnetamt,
+                            'mdoctype': o.mdoctype
                         }
 
                         let checkData = data.filter(x => x.value == o.macctdoc && x.id == childLists
@@ -214,12 +218,28 @@
         function calculate(key) {
             let total = 0
             data.map(o => {
-                if (key == o.id) {
-                    total += o.balance
+                if (key == o.id && o.mdoctype == 'RA') {
+                    total = total + o.balance
+                }
+                if (key == o.id && o.mdoctype == 'RD') {
+                    total = total + o.balance
+                }
+                if (key == o.id && o.mdoctype == 'DC') {
+                    total = total - o.balance
+                }
+                if (key == o.id && o.mdoctype == 'RB') {
+                    total = total - o.balance
+                }
+                if (key == o.id && o.mdoctype == 'RC') {
+                    total = total - o.balance
+                }
+                if (key == o.id && o.mdoctype == 'RE') {
+                    total = total - o.balance
                 }
             })
             return total;
         }
+
 
         function readyProcess(wait = false) {
             if (wait) {
