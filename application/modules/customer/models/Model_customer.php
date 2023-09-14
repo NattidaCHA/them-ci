@@ -35,7 +35,7 @@ class Model_customer extends MY_Model
     public function findChild($id)
     {
         $result = (object)[];
-        $sql = $this->db->select('MAX(T1.mcustno) as cus_no,MAX(T1.mcustname) as cus_name,MAX(T2.mcontact) as contact,MAX(T1.msendto) as msendto,MAX(T1.msaleorg) as msaleorgม,MAX(T2.mtel) as tel,MAX(T2.memail) as email')
+        $sql = $this->db->select('MAX(T1.mcustno) as cus_no,MAX(T1.mcustname) as cus_name,MAX(T2.mcontact) as contact,MAX(T1.msendto) as msendto,MAX(T1.msaleorg) as msaleorg,MAX(T2.mtel) as tel,MAX(T2.memail) as email')
             ->where('T1.mcustno', $id)
             ->join('tbl_custtel T2', 'T1.mcustno = T2.mcustno', 'left')
             ->group_by('T1.mcustno')
@@ -157,16 +157,6 @@ class Model_customer extends MY_Model
         return  $result;
     }
 
-    // public function checkSendToChild($cus_no)
-    // {
-    //     $result = (object)[];
-    //     $sql = $this->db->where("(cus_no = '$cus_no' AND cus_main = '$cus_no')")->get('sendto_customer');
-    //     $result = $sql->row();
-    //     $sql->free_result();
-    //     return  $result;
-    // }
-
-
     public function getSendToId($id)
     {
         $result = (object)[];
@@ -222,7 +212,7 @@ class Model_customer extends MY_Model
     {
         // var_dump($id, $sendTo);
         // exit;
-        $sql = $this->db->where('uuid', $id)->update('sendto_customer', $sendTo);
+        $sql = $this->db->set('is_check', $sendTo)->where('uuid', $id)->update('sendto_customer');
         if (!empty($sql)) {
             return $sql;
         }
@@ -279,7 +269,7 @@ class Model_customer extends MY_Model
         return  $result;
     }
 
-    public function getCustomerTb($cus_no)
+    public function countCustomer($cus_no)
     {
 
         if (!empty($cus_no)) {
@@ -293,31 +283,52 @@ class Model_customer extends MY_Model
         return  $result;
     }
 
-    public function getEmail()
+    public function getCustomerTb($cus_no = FALSE, $limit, $page)
     {
+
+        $totalRecord = !empty($this->countCustomer($cus_no)) ? count($this->countCustomer($cus_no)) : 0;
+
+        if (!empty($cus_no)) {
+            $this->db->where('cus_no', $cus_no);
+        }
+
+
+        if (!empty($limit)) {
+            $offset = max($page - 1, 0) * $limit;
+            $this->db->limit($limit, $offset);
+        }
+
         $result = [];
         $lists = [];
-        $sql = $this->db->get('email_customer');
+
+        $sql = $this->db->order_by('cus_no', 'asc')->get('customer_notification');
         $result = $sql->result();
         $sql->free_result();
 
-        foreach ($result as $val) {
-            $lists[$val->cus_main][] = $val;
+        if (!empty($result)) {
+            foreach ($result as $key => $val) {
+                array_push($lists, (object)['info' => $val, 'tels' => $this->getTel($val->cus_no), 'emails' => $this->getEmail($val->cus_no)]);
+            }
         }
-        return  $lists;
+
+        return  (object)['lists' => $lists, 'totalRecord' => $totalRecord];
     }
 
-    public function getTel()
+    public function getEmail($cus_no)
     {
         $result = [];
-        $lists = [];
-        $sql = $this->db->get('tel_customer');
+        $sql = $this->db->where('cus_main', $cus_no)->get('email_customer');
         $result = $sql->result();
         $sql->free_result();
+        return  $result;
+    }
 
-        foreach ($result as $val) {
-            $lists[$val->cus_main][] = $val;
-        }
-        return  $lists;
+    public function getTel($cus_no)
+    {
+        $result = [];
+        $sql = $this->db->where('cus_main', $cus_no)->get('tel_customer');
+        $result = $sql->result();
+        $sql->free_result();
+        return  $result;
     }
 }

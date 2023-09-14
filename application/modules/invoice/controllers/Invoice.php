@@ -14,14 +14,36 @@ class Invoice extends MY_Controller
     public function index()
     {
         $days = $this->config->item('day');
-        // $type = $this->config->item('type');
+        $search = $this->config->item('fullSearch');
+        $result = [];
+        $table = $this->model_system->getPageIsShow();
+        $keyTable = [];
+        $this->data['days'] = [];
         $dateSelect = $this->input->get('dateSelect') ? $this->input->get('dateSelect') : '';
         $startDate = $this->input->get('startDate') ? $this->input->get('startDate') : date('Y-m-d');
         $endDate = $this->input->get('endDate') ? $this->input->get('endDate') : date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
-        $cus_no = $this->input->get('customer') ? $this->input->get('customer') : '';
+        $cus_no = NULL;
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
-        $result = [];
-        $this->data['days'] = [];
+
+        // var_dump($table['invoice']);
+        // exit;
+
+        foreach ($table['invoice'] as $v) {
+            array_push($keyTable, $v->sort);
+        }
+
+        if (!in_array($this->CURUSER->cus_no, $search)) {
+            if (!empty($this->input->get('customer'))) {
+                $cus_no = $this->input->get('customer');
+            } else {
+                $cus_no = $this->CURUSER->cus_no;
+            }
+        } else {
+            if (!empty($this->input->get('customer'))) {
+                $cus_no = $this->input->get('customer');
+            }
+        }
+
         $condition = [
             'dateSelect' => $dateSelect,
             'startDate' => $startDate,
@@ -42,8 +64,9 @@ class Invoice extends MY_Controller
 
         $result = $this->model_invoice->getInvoice($condition);
 
-        // var_dump($result);
+        // var_dump($condition);
         // exit;
+
         $this->data['lists'] = $result;
         $this->data['selectDays'] = $this->model_system->getDateSelect();
         $this->data['customers'] = $this->model_system->getCustomer();
@@ -52,6 +75,9 @@ class Invoice extends MY_Controller
         $this->data['startDate'] = $startDate;
         $this->data['endDate'] = $endDate;
         $this->data['cus_no'] = $cus_no;
+        $this->data['search'] = $search;
+        $this->data['table'] = $table['invoice'];
+        $this->data['keyTable'] = $keyTable;
         $this->data['page_header'] = 'Invoice';
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('search_invoice');

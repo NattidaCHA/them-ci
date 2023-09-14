@@ -11,6 +11,7 @@ class Model_report extends MY_Model
     public function __construct()
     {
         parent::__construct();
+        $this->load->model('model_system');
     }
 
     public function getBillNo()
@@ -22,65 +23,62 @@ class Model_report extends MY_Model
         return $result;
     }
 
-    public function getEmailById($cus_no, $cus_main)
+    public function getEmailById($cus_no)
     {
         $result = [];
+        $isCheck = [];
         $lists = [];
-        $isCheck = $this->checkSendto($cus_no, $cus_main);
-
+        // $isCheck = [];
+        // $isCheck = $this->checkSendto($cus_no);
+        $checkCustomer = $this->model_system->findCustomerById($cus_no);
+        $isCheck = $this->model_system->checkSendtoChild($cus_no);
 
         foreach ($isCheck as $val) {
-            $sql = $this->db->where('cus_main', $val->cus_main)->get('email_customer');
+            $sql = $this->db->where('cus_main',  $val->cus_main)->get('email_customer');
             $result = $sql->result();
             $sql->free_result();
 
             foreach ($result as $val) {
-                $lists[$cus_no][] = $val;
+                array_push($lists, $val);
             }
         }
+
+
 
         return  $lists;
     }
 
-    public function getTelById($cus_no, $cus_main)
+    public function getTelById($cus_no)
     {
         $result = [];
+        $isCheck = [];
         $lists = [];
-        $isCheck = $this->checkSendto($cus_no, $cus_main);
 
+        // $checkCustomer = $this->model_system->findCustomerById($cus_no);
+        $isCheck = $this->model_system->checkSendtoChild($cus_no);
         foreach ($isCheck as $val) {
             $sql = $this->db->where('cus_main', $val->cus_main)->get('tel_customer');
             $result = $sql->result();
             $sql->free_result();
 
             foreach ($result as $val) {
-                $lists[$cus_no][] = $val;
+                array_push($lists, $val);
             }
         }
+
+        // echo '<pre>';
+        // var_dump($lists);
+        // // exit;
+        // echo '</pre>';
         return  $lists;
     }
 
-    public function getReceivecall($reportUuid)
+    public function checkSendto($cus_no)
     {
         $result = [];
-        $lists = [];
-        $sql = $this->db->where('report_uuid', $reportUuid)->where('receive_call !=', NULL)->get('cf_call_report');
-        $result = $sql->result();
-        $sql->free_result();
-
-        foreach ($result as $val) {
-            $lists[$result->report_uuid][] = $val;
-        }
-
-        return  $lists;
-    }
-
-    public function checkSendto($cus_no, $cus_main)
-    {
-        $result = (object)[];
         $sql = $this->db->select("cus_main,MAX(CONVERT(int,is_check)) as is_check")
-            ->where("(cus_main = '$cus_no' OR cus_main = '$cus_main')")
             ->where("is_check =", 1)
+            ->where("(cus_main = '$cus_no' OR cus_no = '$cus_no')")
             ->group_by('cus_main')
             ->get('sendto_customer');
         $result = $sql->result();
@@ -88,10 +86,21 @@ class Model_report extends MY_Model
         return  $result;
     }
 
-    public function getBill($condition)
+    public function checkChildSendto($cus_no)
     {
-        $val = json_decode(json_encode($condition));
-        $result = [];
+        $result = (object)[];
+        $sql = $this->db->select("cus_no")
+            ->where("is_check =", 1)
+            ->where("(cus_main = '$cus_no')")
+            ->group_by('cus_no')
+            ->get('sendto_customer');
+        $result = $sql->result();
+        $sql->free_result();
+        return  $result;
+    }
+
+    public function countBill($val)
+    {
 
         if (!empty($val->cus_no)) {
             $this->db->where('T1.cus_no', $val->cus_no);
@@ -122,13 +131,79 @@ class Model_report extends MY_Model
         return $result;
     }
 
+    public function getBillTb($condition)
+    {
+        // var_dump($condition);
+
+        $val = json_decode(json_encode($condition));
+        $result = [];
+        $lists = [];
+
+        $totalRecord = !empty($this->countBill($condition)) ? count($this->countBill($condition)) : 0;
+
+        if (!empty($val->limit)) {
+            $offset = max($val->page - 1, 0) * $val->limit;
+            $this->db->limit($val->limit, $offset);
+        }
+
+        if (!empty($val->cus_no)) {
+            $in_cusNo = [];
+            array_push($in_cusNo, $this->CURUSER->cus_no);
+
+            foreach ($val->cus_no as $cus_no) {
+                $checkCustomer = $this->model_system->findCustomerById($cus_no);
+                if ($checkCustomer->type == 'main') {
+                    $findChild = $this->model_system->checkSendtoMain($cus_no);
+                    foreach ($findChild as $val) {
+                        if (!in_array($val->cus_no, $in_cusNo)) {
+                            array_push($in_cusNo, $val->cus_no);
+                        }
+                    }
+                }
+            }
+
+            if (!empty($in_cusNo)) {
+                $this->db->where_in('T1.cus_no', $in_cusNo);
+            }
+        }
+
+        if (!empty($val->bill_no)) {
+            $this->db->where('T1.bill_no', $val->bill_no);
+        }
+
+        if (!empty($val->created_date)) {
+            $startDate = $val->created_date . ' 00:00:00';
+            $endDate = $val->created_date . ' 23:59:59';
+            $this->db->where("(T1.created_date >='$startDate' AND T1.created_date <='$endDate')");
+        }
+
+        $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as cus_name,MAX(T1.created_by) as created_by,MAX(T1.end_date) as end_date')
+            ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.cus_no', 'left')
+            ->group_by('T1.uuid')
+            ->group_by('T1.bill_no')
+            ->order_by('created_date', 'desc')
+            ->get('report_notification T1');
+
+        $result = $sql->result();
+        $sql->free_result();
+
+
+        if (!empty($result)) {
+            foreach ($result as $key => $val) {
+                array_push($lists, (object)['info' => $val, 'tels' => $this->getTelById($val->cus_no), 'emails' => $this->getEmailById($val->cus_no), 'cf_call' => $this->getCfCallByuuid($val->uuid)]);
+            }
+        }
+
+
+        return (object)['lists' => $lists, 'totalRecord' => $totalRecord];
+    }
+
     public function getListItem($bill_id)
     {
         //MAX(uuid) as uuid,MAX(bill_no) as bill_no,MAX(bill_id) as bill_id,MAX(macctdoc) as macctdoc,MAX(cus_no) as cus_no,MAX(cus_main) as cus_main,MAX(mdoctype) as mdoctype,MAX(CONVERT(varchar,mbillno)) as mbillno,MAX(mpostdate) as mpostdate,MAX(mduedate) as mduedate,MAX (msaleorg) as msaleorg,MAX(mpayterm) as mpayterm,MAX(CONVERT(float,mnetamt)) as mnetamt,MAX(mtext) as mtext,MAX(msort) as msort
         $sql = $this->db->select('*')
             ->where('bill_id', $bill_id)
             ->order_by('msort', 'mbillno', 'mpostdate', 'mduedate', 'mpayterm', 'mnetamt', 'asc')
-            // ->order_by('mpostdate','asc')
             ->get('report_notification_detail');
         $result = $sql->result();
         $sql->free_result();
@@ -140,6 +215,18 @@ class Model_report extends MY_Model
         $result = [];
         $sql = $this->db->select('*')
             ->where("uuid", $uuid)
+            ->get('report_notification');
+        $result = $sql->row();
+        $sql->free_result();
+        return $result;
+    }
+
+    public function getReportChildList($cus_no, $created_date)
+    {
+        $result = [];
+        $sql = $this->db->select('uuid,end_date,bill_no')
+            ->where("cus_no", $cus_no)
+            ->where("(created_date >='$created_date' AND created_date <='$created_date')")
             ->get('report_notification');
         $result = $sql->row();
         $sql->free_result();
@@ -175,8 +262,7 @@ class Model_report extends MY_Model
 
             if (!empty($bill_info)) {
                 $data->bill_info = $bill_info;
-                $info = $this->getCustomerInfo($bill_info->cus_main);
-
+                $info = $this->getCustomerInfo($bill_info->cus_no);
                 if (!empty($info)) {
                     $data->info = $info;
                 }
@@ -406,5 +492,73 @@ class Model_report extends MY_Model
             return $sql;
         }
         return FALSE;
+    }
+
+    public function getCustomerByNo($cus_no)
+    {
+        $result = (object)[];
+        $sql = $this->db->where('cus_no', $cus_no)->get('customer_notification');
+        $result = $sql->row();
+        $sql->free_result();
+        return $result;
+    }
+
+    public function getCfCallByuuid($report_uuid)
+    {
+        $result = [];
+        $lists = [];
+        $sql = $this->db->where("(report_uuid ='$report_uuid' AND receive_call !='')")->get('cf_call_report');
+        $result = $sql->result();
+        $sql->free_result();
+
+        // foreach ($result as $res) {
+        //     $lists[$res->report_uuid][$res->tel] = $res;
+        // }
+        // foreach ($result as $res) {
+        //     $lists[$res->tel] = $res;
+        // }
+
+        return $result;
+    }
+
+
+    public function genCfCallByuuid($report_uuid)
+    {
+        $result = [];
+        $lists = [];
+        $sql = $this->db->where('report_uuid', $report_uuid)->get('cf_call_report');
+        $result = $sql->result();
+        $sql->free_result();
+
+        foreach ($result as $res) {
+            $lists[$res->tel] = $res;
+        }
+
+        // var_dump($lists);
+        // exit;
+        return $lists;
+    }
+
+    public function genCfCall($report_uuid, $cus_no)
+    {
+        $genCfCall = $this->genCfCallByuuid($report_uuid);
+        $genTel = $this->getTelById($cus_no);
+
+        return  (object)['tels' => $genTel, 'cf_call' => $genCfCall];
+    }
+
+
+    public function getBillById($report_uuid)
+    {
+        $result = (object)[];
+        $sql = $this->db->select('MAX(T1.uuid) as uuid,MAX(T1.bill_no) as bill_no,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.mcustname) as cus_name,MAX(T1.created_by) as created_by,MAX(T1.end_date) as end_date')
+            ->where('uuid', $report_uuid)
+            ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.cus_no', 'left')
+            ->get('report_notification T1');
+
+        $result = $sql->row();
+        $sql->free_result();
+
+        return  $result;
     }
 }

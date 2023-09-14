@@ -1,3 +1,4 @@
+<?php echo  $this->CURUSER->cus_no; ?>
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
         <form id="invoiceForm" method="get" action="/invoice" class="mb-4">
@@ -34,12 +35,11 @@
                     <div class="input-search">
                         <label for="customer" class="form-label">ลูกค้า</label>
                         <div class="input-group mb-3">
-                            <select class="select2 form-select" name="customer" id="customer">
-                                <option value="" selected>เลือก ...</option>
-                                <?php foreach ($customers as $customer) { ?>
-                                    <option value="<?php echo $customer->mcustno; ?>" <?php echo $customer->mcustno == $cus_no ? 'selected' : '' ?>>
-                                        <?php echo $customer->cus_name . ' (' . $customer->mcustno . ')' ?></option>
-                                <?php  } ?>
+                            <select class="select2 form-select" name="customer" id="customer" <?php echo in_array($this->CURUSER->cus_no, $search) ? '' : 'disabled' ?>>
+                                <?php echo in_array($this->CURUSER->cus_no, $search) ? '<option value="">เลือก ...</option>' : ''; ?>
+                                <?php if (!in_array($this->CURUSER->cus_no, $search)) { ?>
+                                    <option value="<?php echo $this->CURUSER->cus_no; ?>" selected><?php echo $this->CURUSER->cus_name . ' (' . $this->CURUSER->cus_no . ')' ?></option>
+                                <?php } ?>
                             </select>
                         </div>
                     </div>
@@ -47,9 +47,6 @@
                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                         <select class="form-select" id="type" name="type">
                             <option value="" selected>เลือก ...</option>
-                            <?php foreach ($types as $type) { ?>
-                                <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : '' ?>><?php echo $type->msaleorg_des ?></option>
-                            <?php  } ?>
                         </select>
                     </div>
                     <div class="input-search">
@@ -71,35 +68,45 @@
             <table id="paymentList" class="table table-centered table-striped w-100">
                 <thead class="thead-light">
                     <tr>
-                        <th width="10%">ประเภทธุรกิจ</th>
+                        <!-- <th width="10%">ประเภทธุรกิจ</th>
                         <th width="30%">ลูกค้า</th>
                         <th width="10%">ยอดหนี้</th>
                         <th width="10%">รีเบท</th>
                         <th width="10%">เงินเหลือ</th>
                         <th width="10%">ลดหนี้</th>
                         <th width="10%">เพิ่มหนี้</th>
-                        <th width="10%" class="no-search no-sort text-center">Action</th>
+                        <th width="10%" class="no-search no-sort text-center">Action</th> -->
+                        <?php foreach ($table as $res) { ?>
+                            <th width="<?php if (in_array($res->sort, [2])) {
+                                            echo '30%';
+                                        } else if (in_array($res->sort, [1, 3, 4, 5, 6, 7, 8])) {
+                                            echo '10%';
+                                        }; ?>" class="no-search no-sort <?php echo $res->sort == 8 ? 'text-center' : '' ?>">
+                                <?php echo $res->colunm; ?>
+                            </th>
+                        <?php } ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (!empty($lists)) {
                         foreach ($lists as $invoice) { ?>
                             <tr>
-                                <td><?php echo $types[$invoice->msaleorg]->msaleorg_des; ?></td>
-                                <td><?php echo !empty($invoice->cus_name) ? $invoice->cus_name . ' (' . $invoice->cus_no . ')' : '-'; ?>
-                                </td>
-                                <td><?php echo number_format($invoice->balance, 2); ?></td>
-                                <td><?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td>
-                                <td><?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td>
-                                <td><?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td>
-                                <td><?php echo !empty($invoice->RD) ? number_format($invoice->RD, 2) : 0; ?></td>
-                                <td class="text-center">
-                                    <a class="btn btn-sm btn-gray-700 modalCustomer" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" data-cus_no="<?php echo $invoice->cus_no ?>" data-cus_name="<?php echo $invoice->cus_name ?>">
-                                        รายละเอียด
-                                    </a>
-                                </td>
+                                <?php if (in_array(1, $keyTable)) { ?><td><?php echo $types[$invoice->msaleorg]->msaleorg_des; ?></td><?php }; ?>
+                                <?php if (in_array(2, $keyTable)) { ?><td><?php echo !empty($invoice->cus_name) ? $invoice->cus_name . ' (' . $invoice->cus_no . ')' : '-'; ?>
+                                    </td><?php }; ?>
+                                <?php if (in_array(3, $keyTable)) { ?><td><?php echo number_format($invoice->balance, 2); ?></td><?php }; ?>
+                                <?php if (in_array(4, $keyTable)) { ?><td><?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(5, $keyTable)) { ?><td><?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(6, $keyTable)) { ?><td><?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(7, $keyTable)) { ?><td><?php echo !empty($invoice->RD) ? number_format($invoice->RD, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(8, $keyTable)) { ?><td class="text-center">
+                                        <a class="btn btn-sm btn-gray-700 modalCustomer" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" data-cus_no="<?php echo $invoice->cus_no ?>" data-cus_name="<?php echo $invoice->cus_name ?>">
+                                            รายละเอียด
+                                        </a>
+                                    </td><?php }; ?>
                             </tr>
-                    <?php }
+                    <?php
+                        }
                     } ?>
                 </tbody>
             </table>
@@ -132,6 +139,7 @@
 
 <script>
     $(function() {
+        var search = <?php echo !empty($search) ? json_encode($search) : '[]'; ?>;
 
         $('#startDate').datepicker({
             todayHighlight: true,
@@ -146,8 +154,32 @@
         });
 
         $('#customer').select2({
-            theme: "bootstrap-5"
+            theme: "bootstrap-5",
+            allowClear: false,
+            placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
+            ajax: {
+                url: "/api/searchCustomerMain",
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term,
+                        page: 1
+                    };
+                },
+                processResults: function(data, params) {
+                    params.page = params.page || 1;
+                    return {
+                        results: data.results,
+                        pagination: false
+                    };
+                }
+            },
+            allowHtml: true,
+            templateResult: formatRepo,
+            templateSelection: formatRepoSelection
         });
+
 
         $('#paymentList')
             .DataTable({
@@ -158,11 +190,11 @@
                     [0, "asc"]
                 ],
                 "columnDefs": [{
-                        "targets": [0, 2, 3, 4, 5, 6, 7],
+                        "targets": 'no-sort',
                         "orderable": false
                     },
                     {
-                        "targets": [1, 2, 3, 4, 5, 6],
+                        "targets": 'no-search',
                         "searchable": false
                     },
                     {
@@ -198,6 +230,22 @@
             });
 
         $('.dataTables_filter label').hide();
+
+        function formatRepo(repo) {
+            if (repo.loading) {
+                return repo.text;
+            }
+
+            return $('<span>' + repo.cus_name + '(' + repo.cus_no + ')' + '</span>');
+        }
+
+        function formatRepoSelection(repo) {
+            if (repo.id) {
+                return $('<span>' + repo.text.trim() + '</span>');
+            }
+            return repo.text;
+
+        }
 
     });
 </script>

@@ -18,11 +18,11 @@
                     <a class="nav-link" href="/customer">Customer</a>
                 </li>
             </ul>
-            <div class="d-block">
+            <!-- <div class="d-block">
                 <a href="/logout" class="btn btn-danger btn-sm d-inline-flex align-items-center">
                     <span class="icon icon-xs me-1"><i class="bi bi-box-arrow-right"></i></span> Sign Out
                 </a>
-            </div>
+            </div> -->
         </div>
     </div>
 </nav>

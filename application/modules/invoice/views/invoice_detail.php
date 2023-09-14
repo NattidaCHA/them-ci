@@ -152,7 +152,7 @@
                     let invoice = {
                         'id': key,
                         'value': genVal[0],
-                        'balance': cf_mnetamt.trim(),
+                        'balance': parseFloat(cf_mnetamt.trim()),
                         'mdoctype': type.trim()
                     }
 
@@ -185,7 +185,7 @@
                         let invoice = {
                             'id': value,
                             'value': o.macctdoc,
-                            'balance': o.mnetamt,
+                            'balance': parseFloat(o.mnetamt),
                             'mdoctype': o.mdoctype
                         }
 

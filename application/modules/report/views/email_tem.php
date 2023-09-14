@@ -38,4 +38,6 @@
         <p>หรือ <strong>Click</strong> เพื่อดูรายละเอียดเพิ่มเติมผ่านระบบ Smart Ordering (SMO)</p>
         <p>กรุณา <strong>Click URL:</strong> <a href="https://npismodev.scg.com/prod/pricings/Pricing_df"><strong>https://npismodev.scg.com/prod/pricings/Pricing_df</strong></a></p>
     </div>
+    <p>ขอแสดงความนับถือ,</p>
+    <p>Smart Ordering</p>
 </div>

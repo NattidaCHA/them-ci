@@ -9,8 +9,11 @@ class Dashboard extends MY_Controller {
     }
 
 
-    public function index() {
-        $this->data['lists'] = $this->model_dashboard->getContact();
+    public function index2() {
+        // $res = $this->model_dashboard->getDateSelect();
+        // var_dump('text');
+        // var_dump($res);
+        // exit;
         $this->view('dashboard');
     }
 

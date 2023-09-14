@@ -9,6 +9,9 @@ class MY_Controller extends CI_Controller
     public $partials = array('header', 'sidebar', 'topbar', 'footer');
     public $data = array();
     public $CURUSER = NULL;
+    public $serverName = NULL;
+    // public $config = ["Database" => "", "UID" => "", "PWD" => "", "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
+    public $conn = NULL;
 
 
     public function __construct()
@@ -49,7 +52,19 @@ class MY_Controller extends CI_Controller
         //     }
         //     redirect('access?back_url=' . rawurlencode($lastPath));
         // }
+        // $this->load->database();
+
+        // var_dump(ENVIRONMENT);
+
+        // $this->connect();
         $this->load->database();
+
+
+        $this->load->model('model_system');
+        $this->CURUSER = $this->model_system->findCustomerById('0000000281');
+        // $this->CURUSER->cus_name = 'บจ.ป.กวิน';0002000082
+        //0002000080
+        //0000000281
         // Default Site Config
         $this->data = [
             'site_name' => $this->config->item('site_name'),
@@ -145,14 +160,6 @@ class MY_Controller extends CI_Controller
     private function asset_module($module)
     {
         switch ($module) {
-            case 'dropzone':
-                $this->data['css'][] = css_asset('dropzone/dropzone.min.css', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('dropzone/dropzone.min.js', TRUE, 'assets/vendor');
-                break;
-            case 'tagsinput':
-                $this->data['css'][] = css_asset('tagsinput/bootstrap-tagsinput.min.css', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('tagsinput/bootstrap-tagsinput.min.js', TRUE, 'assets/vendor');
-                break;
             case 'parsley':
                 $this->data['js'][] = js_asset('parsleyjs/parsley.min.js', TRUE, 'assets/vendor');
                 break;
@@ -196,24 +203,6 @@ class MY_Controller extends CI_Controller
                 $this->data['css'][] = css_asset('datepicker/bootstrap-datepicker.min.css', TRUE, 'assets/vendor');
                 $this->data['js'][] = js_asset('datepicker/bootstrap-datepicker.min.js', TRUE, 'assets/vendor');
                 break;
-            case 'touchspin':
-                $this->data['js'][] = js_asset('touchspin/bootstrap-input-spinner.js', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('touchspin/custom-editors.js', TRUE, 'assets/vendor');
-                break;
-            case 'selectpicker':
-                $this->data['css'][] = css_asset('selectpicker/bootstrap-select.min.css', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('selectpicker/bootstrap-select.min.js', TRUE, 'assets/vendor');
-                break;
-            case 'chartjs':
-                $this->data['js'][] = js_asset('chartjs/chart.min.js', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('chartjs/chartjs-plugin-datalabels.js', TRUE, 'assets/vendor');
-                break;
-            case 'highcharts':
-                //$this->data['css'][] = css_asset('highcharts/css/highcharts.css', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('highcharts/highcharts.js', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('highcharts/highcharts-3d.js', TRUE, 'assets/vendor');
-                $this->data['js'][] = js_asset('highcharts/modules/accessibility.js', TRUE, 'assets/vendor');
-                break;
             case 'moment':
                 $this->data['js'][] = js_asset('moment/moment.min.js', TRUE, 'assets/vendor');
                 break;
@@ -223,7 +212,8 @@ class MY_Controller extends CI_Controller
 
 
 
-    protected function addSystemLog($action, $url, $page, $section='', $add_on=[]) {
+    protected function addSystemLog($action, $url, $page, $section = '', $add_on = [])
+    {
         $this->load->library('mongo_db', NULL, 'mdb');
         $result = $this->mdb->insert('system_log', [
             'url' => $url,
@@ -335,5 +325,24 @@ class MY_Controller extends CI_Controller
         }
         return $result;
     }
-    
+
+    public function connect()
+    {
+        $config = [];
+        // if (ENVIRONMENT == 'production') {
+        //     $this->serverName = "10.51.249.165";
+        //     $config = ["Database" => "NpiNotification", "UID" => "Npinoti_usr01", "PWD" => "Noti22@PRD", "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
+        // } else {
+        $this->serverName = "10.51.249.87";
+        $config = ["Database" => DATABASE, "UID" => UID, "PWD" => PWD, "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
+        //}
+
+        $this->conn = sqlsrv_connect($this->serverName,  $config);
+
+        if ($this->conn === false) {
+            die(print_r(sqlsrv_errors(), true));
+        }
+
+        return $this->conn;
+    }
 } // End of class

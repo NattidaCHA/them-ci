@@ -23,135 +23,137 @@
                 //echo '<span class="spinner-border spinner-border-lg mt-5 text-center <?php echo count((array)$info) > 0 
                 ?>" role="status"></span>';
         } ?> -->
-        <!-- <span class="spinner-border spinner-border-lg mt-5 text-center <?php //echo !empty($loading) ? 'd-flex' : 'd-none' ?>" role="status"></span> -->
+        <span class="spinner-border spinner-border-lg mt-5 text-center <?php echo !empty($loading) && $action == 'create' ? 'd-flex' : 'd-none' ?>" role="status"></span>
         <?php if (!empty($info) && count((array)$info) > 0) { ?>
-            <form id="customerForm" class="mb-4 <?php //echo !empty($loading) ? 'd-none' : 'd-flex' ?>">
-                <div class="customer-page">
-                    <div class="bg-customer">
-                        <h4 class="mb-3 text-muted">ข้อมูลลูกค้า</h4>
-                        <div class="form-customer">
-                            <div class="mb-3">
-                                <label for="exampleFormControlInput1" class="form-label">บริษัท</label>
-                                <input type="hidden" id="cus_name" name="cus_name" value="<?php echo $info->cus_name; ?>" autocomplete="off">
-                                <input type="hidden" id="type" name="type" value="<?php echo $type; ?>" autocomplete="off">
-                                <input type="hidden" id="cus_no" name="cus_no" value="<?php echo $info->cus_no; ?>" autocomplete="off">
-                                <?php if ($action == 'update') { ?>
-                                    <input type="hidden" id="id" name="id" value="<?php echo $info->uuid; ?>" autocomplete="off">
-                                <?php  } ?>
-                                <input type="text" class="form-control input-cus" id="company" name="company" placeholder="บริษัท" value="<?php echo $info->cus_name . '(' . $info->cus_no . ')'; ?>" autocomplete="off" disabled>
-                            </div>
-                            <div class="mb-3">
-                                <label for="exampleFormControlInput1" class="form-label">วันที่ต้องการแจ้ง</label>
-                                <select class="form-select input-cus" id="send_date" name="send_date" required>
-                                    <option value="">เลือก ...</option>
-                                    <?php foreach ($days as $day) { ?>
-                                        <option value="<?php echo $day->id; ?>" <?php echo $send_date == $day->id ? 'selected' : ''; ?>><?php echo $day->name ?></option>
-                                    <?php  } ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="boder-under"></div>
-                        <h4 class="mb-3 text-muted">บริษัทที่เกี่ยวข้อง</h4>
-                        <div class="checkbox-cus">
-                            <?php foreach ($select_customer as $k => $customer) { ?>
-                                <div class="form-check">
+            <form id="customerForm" class="mb-4 <?php echo !empty($loading) ? 'd-none' : 'd-flex' ?>">
+                <div class="customer-section">
+                    <div class="customer-page">
+                        <div class="bg-customer">
+                            <h4 class="mb-3 text-muted">ข้อมูลลูกค้า</h4>
+                            <div class="form-customer">
+                                <div class="mb-3">
+                                    <label for="exampleFormControlInput1" class="form-label">บริษัท</label>
+                                    <input type="hidden" id="cus_name" name="cus_name" value="<?php echo $info->cus_name; ?>" autocomplete="off">
+                                    <input type="hidden" id="type" name="type" value="<?php echo $type; ?>" autocomplete="off">
+                                    <input type="hidden" id="cus_no" name="cus_no" value="<?php echo $info->cus_no; ?>" autocomplete="off">
                                     <?php if ($action == 'update') { ?>
-                                        <p class="d-none uncheck-<?php echo  $customer->cus_no; ?>"><?php echo (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && !empty($isCheck[$customer->cus_no]->uuid)) ? trim($isCheck[$customer->cus_no]->uuid) : ''; ?> </p>
+                                        <input type="hidden" id="id" name="id" value="<?php echo $info->uuid; ?>" autocomplete="off">
                                     <?php  } ?>
-                                    <?php if (empty($customer->type)) { ?>
-                                        <input class="form-check-input  cf-<?php echo  $customer->cus_no; ?> uncheck" type="checkbox" value="<?php echo $customer->cus_no; ?>" id="sendto" name="sendto[]" <?php echo $action == 'create' ? '' : (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && $action == 'update' ? 'checked' : '') ?> autocomplete="off">
-                                    <?php } ?>
-                                    <label class="form-check-label" for="sendto">
-                                        <?php echo $customer->cus_name . '(' . $customer->cus_no . ')'; ?>
-                                    </label>
+                                    <input type="text" class="form-control input-cus" id="company" name="company" placeholder="บริษัท" value="<?php echo $info->cus_name . '(' . $info->cus_no . ')'; ?>" autocomplete="off" disabled>
                                 </div>
-                            <?php } ?>
-                        </div>
-                    </div>
-                    <div class="boder-right"></div>
-                    <div class="bg-contact">
-                        <div class="contact-header">
-                            <h4 class="text-muted">ข้อมูลติดต่อ</h4>
-                            <div class="d-flex">
-                                <button type="button" class="btn btn-success btn-sm add-email me-2">+ เพิ่มอีเมล</button>
-                                <button type="button" class="btn btn-gray-700 btn-sm add-tel">+ เพิ่มเบอร์โทร</button>
+                                <div class="mb-3">
+                                    <label for="exampleFormControlInput1" class="form-label">วันที่ต้องการแจ้ง</label>
+                                    <select class="form-select input-cus" id="send_date" name="send_date" required>
+                                        <option value="">เลือก ...</option>
+                                        <?php foreach ($days as $day) { ?>
+                                            <option value="<?php echo $day->id; ?>" <?php echo $send_date == $day->id ? 'selected' : ''; ?>><?php echo $day->name ?></option>
+                                        <?php  } ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="boder-under"></div>
+                            <h4 class="mb-3 text-muted">บริษัทที่เกี่ยวข้อง</h4>
+                            <div class="checkbox-cus">
+                                <?php foreach ($select_customer as $k => $customer) { ?>
+                                    <div class="form-check">
+                                        <?php if ($action == 'update') { ?>
+                                            <p class="d-none uncheck-<?php echo  $customer->cus_no; ?>"><?php echo (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && !empty($isCheck[$customer->cus_no]->uuid)) ? trim($isCheck[$customer->cus_no]->uuid) : ''; ?> </p>
+                                        <?php  } ?>
+                                        <?php if (empty($customer->type)) { ?>
+                                            <input class="form-check-input  cf-<?php echo  $customer->cus_no; ?> uncheck" type="checkbox" value="<?php echo $customer->cus_no; ?>" id="sendto" name="sendto[]" <?php echo $action == 'create' ? '' : (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && $action == 'update' ? 'checked' : '') ?> autocomplete="off">
+                                        <?php } ?>
+                                        <label class="form-check-label" for="sendto">
+                                            <?php echo $customer->cus_name . '(' . $customer->cus_no . ')'; ?>
+                                        </label>
+                                    </div>
+                                <?php } ?>
                             </div>
                         </div>
-                        <div class="border-bottom mb-3"></div>
-                        <div class="mb-4 contactForm">
-                            <div class="row">
-                                <div class="col-12">
-                                    <nav>
-                                        <div class="nav nav-tabs mb-4" id="nav-tab" role="tablist">
-                                            <a class="nav-item nav-link active" id="nav-email-tab" data-bs-toggle="tab" href="#nav-email" role="tab" aria-controls="nav-email" aria-selected="true">อีเมล</a>
-                                            <a class="nav-item nav-link" id="nav-tel-tab" data-bs-toggle="tab" href="#nav-tel" role="tab" aria-controls="nav-tel" aria-selected="false">เบอร์โทร</a>
-                                        </div>
-                                    </nav>
-                                    <div class="tab-content" id="nav-tabContent">
-                                        <div class="tab-pane fade show active" id="nav-email" role="tabpanel" aria-labelledby="nav-email-tab">
-                                            <?php if (!empty($emails)) {
-                                                foreach ($emails as $val) { ?>
-                                                    <div class="contact-email px-3">
-                                                        <div class="contact-list">
-                                                            <div class="form-contact">
-                                                                <label for="email" class="form-label mt-2">อีเมล</label>
-                                                                <input type="hidden" id="uuid_email" name="uuid_email[]" value="<?php echo  !empty($val) && !empty($val->uuid) ? $val->uuid : ''; ?>" autocomplete="off">
-                                                                <input type="text" class="form-control input-form email-contact" id="email" name="email[]" placeholder="อีเมล" autocomplete="off" value="<?php echo !empty($val->email) && !empty($val) ? $val->email : ''; ?>">
-                                                                <div class="text-end mt-2"><a type="button" href="javascript:void(0)"><i class="bi bi-trash text-danger delete"></i></a></div>
+                        <div class="boder-right"></div>
+                        <div class="bg-contact">
+                            <div class="contact-header">
+                                <h4 class="text-muted">ข้อมูลติดต่อ</h4>
+                                <div class="d-flex">
+                                    <button type="button" class="btn btn-success btn-sm add-email me-2">+ เพิ่มอีเมล</button>
+                                    <button type="button" class="btn btn-gray-700 btn-sm add-tel">+ เพิ่มเบอร์โทร</button>
+                                </div>
+                            </div>
+                            <div class="border-bottom mb-3"></div>
+                            <div class="mb-4 contactForm">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <nav>
+                                            <div class="nav nav-tabs mb-4" id="nav-tab" role="tablist">
+                                                <a class="nav-item nav-link active" id="nav-email-tab" data-bs-toggle="tab" href="#nav-email" role="tab" aria-controls="nav-email" aria-selected="true">อีเมล</a>
+                                                <a class="nav-item nav-link" id="nav-tel-tab" data-bs-toggle="tab" href="#nav-tel" role="tab" aria-controls="nav-tel" aria-selected="false">เบอร์โทร</a>
+                                            </div>
+                                        </nav>
+                                        <div class="tab-content" id="nav-tabContent">
+                                            <div class="tab-pane fade show active" id="nav-email" role="tabpanel" aria-labelledby="nav-email-tab">
+                                                <?php if (!empty($emails)) {
+                                                    foreach ($emails as $val) { ?>
+                                                        <div class="contact-email px-3">
+                                                            <div class="contact-list">
+                                                                <div class="form-contact">
+                                                                    <label for="email" class="form-label mt-2">อีเมล</label>
+                                                                    <input type="hidden" id="uuid_email" name="uuid_email[]" value="<?php echo  !empty($val) && !empty($val->uuid) ? $val->uuid : ''; ?>" autocomplete="off">
+                                                                    <input type="text" class="form-control input-form email-contact" id="email" name="email[]" placeholder="อีเมล" autocomplete="off" value="<?php echo !empty($val->email) && !empty($val) ? $val->email : ''; ?>">
+                                                                    <div class="text-end mt-2"><a type="button" href="javascript:void(0)"><i class="bi bi-trash text-danger delete"></i></a></div>
+                                                                </div>
+                                                                <div class="text-danger mb-3 modal-contact-contact-errors"></div>
+                                                                <div class="border-bottom mt-3 mb-3"></div>
                                                             </div>
-                                                            <div class="text-danger mb-3 modal-contact-contact-errors"></div>
-                                                            <div class="border-bottom mt-3 mb-3"></div>
                                                         </div>
-                                                    </div>
-                                                <?php }; ?>
-                                            <?php } else {
-                                                echo '<p class="noData-email text-center mt-3 mb-3">ไม่มีข้อมูลติดต่อ</p>';
-                                            }; ?>
-                                        </div>
-                                        <div class="tab-pane fade" id="nav-tel" role="tabpanel" aria-labelledby="nav-tel-tab">
-                                            <?php if (!empty($tels)) {
-                                                foreach ($tels as $val) { ?>
-                                                    <div class="contact-tel px-3">
-                                                        <div class="d-flex justify-content-between">
-                                                            <div class="form-check">
-                                                                <input class="form-check-input is_call" value="1" type="checkbox" id="is_call" name="is_call[]" <?php echo $val->is_call == 1 ? 'checked' : '' ?>>
-                                                                <label class="form-check-label" for="is_call">
-                                                                    โทรแจ้ง
-                                                                </label>
+                                                    <?php }; ?>
+                                                <?php } else {
+                                                    echo '<p class="noData-email text-center mt-3 mb-3">ไม่มีข้อมูลติดต่อ</p>';
+                                                }; ?>
+                                            </div>
+                                            <div class="tab-pane fade" id="nav-tel" role="tabpanel" aria-labelledby="nav-tel-tab">
+                                                <?php if (!empty($tels)) {
+                                                    foreach ($tels as $val) { ?>
+                                                        <div class="contact-tel px-3">
+                                                            <div class="d-flex justify-content-between">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input is_call" value="1" type="checkbox" id="is_call" name="is_call[]" <?php echo !empty($val->is_call) && $val->is_call  == 1 ? 'checked' : '' ?>>
+                                                                    <label class="form-check-label" for="is_call">
+                                                                        โทรแจ้ง
+                                                                    </label>
+                                                                </div>
+                                                                <div class="text-end"><a type="button" href="javascript:void(0)"><i class="bi bi-trash text-danger delete"></i></a></div>
                                                             </div>
-                                                            <div class="text-end"><a type="button" href="javascript:void(0)"><i class="bi bi-trash text-danger delete"></i></a></div>
+                                                            <div class="contact-list">
+                                                                <div class="form-contact">
+                                                                    <label for="tel" class="form-label mt-2">เบอร์โทร</label>
+                                                                    <input type="hidden" id="uuid_tel" name="uuid_tel[]" value="<?php echo  !empty($val) && !empty($val->uuid) ? $val->uuid : ''; ?>" autocomplete="off">
+                                                                    <input type="text" class="form-control input-form tel-contact" id="tel" name="tel[]" value="<?php echo !empty($val->tel) && !empty($val) ? $val->tel : ''; ?>" placeholder="เบอร์โทร" autocomplete="off">
+                                                                </div>
+                                                                <div class="form-contact">
+                                                                    <label for="tel" class="form-label mt-2 me-5">ผู้ติดต่อ</label>
+                                                                    <input type="text" class="form-control input-form contact" id="contact" name="contact[]" value="<?php echo !empty($val->contact) && !empty($val) && $val->contact != '-' ? $val->contact : ''; ?>" placeholder="ผู้ติดต่อ" autocomplete="off">
+                                                                </div>
+                                                                <div class="text-danger mb-3 modal-contact-contact-errors"></div>
+                                                                <div class="border-bottom mt-3 mb-3"></div>
+                                                            </div>
                                                         </div>
-                                                        <div class="contact-list">
-                                                            <div class="form-contact">
-                                                                <label for="tel" class="form-label mt-2">เบอร์โทร</label>
-                                                                <input type="hidden" id="uuid_tel" name="uuid_tel[]" value="<?php echo  !empty($val) && !empty($val->uuid) ? $val->uuid : ''; ?>" autocomplete="off">
-                                                                <input type="text" class="form-control input-form tel-contact" id="tel" name="tel[]" value="<?php echo !empty($val->tel) && !empty($val) ? $val->tel : ''; ?>" placeholder="เบอร์โทร" autocomplete="off">
-                                                            </div>
-                                                            <div class="form-contact">
-                                                                <label for="tel" class="form-label mt-2 me-5">ผู้ติดต่อ</label>
-                                                                <input type="text" class="form-control input-form contact" id="contact" name="contact[]" value="<?php echo !empty($val->contact) && !empty($val) && $val->contact != '-' ? $val->contact : ''; ?>" placeholder="ผู้ติดต่อ" autocomplete="off">
-                                                            </div>
-                                                            <div class="text-danger mb-3 modal-contact-contact-errors"></div>
-                                                            <div class="border-bottom mt-3 mb-3"></div>
-                                                        </div>
-                                                    </div>
-                                                <?php } ?>
-                                            <?php } else {
-                                                echo ' <p class="noData-tel text-center mt-3 mb-3">ไม่มีข้อมูลติดต่อ</p>';
-                                            } ?>
+                                                    <?php } ?>
+                                                <?php } else {
+                                                    echo ' <p class="noData-tel text-center mt-3 mb-3">ไม่มีข้อมูลติดต่อ</p>';
+                                                } ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex justify-content-end align-items-end mb-2 mt-5">
-                    <button class="btn btn-primary loading" type="button" disabled style="display: none;">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        โหลด...
-                    </button>
-                    <button type="button" class="btn btn-primary submit">ยืนยัน</button>
+                    <div class="d-flex justify-content-end align-items-end mb-2 mt-5">
+                        <button class="btn btn-primary loading" type="button" disabled style="display: none;">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            โหลด...
+                        </button>
+                        <button type="button" class="btn btn-primary submit">ยืนยัน</button>
+                    </div>
                 </div>
             </form>
         <?php }; ?>
@@ -166,7 +168,30 @@
         let checkValidate = false;
 
         $('.select2').select2({
-            theme: "bootstrap-5"
+            theme: "bootstrap-5",
+            // allowClear: false,
+            // placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
+            // ajax: {
+            //     url: "/api/searchCustomerVW",
+            //     dataType: 'json',
+            //     delay: 250,
+            //     data: function(params) {
+            //         return {
+            //             q: params.term,
+            //             page: 1
+            //         };
+            //     },
+            //     processResults: function(data, params) {
+            //         params.page = params.page || 1;
+            //         return {
+            //             results: data.results,
+            //             pagination: false
+            //         };
+            //     }
+            // },
+            // allowHtml: true,
+            // templateResult: formatRepo,
+            // templateSelection: formatRepoSelection
         });
 
         $('#customerForm').on('click', '.submit', function(e) {
@@ -447,6 +472,24 @@
                 }
             }
             return false;
+        }
+
+        
+        function formatRepo(repo) {
+            if (repo.loading) {
+                return repo.text;
+            }
+
+            return $('<span>' + repo.cus_name + '(' + repo.cus_no + ')' + '</span>');
+        }
+
+        function formatRepoSelection(repo) {
+            if (repo.id) {
+                return $('<span>' + repo.text.trim() + '</span>');
+            }
+
+            return repo.text;
+
         }
 
     });

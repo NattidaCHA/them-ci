@@ -29844,6 +29844,7 @@ article .h6 {
 		grid-row: 1;
 		grid-template-columns: 18% 22% 22% 22%;
 		margin-bottom: 3px;
+		margin-left: 15px;
 
 		@media (max-width: 767px) {
 			grid-template-columns: auto;
@@ -29886,4 +29887,47 @@ article .h6 {
 	overflow: hidden;
 	overflow-y: scroll;
 	height: 420px;
+}
+
+.customer-section {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+/* .tb-10 {
+	width: 10%;
+}
+
+.tb-15 {
+	width: 15%;
+}
+
+.tb-5 {
+	width: 5%;
+}
+
+.tb-20 {
+	width: 20%;
+}
+
+.tb-21 {
+	width: 21%;
+}
+
+.tb-27 {
+	width: 27%;
+}
+
+.tb-30 {
+	width: 30%;
+} */
+
+/* .tb-pp {
+	width: 5%;
+} */
+
+.setting {
+	width: 100%;
+	height: 80vh;
 }

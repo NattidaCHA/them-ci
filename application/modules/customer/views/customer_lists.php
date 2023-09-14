@@ -7,10 +7,6 @@
                     <div class="input-group mb-3">
                         <select class="select2 form-select" name="customer" id="customer">
                             <option value="" selected>เลือก ...</option>
-                            <?php foreach ($customers as $customer) { ?>
-                                <option value="<?php echo $customer->cus_no; ?>" <?php echo $cus_no == $customer->cus_no ? 'selected' : '' ?>>
-                                    <?php echo $customer->cus_name . ' (' . $customer->cus_no . ')' ?></option>
-                            <?php  } ?>
                         </select>
                     </div>
                 </div>
@@ -26,124 +22,22 @@
             <table id="customerLists" class="table table-centered table-striped w-100">
                 <thead class="thead-light">
                     <tr>
-                        <th width="21%">ลูกค้า</th>
-                        <th width="20%">ผู้ติดต่อ</th>
-                        <th width="27%">อีเมล</th>
-                        <th width="27%">เบอร์โทร</th>
-                        <th width="5%" class="no-search no-sort text-center">Action</th>
+                        <?php foreach ($table as $res) { ?>
+                            <th width="<?php if (in_array($res->sort, [1])) {
+                                            echo '21%';
+                                        } else if (in_array($res->sort, [2])) {
+                                            echo '20%';
+                                        } else if (in_array($res->sort, [5])) {
+                                            echo '5%';
+                                        } else if (in_array($res->sort, [3, 4])) {
+                                            echo '27%';
+                                        }; ?>" class="no-search no-sort <?php echo $res->sort == 5 ? 'text-center' : '' ?>">
+                                <?php echo $res->colunm; ?>
+                            </th>
+                        <?php } ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($lists)) {
-                        foreach ($lists as $k => $res) { ?>
-                            <tr>
-                                <td><?php echo !empty($res->cus_name) ? $res->cus_name . ' (' . $res->cus_no . ')' : '-'; ?>
-                                </td>
-                                <td>
-                                    <?php if (!empty($res->uuid)) { ?>
-                                        <div id="contact_<?php echo $res->uuid ?>">
-                                            <div class="" id="contact_heading_<?php echo $res->uuid ?>">
-                                                <?php if (!empty($tels[$res->cus_no])) { ?>
-                                                    <?php if (count($tels[$res->cus_no]) > 3) { ?>
-                                                        <?php foreach (array_slice($tels[$res->cus_no], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->contact . ',' : $value->contact; ?><?php } ?>
-                                            </div>
-                                            <div id="contact_collapse_<?php echo $res->uuid ?>" class="accordion-collapse collapse" aria-labelledby="contact_heading_<?php echo $res->uuid ?>" data-parent="#contact_<?php echo $res->uuid ?>">
-                                                <?php $count = count(array_slice($tels[$res->cus_no], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($tels[$res->cus_no], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->contact : $value->contact . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($tels[$res->cus_no]) > 1) { ?>
-                                                <?php foreach (array_slice($tels[$res->cus_no], 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value->contact : $value->contact . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo !empty($value->contact) ?  $value->contact : '-';
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($tels[$res->cus_no]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#contact_collapse_<?php echo $res->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <?php if (!empty($res->uuid)) { ?>
-                                        <div id="accordion_<?php echo $res->uuid ?>">
-                                            <div class="" id="heading_<?php echo $res->uuid ?>">
-                                                <?php if (!empty($emails[$res->cus_no])) { ?>
-                                                    <?php if (count($emails[$res->cus_no]) > 3) { ?>
-                                                        <?php foreach (array_slice($emails[$res->cus_no], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->email . ',' : $value->email; ?><?php } ?>
-                                            </div>
-                                            <div id="collapse_<?php echo $res->uuid ?>" class="accordion-collapse collapse" aria-labelledby="heading_<?php echo $res->uuid ?>" data-parent="#accordion_<?php echo $res->uuid ?>">
-                                                <?php $count = count(array_slice($emails[$res->cus_no], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($emails[$res->cus_no], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->email : $value->email . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($emails[$res->cus_no]) > 1) { ?>
-                                                <?php foreach (array_slice($emails[$res->cus_no], 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value->email : $value->email . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo !empty($value->email) ? $value->email : '-';
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($emails[$res->cus_no]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#collapse_<?php echo $res->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <?php if (!empty($res->uuid)) { ?>
-                                        <div id="tel_<?php echo $res->uuid ?>">
-                                            <div class="" id="tel_heading_<?php echo $res->uuid ?>">
-                                                <?php if (!empty($tels[$res->cus_no])) { ?>
-                                                    <?php if (count($tels[$res->cus_no]) > 3) { ?>
-                                                        <?php foreach (array_slice($tels[$res->cus_no], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->tel . ',' : $value->tel; ?><?php } ?>
-                                            </div>
-                                            <div id="tel_collapse_<?php echo $res->uuid ?>" class="accordion-collapse collapse" aria-labelledby="tel_heading_<?php echo $res->uuid ?>" data-parent="#tel_<?php echo $res->uuid ?>">
-                                                <?php $count = count(array_slice($tels[$res->cus_no], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($tels[$res->cus_no], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->tel : $value->tel . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($tels[$res->cus_no]) > 1) { ?>
-                                                <?php foreach (array_slice($tels[$res->cus_no], 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value->tel : $value->tel . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo !empty($value->tel) ?  $value->tel : '-';
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($tels[$res->cus_no]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#tel_collapse_<?php echo $res->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td class="text-center">
-                                    <a class="btn btn-sm btn-gray-700" href="/customer/process/update?customer=<?php echo $res->cus_no; ?>" target="_blank"><i class="bi bi-pencil"></i></a>
-                                </td>
-                            </tr>
-                    <?php }
-                    } ?>
                 </tbody>
             </table>
         </div>
@@ -152,22 +46,83 @@
 
 
 <script>
-    $(function() {
+    window.onload = function() {
+        var table = <?php echo !empty($table) ? json_encode($table) : '[]'; ?>;
+        var columns = [];
+
+        if (table) {
+            genTable();
+        }
 
         $('.select2').select2({
-            theme: "bootstrap-5"
+            theme: "bootstrap-5",
+            allowClear: false,
+            placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
+            ajax: {
+                url: "/api/searchCustomer",
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        q: params.term,
+                        page: 1
+                    };
+                },
+                processResults: function(data, params) {
+                    params.page = params.page || 1;
+                    return {
+                        results: data.results,
+                        pagination: false
+                    };
+                }
+            },
+            allowHtml: true,
+            templateResult: formatRepo,
+            templateSelection: formatRepoSelection
         });
 
         $('#customerLists')
             .DataTable({
                 "scrollX": false,
                 "lengthChange": false,
+                "processing": true,
+                "serverSide": true,
                 "pageLength": 20,
                 "order": [
-                    [0, "desc"]
+                    [0, "asc"]
                 ],
+                "ajax": {
+                    url: '/customer/listCustomer/<?php echo $cus_no; ?>',
+                    dataFilter: function(data) {
+                        let json = jQuery.parseJSON(data);
+                        if (json.error) {
+                            Swal.fire({
+                                title: 'System not available',
+                                html: json.error.remark,
+                                type: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: "#3085d6",
+                                cancelButtonColor: "#d33",
+                                confirmButtonText: 'Try Again',
+                                confirmButtonClass: 'mr-3'
+                            }).then(function(result) {
+                                if (result.value) {
+                                    window.location.reload(true);
+                                }
+                            });
+                            return JSON.stringify({
+                                "draw": 1,
+                                "recordsTotal": 0,
+                                "recordsFiltered": 0,
+                                "data": []
+                            });
+                        }
+                        return JSON.stringify(json);
+                    }
+                },
+                "columns": columns,
                 "columnDefs": [{
-                        "targets": [1, 2, 3, 4],
+                        "targets": 'no-sort',
                         "orderable": false
                     },
                     {
@@ -182,5 +137,93 @@
             });
         $('.dataTables_filter label').hide();
 
-    });
+
+        function genTable() {
+            table.map(o => {
+                if (o.sort == 1) {
+                    columns.push({
+                        data: 'cus_no',
+                        render: function(data, type, full) {
+                            return full.info.cus_name + '(' + full.info.cus_no + ')';
+                        }
+                    })
+                }
+                if (o.sort == 2) {
+                    columns.push({
+                        data: 'contact',
+                        render: function(data, type, full) {
+                            let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingcontact_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecontact_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => i < 2 ? o.contact + '' : o.contact) : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => j == 1 ? x.contact : x.contact + '') : full.tels[0].contact ? full.tels[0].contact : '-' : ''
+                            let moveShow = full.tels.slice(3).map((x, i) => _i++ == count ? x.contact : x.contact + '')
+
+                            return full.tels.length > 0 ? '<div id="contact_' + full.info.cus_no + '">' +
+                                '<div class="" id="contact_heading_' + full.info.cus_no + '"> ' + show3Top + '</div>' +
+                                '<div id="collapsecontact_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingcontact_' + full.info.cus_no + '" data-parent="#contact_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 3) {
+                    columns.push({
+                        data: 'email',
+                        render: function(data, type, full) {
+                            let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + '' : o.email) : full.tels.length > 1 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + '') : full.emails[0].email ? full.emails[0].email : '-' : ''
+                            let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + '')
+
+                            return full.emails.length > 0 ? '<div id="email_' + full.info.cus_no + '">' +
+                                '<div class="" id="email_heading_' + full.info.cus_no + '">' + show3Top + '</div>' +
+                                '<div id="collapseemail_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingemail_' + full.info.cus_no + '" data-parent="#email_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 4) {
+                    columns.push({
+                        data: 'tel',
+                        render: function(data, type, full) {
+                            let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingtel_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsetel_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => i < 2 ? o.tel + '' : o.tel) : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => j == 1 ? x.tel : x.tel + '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
+                            let moveShow = full.tels.slice(3).map((x, i) => _i++ == count ? x.tel : x.tel + '')
+
+                            return full.tels.length > 0 ? '<div id="tel_' + full.info.cus_no + '">' +
+                                '<div class="" id="tel_heading_' + full.info.cus_no + '">' + show3Top + '</div>' +
+                                '<div id="collapsetel_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingtel_' + full.info.cus_no + '" data-parent="#tel_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 5) {
+                    columns.push({
+                        data: 'uuid',
+                        render: function(data, type, full) {
+                            return '<a class="btn btn-sm btn-gray-700 text-center" href="/customer/process/update?customer=' + full.info.cus_no + '" target="_blank"><i class="bi bi-pencil"></i></a>'
+                        }
+                    })
+                }
+            })
+        }
+
+
+        function formatRepo(repo) {
+            if (repo.loading) {
+                return repo.text;
+            }
+
+            return $('<span>' + repo.cus_name + '(' + repo.cus_no + ')' + '</span>');
+        }
+
+        function formatRepoSelection(repo) {
+            if (repo.id) {
+                return $('<span>' + repo.text.trim() + '</span>');
+            }
+
+            return repo.text;
+
+        }
+
+    };
 </script>

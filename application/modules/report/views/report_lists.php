@@ -1,6 +1,7 @@
+<?php echo  $this->CURUSER->cus_no; ?>
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
-        <form id="invoiceForm" method="get" action="/report" class="mb-4">
+        <form id="searchForm" method="post" action="/report" class="mb-4">
             <div class="section-filter-2">
                 <div class="box-search">
                     <div class="input-search-2">
@@ -11,10 +12,10 @@
                         </div>
                     </div>
                     <div class="input-search-2">
-                        <label for="customer" class="form-label">เลขที่เอกสาร</label>
+                        <label for="bill_no" class="form-label">เลขที่เอกสาร</label>
                         <div class="input-group mb-3">
                             <select class="select2 form-select" name="bill_no" id="bill_no">
-                                <option value="" selected>เลือก ...</option>
+                                <option value="">เลือก ...</option>
                                 <?php foreach ($billNos as $billNo) { ?>
                                     <option value="<?php echo $billNo->bill_no; ?>" <?php echo $bill_no == $billNo->bill_no ? 'selected' : '' ?>>
                                         <?php echo $billNo->bill_no; ?></option>
@@ -25,11 +26,11 @@
                     <div class="input-search-2">
                         <label for="customer" class="form-label">ลูกค้า</label>
                         <div class="input-group mb-3">
-                            <select class="select2 form-select" name="customer" id="customer">
-                                <option value="" selected>เลือก ...</option>
-                                <?php foreach ($customers as $customer) { ?>
-                                    <option value="<?php echo $customer->mcustno; ?>" <?php echo $cus_no == $customer->mcustno ? 'selected' : '' ?>>
-                                        <?php echo $customer->cus_name . ' (' . $customer->mcustno . ')' ?></option>
+                            <select class="select2 form-select customer" name="customer[]" id="customer" multiple>
+                                <option value="all" class="all">เลือกทั้งหมด</option>
+                                <?php foreach ($customers as $k => $customer) { ?>
+                                    <option value="<?php echo $customer->cus_no; ?>">
+                                        <?php echo $customer->cus_name . ' (' . $customer->cus_no . ')' ?></option>
                                 <?php  } ?>
                             </select>
                         </div>
@@ -45,172 +46,30 @@
             <table id="reportList" class="table table-centered table-striped w-100">
                 <thead class="thead-light">
                     <tr>
-                        <th width="10%">เลขที่เอกสาร</th>
-                        <th width="15%" class="no-search no-sort">ลูกค้า</th>
-                        <th width="15%" class="no-search no-sort">อีเมล</th>
-                        <th width="15%" class="no-search no-sort">เบอร์โทร</th>
-                        <th width="5%" class="no-search no-sort">โทรแจ้ง</th>
-                        <th width="10%" class="no-search no-sort">ผู้ติดต่อ</th>
-                        <th width="10%" class="no-search no-sort">ผู้รับสาย</th>
-                        <th width="5%" class="no-search no-sort">สถานะ</th>
-                        <th width="15%" class="no-search no-sort text-center">Action</th>
+                        <?php foreach ($table as $res) { ?>
+                            <?php if (!in_array($info->cus_no, $fullSearch) && !in_array($res->sort, [5, 6, 7, 8])) { ?>
+                                <th width="<?php if (in_array($res->sort, [2, 3, 4])) {
+                                                echo '20%';
+                                            } else if (in_array($res->sort, [1, 9])) {
+                                                echo '10%';
+                                            }; ?>" class="no-search no-sort <?php echo $res->sort == 9 ? 'text-center' : '' ?>">
+                                    <?php echo $res->colunm; ?>
+                                </th>
+                            <?php } else  if (in_array($info->cus_no, $fullSearch)) { ?>
+                                <th width="<?php if (in_array($res->sort, [2, 3, 4, 9, 6])) {
+                                                echo '15%';
+                                            } else if (in_array($res->sort, [1, 7])) {
+                                                echo '10%';
+                                            } else if (in_array($res->sort, [5, 8])) {
+                                                echo '5%';
+                                            }; ?>" class="no-search no-sort <?php echo $res->sort == 9 ? 'text-center' : '' ?>">
+                                    <?php echo $res->colunm; ?>
+                                </th>
+                            <?php } ?>
+                        <?php } ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($lists)) {
-                        foreach ($lists as $key => $invoice) { ?>
-                            <tr>
-                                <td><?php echo $invoice->bill_no; ?></td>
-                                <td><?php echo !empty($invoice->mcustname) ? $invoice->mcustname . ' (' . $invoice->cus_no . ')' : '-'; ?>
-                                </td>
-                                <td>
-                                    <?php if (!empty($invoice->uuid)) { ?>
-                                        <div id="email_<?php echo $invoice->uuid ?>">
-                                            <div class="" id="email_heading_<?php echo $invoice->uuid ?>">
-                                                <?php if (!empty($emails[$invoice->uuid])) { ?>
-                                                    <?php if (count($emails[$invoice->uuid]) > 3) { ?>
-                                                        <?php foreach (array_slice($emails[$invoice->uuid], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->email . ',' : $value->email; ?><?php } ?>
-                                            </div>
-                                            <div id="email_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="email_heading_<?php echo $invoice->uuid ?>" data-parent="#email_<?php echo $invoice->uuid ?>">
-                                                <?php $count = count(array_slice($emails[$invoice->uuid], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($emails[$invoice->uuid], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->email : $value->email . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($emails[$invoice->uuid]) > 1) { ?>
-                                                <?php foreach (array_slice($emails[$invoice->uuid], 0, 3) as $key => $value) { ?>
-                                                    <?php echo (($key == 2)) ? $value->email  : $value->email . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo $emails[$invoice->uuid]->email;
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($emails[$invoice->uuid]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#email_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <?php if (!empty($invoice->uuid)) { ?>
-                                        <div id="tel_<?php echo $invoice->uuid ?>">
-                                            <div class="" id="tel_heading_<?php echo $invoice->uuid ?>">
-                                                <?php if (!empty($tels[$invoice->uuid])) { ?>
-                                                    <?php if (count($tels[$invoice->uuid]) > 3) { ?>
-                                                        <?php foreach (array_slice($tels[$invoice->uuid], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->tel . ',' : $value->tel; ?><?php } ?>
-                                            </div>
-                                            <div id="tel_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="tel_heading_<?php echo $invoice->uuid ?>" data-parent="#tel_<?php echo $invoice->uuid ?>">
-                                                <?php $count = count(array_slice($tels[$invoice->uuid], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($tels[$invoice->uuid], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->tel : $value->tel . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($tels[$invoice->uuid]) > 1) { ?>
-                                                <?php foreach (array_slice($tels[$invoice->uuid], 0, 3) as $key => $value) { ?>
-                                                    <?php echo (($key == 2)) ? $value->tel : $value->tel . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo $tels[$invoice->uuid]->tel;
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($tels[$invoice->uuid]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#tel_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td><?php echo !empty($is_call[$invoice->uuid]) ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>'; ?></td>
-                                <td>
-                                    <?php if (!empty($invoice->uuid)) { ?>
-                                        <div id="contact_<?php echo $invoice->uuid ?>">
-                                            <div class="" id="contact_heading_<?php echo $invoice->uuid ?>">
-                                                <?php if (!empty($tels[$invoice->uuid])) { ?>
-                                                    <?php if (count($tels[$invoice->uuid]) > 3) { ?>
-                                                        <?php foreach (array_slice($tels[$invoice->uuid], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->contact . ',' : $value->contact; ?><?php } ?>
-                                            </div>
-                                            <div id="contact_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="contact_heading_<?php echo $invoice->uuid ?>" data-parent="#contact_<?php echo $invoice->uuid ?>">
-                                                <?php $count = count(array_slice($tels[$invoice->uuid], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($tels[$invoice->uuid], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->contact : $value->contact . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($tels[$invoice->uuid]) > 1) { ?>
-                                                <?php foreach (array_slice($tels[$invoice->uuid], 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value->contact : $value->contact . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo !empty($tels[$invoice->uuid]->contact) ? $tels[$invoice->uuid]->contact : '-';
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($tels[$invoice->uuid]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#contact_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <?php if (!empty($invoice->uuid)) { ?>
-                                        <div id="receives_<?php echo $invoice->uuid ?>">
-                                            <div class="" id="receives_heading_<?php echo $invoice->uuid ?>">
-                                                <?php if (!empty($receives[$invoice->uuid])) { ?>
-                                                    <?php if (count($receives[$invoice->uuid]) > 3) { ?>
-                                                        <?php foreach (array_slice($receives[$invoice->uuid], 0, 3) as $key => $value) { ?>
-                                                            <?php echo (($key < 2)) ? $value->receive_call . ',' : $value->receive_call; ?><?php
-                                                                                                                                        } ?>
-                                            </div>
-                                            <div id="receives_collapse_<?php echo $invoice->uuid ?>" class="accordion-collapse collapse" aria-labelledby="receives_heading_<?php echo $invoice->uuid ?>" data-parent="#receives_<?php echo $invoice->uuid ?>">
-                                                <?php $count = count(array_slice($receives[$invoice->uuid], 3)); ?>
-                                                <?php $i = 0; ?>
-                                                <?php foreach (array_slice($receives[$invoice->uuid], 3) as $key => $value) { ?>
-                                                    <?php echo ((++$i == $count)) ? $value->receive_call : $value->receive_call . ','; ?>
-                                                <?php } ?>
-                                            </div>
-                                        <?php } else { ?>
-                                            <?php if (count($receives[$invoice->uuid]) > 1) { ?>
-                                                <?php foreach (array_slice($receives[$invoice->uuid], 0, 2) as $key => $value) { ?>
-                                                    <?php echo (($key == 1)) ? $value->receive_call : $value->receive_call . ','; ?><?php } ?>
-                                                <?php } else {
-                                                            echo !empty($receives[$invoice->uuid]->receive_call) ? $receives[$invoice->uuid]->receive_call : '-';
-                                                        } ?>
-                                            <?php } ?>
-                                            <?php if (count($receives[$invoice->uuid]) > 3) { ?>
-                                                &nbsp;&nbsp;<span data-bs-toggle="collapse" data-bs-target="#receives_collapse_<?php echo $invoice->uuid ?>" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>
-                                            <?php } ?>
-                                        <?php } else {
-                                                    echo '-';
-                                                } ?>
-                                        </div>
-                                    <?php } ?>
-                                </td>
-                                <td>
-                                    <a class="btn btn-sm btn-success modalStatus" type="button" data-bs-toggle="modal" data-bs-target="#modal_status" data-uuid="<?php echo $invoice->uuid ?>">
-                                        <i class="bi bi-file-earmark"></i>
-                                    </a>
-                                </td>
-                                <td class="text-center">
-                                    <a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-uuid="<?php echo $invoice->uuid ?>"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-sm btn-danger" href="/report/pdf/<?php echo $invoice->uuid; ?>" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>
-                                    <a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="<?php echo $invoice->uuid ?>" data-cus_no="<?php echo $invoice->cus_no; ?>" data-cus_main="<?php echo $invoice->cus_main; ?>" data-end_date="<?php echo $invoice->end_date; ?>" data-bill_no="<?php echo $invoice->bill_no; ?>">
-                                        <i class="bi bi-envelope"></i></a>
-                                </td>
-                            </tr>
-                    <?php }
-                    } ?>
                 </tbody>
             </table>
         </div>
@@ -222,7 +81,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="d-flex">
-                    <h5 class="modal-title text-dark header_text me-3" id="exampleModalLabel">สถานะ</h5>
+                    <h5 class="modal-title text-muted header_text me-3" id="exampleModalLabel"></h5>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -232,9 +91,8 @@
                         <thead class="thead-light">
                             <tr>
                                 <th width="20%">วันสร้างบิล</th>
-                                <th width="25%">ลูกกค้า</th>
                                 <th width="25%">ผู้สร้างบิล</th>
-                                <th width="10%">สถานะ</th>
+                                <th width="20%">สถานะ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -254,7 +112,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="d-flex">
-                    <h5 class="modal-title text-dark header_text me-3" id="exampleModalLabel">การโทรแจ้ง</h5>
+                    <h5 class="modal-title text-muted me-3" id="call">การโทรแจ้ง</h5>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -275,11 +133,16 @@
 
 <script>
     $(function() {
-        var lists = <?php echo !empty($lists) ? json_encode($lists) : '[]'; ?>;
-        var tels = <?php echo !empty($tels) ? json_encode($tels) : '[]'; ?>;
-        var cf_call = <?php echo !empty($cf_call) ? json_encode($cf_call) : '[]'; ?>;
-
+        var reportTable = false;
         let formUpdate = $('.updateAction').parsley();
+        var table = <?php echo !empty($table) ? json_encode($table) : '[]'; ?>;
+        var info = <?php echo !empty($info) ? json_encode($info) : '{}'; ?>;
+        var search = <?php echo !empty($fullSearch) ? json_encode($fullSearch) : '[]'; ?>;
+        var columns = [];
+
+        if (table) {
+            genTable();
+        }
 
         $('#created_date').datepicker({
             todayHighlight: true,
@@ -288,21 +151,88 @@
         });
 
         $('#customer').select2({
-            theme: "bootstrap-5"
+            theme: "bootstrap-5",
+            placeholder: "เลือกลูกค้า",
+            closeOnSelect: false,
         });
 
         $('#bill_no').select2({
             theme: "bootstrap-5"
         });
 
-        $('#reportList')
+        $('#customer').on("select2:unselecting", function(e) {
+            let me = $(e.target)
+            let label = me.parents().find('.select2-results__options')
+            let all = label.find('.select2-results__option--highlighted').attr("data-select2-id").search('-all')
+            let check = label.find('.select2-results__option--highlighted').attr("aria-selected")
+            if (all > 0) {
+                $("#customer > option").prop('selected', false).end()
+            } else {
+                me.find('option').each(function(index, ele) {
+                    if ($(ele).hasClass('all')) {
+                        $(ele).prop('selected', false)
+                    }
+                })
+            }
+        });
+
+
+        $('#customer').on("select2:selecting", function(e) {
+            let me = $(e.target)
+            let label = me.parents().find('.select2-results__options')
+            let all = label.find('.select2-results__option--highlighted').attr("data-select2-id").search('-all')
+            let check = label.find('.select2-results__option--highlighted').attr("aria-selected")
+            console.log(label.find('.select2-results__option--highlighted').attr("data-select2-id"))
+            if (all > 0) {
+                $("#customer > option").prop('selected', true).end()
+            }
+        });
+
+        reportTable = $('#reportList')
             .DataTable({
                 "scrollX": false,
                 "lengthChange": false,
+                "processing": true,
+                "serverSide": true,
                 "pageLength": 20,
                 "order": [
-                    [0, "desc"]
+                    [0, "asc"]
                 ],
+                "ajax": {
+                    url: "/report/listReport",
+                    'data': {
+                        cus_no: '<?php echo $cus_no ?>',
+                        created_date: '<?php echo $created_date ?>',
+                        bill_no: '<?php echo $bill_no ?>',
+                    },
+                    dataFilter: function(data) {
+                        let json = jQuery.parseJSON(data);
+                        if (json.error) {
+                            Swal.fire({
+                                title: 'System not available',
+                                html: json.error.remark,
+                                type: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: "#3085d6",
+                                cancelButtonColor: "#d33",
+                                confirmButtonText: 'Try Again',
+                                confirmButtonClass: 'mr-3'
+                            }).then(function(result) {
+                                if (result.value) {
+                                    window.location.reload(true);
+                                }
+                            });
+                            return JSON.stringify({
+                                "draw": 1,
+                                "recordsTotal": 0,
+                                "recordsFiltered": 0,
+                                "data": []
+                            });
+                        }
+                        return JSON.stringify(json);
+                    }
+                },
+                "columns": columns,
                 "columnDefs": [{
                         "targets": 'no-sort',
                         "orderable": false
@@ -315,79 +245,99 @@
                         "defaultContent": "",
                         "targets": "_all"
                     }
-                ]
+                ],
             }).on('click', '.modalStatus', function(e) {
                 e.preventDefault();
                 let id = $(this).attr("data-uuid")
-                let created_by = lists[id].created_by ? lists[id].created_by : '-'
-                let is_bill = lists[id].is_email == 1 ? 'ส่งรายงานเรียบร้อยแล้ว' : 'ยังไม่ส่งรายงาน'
-                let is_receive_bill = lists[id].is_receive_bill == 1 ? 'ได้รับแล้ว' : 'ยังไม่ได้รับ'
-                let html = '<tr>' +
-                    '<td>' + lists[id].created_date + '</td>' +
-                    '<td>' + lists[id].mcustname + '(' + lists[id].cus_no + ')' + '</td>' +
-                    '<td class="text-success">' + created_by + '</td>' +
-                    '<td>' + is_bill + '</td>' +
-                    '</tr>'
-                let html2 =
-                    '<tr>' +
-                    '<td>' + lists[id].created_date + '</td>' +
-                    '<td>' + lists[id].mcustname + '(' + lists[id].cus_no + ')' + '</td>' +
-                    '<td>' + created_by + '</td>' +
-                    '<td class="text-success">' + is_bill + '</td>' +
-                    '</tr>' +
-                    '<tr>' +
-                    '<td>' + lists[id].created_date + '</td>' +
-                    '<td>' + lists[id].mcustname + '(' + lists[id].cus_no + ')' + '</td>' +
-                    '<td>' + created_by + '</td>' +
-                    '<td class="text-success">' + is_receive_bill + '</td>' +
-                    '</tr>'
-                let genHtml = is_receive_bill == 1 ? html2 : html
-                $('#status tbody').html(genHtml)
+                let cus_no = $(this).attr("data-cus_no")
+                let cus_name = $(this).attr("data-cus_name")
+                $('.header_text').text('สถานะ : ' + cus_name + ' (' + cus_no + ')');
+
+                $.get('/report/genBill/' + id).done(function(res) {
+                    if (res.status == 200) {
+                        if (res.data) {
+                            console.log(res.data.created_by)
+                            let created_by = res.data.created_by ? res.data.created_by : '-'
+                            let is_bill = res.data.is_email == 1 ? 'ส่งรายงานเรียบร้อยแล้ว' : 'ยังไม่ส่งรายงาน'
+                            let is_receive_bill = res.data.is_receive_bill == 1 ? 'ได้รับแล้ว' : 'ยังไม่ได้รับ'
+                            let html = '<tr>' +
+                                '<td>' + res.data.created_date + '</td>' +
+                                '<td class="text-success">' + created_by + '</td>' +
+                                '<td>' + is_bill + '</td>' +
+                                '</tr>'
+                            let html2 =
+                                '<tr>' +
+                                '<td>' + res.data.created_date + '</td>' +
+                                '<td class="text-muted">' + created_by + '</td>' +
+                                '<td class="text-success">' + is_bill + '</td>' +
+                                '</tr>' +
+                                '<tr>' +
+                                '<td>' + res.data.created_date + '</td>' +
+                                '<td>' + res.data.mcustname + '(' + res.data.cus_no + ')' + '</td>' +
+                                '<td class="text-muted">' + created_by + '</td>' +
+                                '<td class="text-success">' + is_receive_bill + '</td>' +
+                                '</tr>'
+                            let genHtml = is_receive_bill == 1 ? html2 : html
+                            $('#status tbody').html(genHtml)
+                        }
+                    } else if (res.status == 204) {
+                        $('#status tbody').html('')
+                    }
+                });
             }).on('click', '.modalAction', function(e) {
                 e.preventDefault();
                 let id = $(this).attr("data-uuid")
-                $('.uuid').val(id)
+                let cus_no = $(this).attr("data-cus_no")
+                let cus_main = $(this).attr("data-cus_main")
+                $('.cfCall').html('<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>')
                 let html = '';
-                if (tels[id].length > 2 && findObjectIsCall(tels[id]) == true) {
-                    if (cf_call[id] && cf_call[id] != 'undefined') {
-                        tels[id].map((o, i) => {
-                            let receive_call = cf_call[id][o.tel] && cf_call[id][o.tel] != 'undefined' ? cf_call[id][o.tel].receive_call : ''
-                            let cf_call_uuid = cf_call[id][o.tel] && cf_call[id][o.tel] != 'undefined' ? cf_call[id][o.tel].uuid : ''
-                            let check = cf_call[id][o.tel] && cf_call[id][o.tel] != 'undefined' ? cf_call[id][o.tel].cf_call ? 'checked' : '' : ''
-                            let lastIndex = tels[id].length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
-                            if (o.is_call == 1) {
-                                html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check"><input class="form-check-input" type="hidden" id="uuid" name="uuid[]" value="' + cf_call_uuid + '">' +
-                                    '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
-                                    '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
-                                    '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + lists[id].cus_no + '">' +
-                                    '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ' + check + ' id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
-                                    '<div class="mb-3 row"><label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
-                                    '<input type="text" class="form-control receive_call" id="receive_call" value="' + receive_call + '" name="receive_call[]" autocomplete="off"></div></div><div class="' + lastIndex + '"></div></div>';
-                            }
-                        });
-                    } else {
-                        tels[id].map((o, i) => {
-                            let lastIndex = tels[id].length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
-                            if (o.is_call == 1) {
-                                html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check">' +
-                                    '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
-                                    '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
-                                    '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + lists[id].cus_no + '">' +
-                                    '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
-                                    '<div class="mb-3 row">' +
-                                    '<label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
-                                    '<input type="text" class="form-control receive_call" id="receive_call" name="receive_call[]" autocomplete="off"></div></div> <div class="' + lastIndex + '">' +
-                                    '</div></div>';
-                            }
-                        });
-                    }
-                }
 
-                if (tels[id].length > 2 && findObjectIsCall(tels[id]) == true) {
-                    $('.cfCall').html(html)
-                } else {
-                    $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
-                }
+                $.get('/report/genCfCall/' + id + '/' + cus_no).done(function(res) {
+                    if (res.status == 200) {
+                        if (res.data.tels.length > 0 && findObjectIsCall(res.data.tels) == true) {
+                            if (res.data.cf_call) {
+                                res.data.tels.map((o, i) => {
+                                    let receive_call = res.data.cf_call[o.tel] && res.data.cf_call[o.tel] != 'undefined' ? res.data.cf_call[o.tel].receive_call : ''
+                                    let cf_call_uuid = res.data.cf_call[o.tel] && res.data.cf_call[o.tel] != 'undefined' ? res.data.cf_call[o.tel].uuid : ''
+                                    let check = res.data.cf_call[o.tel] && res.data.cf_call[o.tel] != 'undefined' ? res.data.cf_call[o.tel].cf_call ? 'checked' : '' : ''
+                                    let lastIndex = res.data.tels.length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
+                                    if (o.is_call == 1) {
+                                        html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check"><input class="form-check-input" type="hidden" id="uuid" name="uuid[]" value="' + cf_call_uuid + '">' +
+                                            '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
+                                            '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
+                                            '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + cus_no + '">' +
+                                            '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ' + check + ' id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
+                                            '<div class="mb-3 row"><label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
+                                            '<input type="text" class="form-control receive_call" id="receive_call" value="' + receive_call + '" name="receive_call[]" autocomplete="off"></div></div><div class="' + lastIndex + '"></div></div>';
+                                    }
+                                });
+                            } else {
+                                res.data.tels.map((o, i) => {
+                                    let lastIndex = res.data.tels.length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
+                                    if (o.is_call == 1) {
+                                        html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check">' +
+                                            '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
+                                            '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
+                                            '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + cus_no + '">' +
+                                            '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
+                                            '<div class="mb-3 row">' +
+                                            '<label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
+                                            '<input type="text" class="form-control receive_call" id="receive_call" name="receive_call[]" autocomplete="off"></div></div> <div class="' + lastIndex + '">' +
+                                            '</div></div>';
+                                    }
+                                });
+                            }
+                        }
+
+                        if (res.data.tels.length > 0 && findObjectIsCall(res.data.tels) == true) {
+                            $('.cfCall').html(html)
+                        } else {
+                            $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
+                        }
+                    } else if (res.status == 204) {
+                        $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
+                    }
+                });
 
             }).on('click', '.email', function(e) {
                 e.preventDefault();
@@ -396,7 +346,7 @@
                 let cus_main = $(this).attr("data-cus_main")
                 let endDate = $(this).attr("data-end_date")
                 let bill_no = $(this).attr("data-bill_no")
-                console.log(uuid)
+                let created_date = $(this).attr("data-created_date")
                 let formData = [{
                         name: 'cus_no',
                         value: cus_no
@@ -416,6 +366,10 @@
                     {
                         name: 'bill_no',
                         value: bill_no
+                    },
+                    {
+                        name: 'created_date',
+                        value: created_date
                     },
                 ]
                 $.post('/report/email', formData).done(function(res) {
@@ -451,7 +405,6 @@
             readyProcess(true);
             if (formUpdate.validate() === true) {
                 let formData = $('.updateAction').serializeArray();
-                console.log(formData)
                 $.post("/report/update", formData).done(function(res) {
                     $('.modalUpdate').modal('hide')
                     if (res.status === 200) {
@@ -482,7 +435,6 @@
             }
         });
 
-
         $('#status')
             .DataTable({
                 "scrollX": false,
@@ -492,7 +444,7 @@
                     [0, "desc"]
                 ],
                 "columnDefs": [{
-                        "targets": [1, 2, 3],
+                        "targets": [0, 1, 2],
                         "orderable": false
                     },
                     {
@@ -506,6 +458,126 @@
                 ]
             });
         $('.dataTables_filter label').hide();
+
+        function genTable() {
+            table.map(o => {
+                if (o.sort == 1) {
+                    columns.push({
+                        data: 'bill_no',
+                        render: function(data, type, full) {
+                            return '<div class="tb-10">' + full.info.bill_no + '</div>';
+                        }
+                    })
+                }
+                if (o.sort == 2) {
+                    columns.push({
+                        data: 'cus_no',
+                        render: function(data, type, full) {
+                            return '<div class="tb-15">' + full.info.cus_name + '(' + full.info.cus_no + ')</div>';
+                        }
+                    })
+                }
+                if (o.sort == 3) {
+                    columns.push({
+                        data: 'email',
+                        render: function(data, type, full) {
+                            let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + '' : o.email) : full.tels.length > 1 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + '') : full.emails[0].email ? full.emails[0].email : '-' : ''
+                            let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + '')
+
+                            return full.emails.length > 0 ? '<div class="tb-15" id="email_' + full.info.cus_no + '">' +
+                                '<div class="" id="email_heading_' + full.info.cus_no + '">' + show3Top + '</div>' +
+                                '<div id="collapseemail_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingemail_' + full.info.cus_no + '" data-parent="#email_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 4) {
+                    columns.push({
+                        data: 'tel',
+                        render: function(data, type, full) {
+                            let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingtel_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsetel_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => x.tel ? j == 1 ? x.tel : x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
+
+
+                            let moveShow = full.tels.slice(3).map((x, i) => x.tel ? _i++ == count ? x.tel : x.tel + ' ' : '')
+
+                            return full.tels.length > 0 ? '<div class="tb-15" id="tel_' + full.info.cus_no + '">' +
+                                '<div class="" id="tel_heading_' + full.info.cus_no + '">' + show3Top + '</div>' +
+                                '<div id="collapsetel_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingtel_' + full.info.cus_no + '" data-parent="#tel_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 5 && search.includes(info.cus_no)) {
+                    columns.push({
+                        data: 'is_call',
+                        render: function(data, type, full) {
+                            return findObjectIsCall(full.tels) ? '<i class="bi bi-check-circle text-success tb-5"></i>' : '<i class="bi bi-x-circle text-danger tb-5"></i>'
+                        }
+                    })
+                }
+
+                if (o.sort == 6 && search.includes(info.cus_no)) {
+                    columns.push({
+                        data: 'contact',
+                        render: function(data, type, full) {
+                            let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingcontact_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecontact_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.contact ? i < 2 ? o.contact + ' ' : o.contact : ' ') : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => x.contact ? j == 1 ? x.contact : x.contact + ' ' : ' ') : full.tels[0].contact ? full.tels[0].contact : '-' : ''
+                            let moveShow = full.tels.slice(3).map((x, i) => x.contact ? _i++ == count ? x.contact : x.contact + ' ' : '')
+
+                            return full.tels.length > 0 ? '<div class="tb-10" id="contact_' + full.info.cus_no + '">' +
+                                '<div class="" id="contact_heading_' + full.info.cus_no + '"> ' + show3Top + '</div>' +
+                                '<div id="collapsecontact_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingcontact_' + full.info.cus_no + '" data-parent="#contact_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 7 && search.includes(info.cus_no)) {
+                    columns.push({
+                        data: 'cf_call',
+                        render: function(data, type, full) {
+                            let count = full.cf_call.length > 0 ? full.cf_call.slice(3).length : 0
+                            let _i = 0;
+                            let move = full.cf_call.length > 3 ? '&nbsp;&nbsp;<span id="headingcall_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecall_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
+
+                            let show3Top = full.cf_call.length > 0 ? full.cf_call.length > 3 ? full.cf_call.slice(0, 3).map((o, i) => i < 2 ? o.receive_call + ' ' : o.receive_call + ' ') : full.cf_call.length > 1 ? full.cf_call.slice(0, ).map((x, j) => j == 1 ? x.receive_call : x.receive_call + ' ') : full.cf_call[0].receive_call ? full.cf_call[0].receive_call + ' ' : '-' : ''
+
+                            let moveShow = full.cf_call.slice(3).map((x, i) => _i++ == count ? x.receive_call : x.receive_call + ' ')
+
+                            return full.cf_call.length > 0 ? '<div class="tb-10" id="call_' + full.info.cus_no + '">' +
+                                '<div class="" id="call_heading_' + full.info.cus_no + '"> ' + show3Top + '</div>' +
+                                '<div id="collapsecall_' + full.info.cus_no + '" class="accordion-collapse collapse" aria-labelledby="headingcall_' + full.info.cus_no + '" data-parent="#contact_' + full.info.cus_no + '"">' + moveShow + '</div>' + move + '</div>' : '-';
+                        }
+                    })
+                }
+                if (o.sort == 8 && search.includes(info.cus_no)) {
+                    columns.push({
+                        data: 'is_email',
+                        render: function(data, type, full) {
+                            return '<a class="btn btn-sm btn-success modalStatus tb-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_status" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_name="' + full.info.cus_name + '"><i class="bi bi-file-earmark"></i></a>'
+                        }
+                    })
+                }
+                if (o.sort == 9) {
+                    columns.push({
+                        data: 'uuid',
+                        render: function(data, type, full) {
+                            let action = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '"><i class="bi bi-pencil"></i></a>' : ''
+                            let mail = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' "><i class="bi bi-envelope"></i></a>' : ''
+
+                            return '<div class="tb-15 d-flex justify-content-center">' +
+                                action +
+                                '<a class="btn btn-sm btn-danger" href="/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + '</div>'
+                        }
+                    })
+                }
+
+            })
+        }
 
         function readyProcess(wait = false) {
             if (wait) {
