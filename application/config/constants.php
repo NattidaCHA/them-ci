@@ -84,16 +84,39 @@ defined('EXIT_DATABASE')       or define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      or define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
+//vw_billpay_txt02
 defined('REPORT')      or define('REPORT', 'report_notification');
+defined('CUSTOMER')      or define('CUSTOMER', 'customer_notification');
 defined('VW_Customer')      or define('VW_Customer', 'vw_Customer_DWH');
+defined('CUST_NOTI')      or define('CUST_NOTI', 'cust_notification');
+defined('TBL_CUT')      or define('TBL_CUT', 'tbl_custtel');
+defined('SALEORG')      or define('SALEORG', 'saleorg');
+defined('SENTO_CUS')      or define('SENTO_CUS', 'sendto_customer');
+defined('SETTING')      or define('SETTING', 'setting');
+defined('EMAIL')      or define('EMAIL', 'email_customer');
+defined('TEL')      or define('TEL', 'tel_customer');
+defined('CFCALL')      or define('CFCALL', 'cf_call_report');
+defined('REPORT_DETAIL')      or define('REPORT_DETAIL', 'report_notification_detail');
+defined('PAYMENT')      or define('PAYMENT', 'payment');
+defined('BILLPAY')      or define('BILLPAY', 'vw_billpay_txt02');
 
-
+//https://npismo.scg.com/
 if (ENVIRONMENT == 'production') {
+    defined('SERVERNAME') or define('SERVERNAME', '10.51.249.165');
     defined('DATABASE') or define('DATABASE', 'NpiNotification');
     defined('UID') or define('UID', 'Npinoti_usr01');
     defined('PWD') or define('PWD', 'Noti22@PRD');
+    defined('HTTP')      or define('HTTP', 'invoicenotification/');
+    defined('WWW') or define('WWW', 'https://npismo.scg.com');
 } else {
+    if (ENVIRONMENT == 'testing') {
+        defined('HTTP')      or define('HTTP', 'invoicenotification/');
+        defined('WWW') or define('WWW', 'https://npismodev.scg.com');
+    }
+    defined('SERVERNAME') or define('SERVERNAME', '10.51.249.87');
     defined('DATABASE') or define('DATABASE', 'NpiNotification_Dev');
     defined('UID') or define('UID', 'NpiNoti_usr01');
     defined('PWD') or define('PWD', 'NpiNoti01@2022');
+    defined('HTTP')      or define('HTTP', '');
+    defined('WWW') or define('WWW', 'http://notification.com');
 }

@@ -1,6 +1,6 @@
 <div class="container-fluid">
     <div class="section-customer bg-white rounded shadow rounded px-4 pt-3 pb-3">
-        <form id="searchcForm" method="get" action="/customer/process/create" class="mb-4 <?php echo $action == 'create' ? 'd-block' : 'd-none' ?>">
+        <form id="searchcForm" method="get" action="<?php echo $http ?>/customer/process/create" class="mb-4 <?php echo $action == 'create' ? 'd-block' : 'd-none' ?>">
             <div class="box-customer-search">
                 <div class="input-search-2">
                     <label for="customer" class="form-label">ลูกค้า</label>
@@ -168,30 +168,7 @@
         let checkValidate = false;
 
         $('.select2').select2({
-            theme: "bootstrap-5",
-            // allowClear: false,
-            // placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
-            // ajax: {
-            //     url: "/api/searchCustomerVW",
-            //     dataType: 'json',
-            //     delay: 250,
-            //     data: function(params) {
-            //         return {
-            //             q: params.term,
-            //             page: 1
-            //         };
-            //     },
-            //     processResults: function(data, params) {
-            //         params.page = params.page || 1;
-            //         return {
-            //             results: data.results,
-            //             pagination: false
-            //         };
-            //     }
-            // },
-            // allowHtml: true,
-            // templateResult: formatRepo,
-            // templateSelection: formatRepoSelection
+            theme: "bootstrap-5"
         });
 
         $('#customerForm').on('click', '.submit', function(e) {
@@ -213,7 +190,7 @@
                     }))
 
                 }
-                $.post("/customer/action/" + type, formData).done(function(res) {
+                $.post("<?php echo $http ?>/customer/action/" + type, formData).done(function(res) {
                     if (res.status === 200) {
                         Swal.fire({
                             icon: 'success',
@@ -221,7 +198,7 @@
                             confirmButtonText: 'ตกลง'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                window.location = '/customer/process/update?customer=' + cusNo;
+                                window.location = '<?php echo $http ?>/customer/process/update?customer=' + cusNo;
                             }
                         })
                     } else {
@@ -273,7 +250,7 @@
                     let remove = $(this).parents('.contact-email')
                     let id = remove.find($('input[name="uuid_email[]"]'))
                     if ('<?php echo $action ?>' == 'update' && id.val() != '1') {
-                        $.post("/customer/removeEmail/" + id.val()).done(function(res) {
+                        $.post("<?php echo $http ?>/customer/removeEmail/" + id.val()).done(function(res) {
                             if (res.status === 200) {
                                 Swal.fire({
                                     icon: 'success',
@@ -327,7 +304,7 @@
                     let remove = $(this).parents('.contact-tel')
                     let id = remove.find($('input[name="uuid_tel[]"]'))
                     if ('<?php echo $action ?>' == 'update' && id.val() != '1') {
-                        $.post("/customer/removeTel/" + id.val()).done(function(res) {
+                        $.post("<?php echo $http ?>/customer/removeTel/" + id.val()).done(function(res) {
                             if (res.status === 200) {
                                 Swal.fire({
                                     icon: 'success',
@@ -474,7 +451,7 @@
             return false;
         }
 
-        
+
         function formatRepo(repo) {
             if (repo.loading) {
                 return repo.text;

@@ -19,7 +19,6 @@ class Customer extends MY_Controller
         parent::__construct();
         $this->load->model('model_customer');
         $this->load->model('model_system');
-        $this->load->model('model_api');
     }
 
     private function setPagination()
@@ -75,7 +74,7 @@ class Customer extends MY_Controller
     public function index()
     {
         $cus_no = $this->input->get('customer') ? $this->input->get('customer') : '';
-        $table = $this->model_system->getPageIsShow();
+        $table = $this->model_system->getPageIsShow()->items;
         $this->data['page_header'] = 'ลูกค้า';
         $this->data['cus_no'] = $cus_no;
         $this->data['table'] = $table['customer'];
@@ -88,6 +87,7 @@ class Customer extends MY_Controller
         $days = $this->config->item('day');
         $this->data['days'] = [];
         $cus_no = $this->input->get('customer') ? $this->input->get('customer') : '';
+        $tab = $this->input->get('tab') ? $this->input->get('tab') : 'email';
         $customer = (object) [];
         $customerChild = [];
         $sendDate = (object) [];
@@ -102,11 +102,11 @@ class Customer extends MY_Controller
         }
 
         if ($action == 'create') {
-            $main = $this->model_customer->findMain($cus_no);
+            $main = $this->model_customer->findMain($cus_no)->items;
             if (!empty($main->cus_no)) {
-                $customerChild = $this->model_customer->findChildList($cus_no);
-                $sendDate =  !empty($this->model_system->getSendDate($cus_no)) ? $this->model_system->getSendDate($cus_no)->mday : '';
-                $customer = $this->model_customer->findChild($main->msendto);
+                $customerChild = $this->model_customer->findChildList($cus_no)->items;
+                $sendDate =  !empty($this->model_system->getSendDate($cus_no)->items) ? $this->model_system->getSendDate($cus_no)->items->mday : '';
+                $customer = $this->model_customer->findChild($main->msendto)->items;
                 $loading = false;
 
                 if (!empty($customer->tel)) {
@@ -131,14 +131,14 @@ class Customer extends MY_Controller
                     }
                 }
             } else {
-                $child = $this->model_customer->findChild($cus_no);
+                $child = $this->model_customer->findChild($cus_no)->items;
                 if (!empty($child->cus_no)) {
-                    $customer = $this->model_customer->findChild($child->msendto);
+                    $customer = $this->model_customer->findChild($child->msendto)->items;
                     $type = 'child';
                     $customer = $child;
-                    $customerMain = $this->model_customer->findChild($child->msendto);
+                    $customerMain = $this->model_customer->findChild($child->msendto)->items;
                     array_push($customerChild, (object)['cus_no' => $customerMain->cus_no, 'cus_name' => $customerMain->cus_name, 'type' => 'main'], (object)['cus_no' => $child->cus_no, 'cus_name' => $child->cus_name]);
-                    $sendDate = !empty($this->model_system->getSendDate($cus_no)) ? $this->model_system->getSendDate($cus_no)->mday : '';
+                    $sendDate = !empty($this->model_system->getSendDate($cus_no)->items) ? $this->model_system->getSendDate($cus_no)->items->mday : '';
                     $loading = false;
 
                     if (!empty($customer->tel)) {
@@ -165,26 +165,24 @@ class Customer extends MY_Controller
                 }
             }
         } else {
-            $customer = $this->model_customer->customer($cus_no);
+            $customer = $this->model_customer->customer($cus_no)->items;
             if ($customer->type == 'main') {
-                $customerChild = $this->model_customer->findChildList($customer->cus_no);
+                $customerChild = $this->model_customer->findChildList($customer->cus_no)->items;
             } else {
-                $findMiain = $this->model_customer->findChild($customer->cus_no);
-                $customerMain = $this->model_customer->findChild($findMiain->msendto);
+                $findMiain = $this->model_customer->findChild($customer->cus_no)->items;
+                $customerMain = $this->model_customer->findChild($findMiain->msendto)->items;
                 array_push($customerChild, (object)['cus_no' => $customerMain->cus_no, 'cus_name' => $customerMain->cus_name, 'type' => 'main'], (object)['cus_no' => $customer->cus_no, 'cus_name' => $customer->cus_name]);
             }
 
-            $isCheck = $this->model_customer->getSendTo($cus_no);
+            $isCheck = $this->model_customer->getSendTo($cus_no)->items;
             $sendDate = $customer->send_date;
             $type = $customer->type;
-            $tels = $this->model_customer->tel($cus_no);
-            $emails = $this->model_customer->email($cus_no);
+            $tels = $this->model_customer->tel($cus_no)->items;
+            $emails = $this->model_customer->email($cus_no)->items;
         }
 
-        // var_dump($tels);
-        // exit;
         $this->data['page_header'] = ($action == 'create') ? 'สร้างข้อมูลลูกค้า' : 'แก้ไขข้อมูลลูกค้า';
-        $this->data['customers'] = ($action == 'create') ? $this->model_system->getCustomer() : '';
+        $this->data['customers'] = ($action == 'create') ? $this->model_system->getCustomer()->items : '';
         $this->data['info'] = $customer;
         $this->data['select_customer'] = $customerChild;
         $this->data['send_date'] = !empty($sendDate) ? $sendDate : '';
@@ -194,6 +192,7 @@ class Customer extends MY_Controller
         $this->data['emails'] = $emails;
         $this->data['loading'] = $loading;
         $this->data['action'] = $action;
+        $this->data['tab'] = $tab;
         $this->loadAsset(['parsley', 'sweetalert', 'select2']);
         $this->view('customer_form');
     }
@@ -210,32 +209,25 @@ class Customer extends MY_Controller
             });
         }
         if (!empty($params)) {
-            $customer = [
-                'send_date' => $params['send_date'],
-            ];
-
-            $sendto = [];
-
+            // var_dump($action);
+            // exit;
             if ($action == 'create') {
-                $checkCustomer = $this->model_system->findCustomerById($params['cus_no']);
+                $checkCustomer = $this->model_system->findCustomerById($params['cus_no'])->items;
+                $checkCustomer = NULL;
                 if (empty($checkCustomer)) {
-                    $customer['uuid'] =  genRandomString(16);
-                    $customer['cus_no'] = $params['cus_no'];
-                    $customer['cus_name'] = $params['cus_name'];
-                    $customer['type'] = $params['type'];
-                    $customer['created_date'] =  date("Y-m-d H:i:s");
+                    $customer = [
+                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], NULL, NULL
+                    ];
+
                     $create = $this->model_customer->createCustomer($customer);
 
-                    if (!empty($create) && !empty($params['sendto'])) {
+                    if (!empty($params['sendto'])) {
                         foreach ($params['sendto'] as $key => $val) {
-                            $checkChild = $this->model_customer->checkSendTo($val, $params['cus_no']);
-                            $checkToChild = $this->model_customer->checkSendToChild($val);
+                            $checkChild = $this->model_customer->checkSendTo($val, $params['cus_no'])->items;
+                            $checkToChild = $this->model_customer->checkSendToChild($val)->items;
 
                             if (empty($checkChild) || empty($checkToChild)) {
-                                $sendto['uuid'] = genRandomString(16);
-                                $sendto['cus_main'] = $params['cus_no'];
-                                $sendto['cus_no'] = $val;
-                                $sendto['is_check'] = 1;
+                                $sendto = [genRandomString(16), $val, $params['cus_no'], 1];
                                 $this->model_customer->createSendto($sendto);
                             }
                         }
@@ -244,14 +236,17 @@ class Customer extends MY_Controller
                     if (!empty($create) &&  (!empty($params['tel']))) {
                         $tel = $params['tel'];
                         foreach ($tel as $key => $val) {
+                            // var_dump($val);
+                            // exit;
                             if (!empty($val)) {
                                 $conatct = [
-                                    'uuid' => genRandomString(16),
-                                    'cus_main' => $params['cus_no'],
-                                    'tel' => !empty($val) ? $val : '',
-                                    'is_call' => !empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
-                                    'contact' => !empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL,
-                                    'created_date' => date("Y-m-d H:i:s")
+                                    genRandomString(16),
+                                    $params['cus_no'],
+                                    !empty($val) ? $val : '',
+                                    date("Y-m-d H:i:s"),
+                                    date("Y-m-d H:i:s"),
+                                    !empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
+                                    !empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL,
                                 ];
 
                                 $this->model_customer->createTelContact($conatct);
@@ -259,22 +254,21 @@ class Customer extends MY_Controller
                         }
                     }
 
-                    if (!empty($create) &&  !empty($params['email'])) {
+                    if (!empty($create) && !empty($params['email'])) {
                         foreach ($params['email'] as $key => $val) {
                             if (!empty($val)) {
                                 $conatct = [
-                                    'uuid' => genRandomString(16),
-                                    'cus_main' => $params['cus_no'],
-                                    'email' => !empty($params['email']) ? $val : '',
-                                    'created_date' => date("Y-m-d H:i:s")
+                                    genRandomString(16),
+                                    !empty($params['email']) ? $val : '',
+                                    $params['cus_no'],
+                                    date("Y-m-d H:i:s"),
+                                    date("Y-m-d H:i:s")
                                 ];
 
                                 $this->model_customer->createEmailContact($conatct);
                             }
                         }
                     }
-                    // var_dump($checkCustomer);
-                    // exit;
 
                     $output['status'] = 200;
                     $output['data'] = $params;
@@ -285,47 +279,47 @@ class Customer extends MY_Controller
                 }
             } else {
                 $id = $this->input->get('id');
-                $customer['updated_date'] =  date("Y-m-d H:i:s");
+                $customer = [
+                    $params['send_date'],
+                    date("Y-m-d H:i:s"),
+                    NULL
+                ];
+
                 $this->model_customer->updateInfo($params['id'], $customer);
 
                 if (!empty($params['noCheckChild'])) {
                     foreach ($params['noCheckChild'] as $val) {
-                        $checkChild = $this->model_customer->getSendToId($val);
+                        $checkChild = $this->model_customer->getSendToId($val)->items;
                         if (!empty($checkChild)) {
-                            $this->model_customer->updateSendTo($val, 0);
+                            $this->model_customer->updateSendTo($val, [0]);
                         }
                     }
                 }
 
                 if (!empty($params['sendto'])) {
                     foreach ($params['sendto'] as $val) {
-                        $customerMain = $this->model_customer->findChild($val);
-                        $res = $this->model_customer->checkSendTo($val, $customerMain->msendto);
-                        $checkToChild = $this->model_customer->checkSendToChild($val);
-                        $sendto['is_check'] = 1;
+                        $customerMain = $this->model_customer->findChild($val)->items;
+                        $res = $this->model_customer->checkSendTo($val, $customerMain->msendto)->items;
+                        $checkToChild = $this->model_customer->checkSendToChild($val)->items;
 
                         if (!empty($params['noCheckChildId'])) {
                             $uuid = !empty($res) ? $res->uuid : $checkToChild->uuid;
                             if ((!empty($res) || !empty($checkToChild)) && (!in_array($val, $params['noCheckChildId']))) {
-                                $this->model_customer->updateSendTo($uuid, 1);
+                                $this->model_customer->updateSendTo($uuid, [1]);
                             }
                         } else {
                             if ($params['type'] == 'main') {
                                 if (!empty($res)) {
-                                    $this->model_customer->updateSendTo($res->uuid, 1);
+                                    $this->model_customer->updateSendTo($res->uuid, [1]);
                                 } else {
-                                    $sendto['uuid'] = genRandomString(16);
-                                    $sendto['cus_no'] = $val;
-                                    $sendto['cus_main'] = $params['cus_no'];
+                                    $sendto = [genRandomString(16), $val, $params['cus_no'], 1];
                                     $this->model_customer->createSendto($sendto);
                                 }
                             } else {
                                 if (!empty($checkToChild)) {
-                                    $this->model_customer->updateSendTo($checkToChild->uuid, 1);
+                                    $this->model_customer->updateSendTo($checkToChild->uuid, [1]);
                                 } else {
-                                    $sendto['uuid'] = genRandomString(16);
-                                    $sendto['cus_no'] = $val;
-                                    $sendto['cus_main'] = $params['cus_no'];
+                                    $sendto = [genRandomString(16), $val, $params['cus_no'], 1];
                                     $this->model_customer->createSendto($sendto);
                                 }
                             }
@@ -339,20 +333,24 @@ class Customer extends MY_Controller
 
                     foreach ($id as $key => $val) {
                         if (!empty($tel[$key])) {
-                            $conatct = [
-                                'tel' => $tel[$key]
-                            ];
                             if ($val == '1') {
-                                $conatct['uuid'] =  genRandomString(16);
-                                $conatct['cus_main'] = $params['cus_no'];
-                                $conatct['is_call'] = !empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0;
-                                $conatct['contact'] = !empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL;
-                                $conatct['created_date'] =  date("Y-m-d H:i:s");
+                                $conatct = [
+                                    genRandomString(16),
+                                    $params['cus_no'],
+                                    $tel[$key],
+                                    date("Y-m-d H:i:s"),
+                                    date("Y-m-d H:i:s"),
+                                    !empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
+                                    !empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL
+                                ];
                                 $this->model_customer->createTelContact($conatct);
                             } else {
-                                $conatct['updated_date'] =  date("Y-m-d H:i:s");
-                                $conatct['is_call'] = !empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0;
-                                $conatct['contact'] = !empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL;
+                                $conatct = [
+                                    $tel[$key],
+                                    date("Y-m-d H:i:s"),
+                                    !empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
+                                    !empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL
+                                ];
                                 $this->model_customer->updateTelContact($val, $conatct);
                             }
                         }
@@ -364,17 +362,20 @@ class Customer extends MY_Controller
                     $email = $params['email'];
                     foreach ($id as $key => $val) {
                         if (!empty($email[$key])) {
-                            $conatct = [
-                                'email' =>  $email[$key]
-                            ];
-
                             if ($val == '1') {
-                                $conatct['uuid'] =  genRandomString(16);
-                                $conatct['cus_main'] = $params['cus_no'];
-                                $conatct['created_date'] =  date("Y-m-d H:i:s");
+                                $conatct = [
+                                    genRandomString(16),
+                                    $email[$key],
+                                    $params['cus_no'],
+                                    date("Y-m-d H:i:s"),
+                                    date("Y-m-d H:i:s")
+                                ];
                                 $this->model_customer->createEmailContact($conatct);
                             } else {
-                                $conatct['updated_date'] =  date("Y-m-d H:i:s");
+                                $conatct = [
+                                    $email[$key],
+                                    date("Y-m-d H:i:s"),
+                                ];
                                 $this->model_customer->updateEmailContact($val, $conatct);
                             }
                         }
@@ -427,9 +428,9 @@ class Customer extends MY_Controller
 
     public function genCustomer()
     {
-        $lists = $this->model_system->findCustomer();
+        $lists = $this->model_system->findCustomer()->items;
 
-        $current = $this->model_system->getCustomerNew();
+        $current = $this->model_system->getCustomerNew()->items;
 
         $res = [];
         // var_dump($val);
@@ -480,10 +481,10 @@ class Customer extends MY_Controller
         $tels = [];
         $emails = [];
 
-        $main = $this->model_customer->findMain($cus_no);
+        $main = $this->model_customer->findMain($cus_no)->items;
         if (!empty($main->cus_no)) {
             $customerChild = $this->model_customer->findChildList($cus_no);
-            $sendDate =  !empty($this->model_system->getSendDate($cus_no)) ? $this->model_system->getSendDate($cus_no)->mday : NULL;
+            $sendDate =  !empty($this->model_system->getSendDate($cus_no)->items) ? $this->model_system->getSendDate($cus_no)->items->mday : NULL;
             $customer = $this->model_customer->findChild($main->msendto);
 
             if (!empty($customer->tel)) {
@@ -515,7 +516,7 @@ class Customer extends MY_Controller
                 $customer = $child;
                 $customerMain = $this->model_customer->findChild($child->msendto);
                 array_push($customerChild, (object)['cus_no' => $customerMain->cus_no, 'cus_name' => $customerMain->cus_name, 'type' => 'main'], (object)['cus_no' => $child->cus_no, 'cus_name' => $child->cus_name]);
-                $sendDate = !empty($this->model_system->getSendDate($cus_no)) ? $this->model_system->getSendDate($cus_no)->mday : NULL;
+                $sendDate = !empty($this->model_system->getSendDate($cus_no)->items) ? $this->model_system->getSendDate($cus_no)->items->mday : NULL;
 
                 if (!empty($customer->tel)) {
                     if (strpos($customer->tel, ",") > 0) {
@@ -617,11 +618,11 @@ class Customer extends MY_Controller
         $total = 0;
 
         if ($apiData = $this->model_customer->getCustomerTb($cus_no, $this->limit, $this->page)) {
-            if (empty($apiData)) {
-                $this->responseJSON(['error' => $apiData->error]);
+            if (!empty($apiData->lists->error)) {
+                $this->responseJSON(['error' => $apiData->lists->error]);
             } else {
-                if (!empty($apiData)) {
-                    $result = $apiData->lists;
+                if (!empty($apiData->lists)) {
+                    $result = $apiData->lists->items;
                     $total = $apiData->totalRecord;
                     $total_filter = $apiData->totalRecord;
                 }
@@ -629,11 +630,5 @@ class Customer extends MY_Controller
         }
 
         $this->responseDataTable($result, $total, $total_filter);
-    }
-
-
-    public function test()
-    {
-        var_dump($this->model_api->getInvoice());
     }
 }

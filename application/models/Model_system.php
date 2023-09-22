@@ -11,101 +11,227 @@ class Model_system extends MY_Model
     public function getDateSelect()
     {
         $result = [];
-        $sql = $this->db->select('mday')
-            ->group_by('mday')
-            ->where('mday !=', 'NO FAX', 'left')
-            ->get('cust_notification');
+        $sql =  "SELECT mday FROM " . CUST_NOTI . " where mday != 'NO FAX' GROUP BY mday";
+        $stmt = sqlsrv_query($this->conn, $sql);
 
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getTypeBusiness()
     {
         $result = [];
-        $sql = $this->db
-            ->order_by('msort')
-            ->get('saleorg');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . SALEORG . " ORDER BY msort";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getCustomer()
     {
         $result = [];
-        $sql = $this->db->select('T1.mcustno, MAX(T1.mcustname) as cus_name, MAX(T2.maddress1) as address1, MAX(T2.maddress2) as address2, MAX(T2.mfax) as fax, MAX(T2.mtel) as tel, MAX(T2.mmobile) as mobile, MAX(T2.memail) as email, MAX(T2.mcontact) as contact, MAX(T2.mremarks) as remarks')
-            ->join('tbl_custtel T2', 'T2.mcustno = T1.mcustno', 'left')
-            ->group_by('T1.mcustno')
-            ->get('vw_Customer_DWH T1');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $select = VW_Customer . '.mcustno,MAX(' . VW_Customer . '.mcustname) as cus_name,MAX(' . TBL_CUT . '.maddress1) as maddress1,MAX(' . TBL_CUT . '.maddress2) as maddress2,MAX(' . TBL_CUT . '.mfax) as mfax,MAX(' . TBL_CUT . '.mtel) as mtel,MAX(' . TBL_CUT . '.mmobile) as mobile,MAX(' . TBL_CUT . '.memail) as memail,MAX(' . TBL_CUT . '.mcontact) as contact,MAX(' . TBL_CUT . '.mremarks) as mremarks ';
+        $join = " left join " . TBL_CUT . " on " . TBL_CUT . ".mcustno = " . VW_Customer . ".mcustno";
+        $group_by = ' GROUP BY ' . VW_Customer . '.mcustno';
+
+        $sql =  "SELECT $select FROM " . VW_Customer . $join .  $group_by;
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function findCustomer()
     {
         $result = [];
-        $sql = $this->db->select('mcustno')
-            ->group_by('mcustno')
-            ->get('vw_Customer_DWH');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT mcustno FROM " . VW_Customer . " group by mcustno";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getCustomerAll()
     {
         $result = [];
-        $sql = $this->db->select('cus_no,cus_name')
-            ->order_by('cus_no', 'asc')
-            ->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+
+        $sql =  "SELECT cus_no,cus_name FROM " . CUSTOMER . " order by cus_no asc";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getCustomerNew()
     {
         $result = [];
-        $lists = [];
-        $sql = $this->db->select('cus_no,cus_name')
-            ->order_by('cus_no', 'asc')
-            ->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
+        $sql =  "SELECT cus_no,cus_name FROM " . CUSTOMER . " order by cus_no asc";
+        $stmt = sqlsrv_query($this->conn, $sql);
 
-        foreach ($result as $val) {
-            array_push($lists, $val->cus_no);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = $row['cus_no'];
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
         }
-        return  $lists;
+
+        return $output;
     }
 
     public function checkSendtoMain($cus_no)
     {
         $result = [];
-        $sql = $this->db->select("cus_no,MAX(CONVERT(int,is_check)) as is_check")
-            ->where("is_check =", 1)
-            ->where("(cus_main = '$cus_no' OR cus_no = '$cus_no')")
-            ->group_by('cus_no')
-            ->get('sendto_customer');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT cus_no,MAX(CONVERT(int,is_check)) as is_check FROM " . SENTO_CUS . " where cus_main = '$cus_no' OR cus_no = '$cus_no' AND is_check = 1 group by cus_no";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function checkSendtoChild($cus_no)
     {
         $result = [];
-        $sql = $this->db->select("cus_main,MAX(CONVERT(int,is_check)) as is_check")
-            ->where("is_check =", 1)
-            ->where("(cus_main = '$cus_no' OR cus_no = '$cus_no')")
-            ->group_by('cus_main')
-            ->get('sendto_customer');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT cus_main,MAX(CONVERT(int,is_check)) as is_check FROM " . SENTO_CUS . " where cus_main = '$cus_no' OR cus_no = '$cus_no' AND is_check = 1 group by cus_main";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function findeCustomersearch($cus_no)
@@ -114,20 +240,20 @@ class Model_system extends MY_Model
         $result = (object)[];
         $lists = [];
         $isCheck = [];
-        $checkCustomer = $this->model_system->findCustomerById($cus_no);
+        $checkCustomer = $this->model_system->findCustomerById($cus_no)->items;
 
-        $sql = $this->db->select('cus_no,cus_name')->where('cus_no', $cus_no)->get('customer_notification');
-        $result = $sql->row();
-        $sql->free_result();
+        $sql =  "SELECT cus_no,cus_name FROM " . CUSTOMER . " where cus_no = '$cus_no'";
+        $stmt = sqlsrv_query($this->conn, $sql);
+        $result =  sqlsrv_fetch_object($stmt);
         $lists[$cus_no] = $result;
 
         if ($checkCustomer->type == 'main') {
-            $isCheck = $this->checkSendtoMain($cus_no);
+            $isCheck = $this->checkSendtoMain($cus_no)->items;
             foreach ($isCheck as $val) {
                 if ($val->cus_no != $cus_no) {
-                    $sql1 = $this->db->select('cus_no,cus_name')->where('cus_no', $val->cus_no)->get('customer_notification');
-                    $result2 = $sql1->row();
-                    $sql1->free_result();
+                    $sql1 =  "SELECT cus_no,cus_name FROM " . CUSTOMER . " where cus_no = '$val->cus_no'";
+                    $stmt1 = sqlsrv_query($this->conn, $sql1);
+                    $result2 =  sqlsrv_fetch_object($stmt1);
                     $lists[$val->cus_no] = $result2;
                 }
             }
@@ -139,187 +265,197 @@ class Model_system extends MY_Model
     public function searchCustomer($keywork)
     {
 
-        if (!empty($keywork)) {
-            $this->db->like('cus_no', $keywork, 'both');
-        }
-
-        if (!empty($keywork)) {
-            $this->db->or_like('cus_name', $keywork, 'both');
-        }
-
         $result = [];
-        $sql = $this->db->select('uuid,cus_no,cus_name')
-            ->order_by('cus_no', 'asc')
-            ->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT uuid,cus_no,cus_name FROM " . CUSTOMER;
+        $order_by = ' order by cus_no asc';
+        if (!empty($keywork)) {
+            $sql = $sql . " where cus_no like '%$keywork%' OR cus_name like '%$keywork%'";
+        }
+        $sql = $sql . $order_by;
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function defaultCustomer()
     {
         $result = [];
-        $sql = $this->db->select('uuid,cus_no,cus_name')
-            ->order_by('cus_no', 'asc')
-            ->limit(50)
-            ->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
-    }
+        $sql =  "SELECT top 50 uuid,cus_no,cus_name FROM " . CUSTOMER . " order by cus_no asc";
+        $stmt = sqlsrv_query($this->conn, $sql);
 
-    public function getCustomerSelect()
-    {
-        $result = [];
-        $sql = $this->db->select('msendto,MAX(mcustno) as mcustno,MAX(mcustname) as cus_name')
-            ->group_by('msendto')
-            ->get('vw_Customer_DWH');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
-    }
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
 
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
+    }
 
     public function getSendDate($id)
     {
-        $result = [];
-        $sql = $this->db->select('mday')
-            ->where("(mcustno ='$id' AND mday != 'NO FAX')")
-            ->group_by('mday')
-            ->get('cust_notification');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $result = (object)[];
+        $sql =  "SELECT mday FROM " . CUST_NOTI . " where mcustno = $id AND mday != 'NO FAX' group by mday";
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
-    public function findCustomerById($id)
+    public function findCustomerById($cus_no)
     {
-        // var_dump($this->db->query("SELECT * FROM customer_notification;"));
+        $output = (object)['status' => 500];
         $result = (object)[];
-        $sql = $this->db->where('cus_no', $id)->get('customer_notification');
-        $result = $sql->row();
-        $sql->free_result();
-        return $result;
+        $sql =  "SELECT * FROM " . CUSTOMER . " where cus_no = $cus_no";
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getCustomerMainDefault()
     {
         $result = [];
-        $sql = $this->db->select('cus_no,cus_name')
-            ->where('type', 'main')
-            ->order_by('cus_no', 'asc')
-            ->limit(50)
-            ->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT top 50 cus_no,cus_name FROM " . CUSTOMER . " where type = 'main' order by cus_no asc";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
     }
 
     public function searchCustomerMain($keywork)
     {
-
-        if (!empty($keywork)) {
-            $this->db->like('cus_no', $keywork, 'both');
-        }
-
-        if (!empty($keywork)) {
-            $this->db->or_like('cus_name', $keywork, 'both');
-        }
-
         $result = [];
-        $sql = $this->db->select('cus_no,cus_name')
-            ->where('type', 'main')
-            ->order_by('cus_no', 'asc')
-            ->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
-    }
-
-
-    public function getCustomerDefaultVW()
-    {
-        $result = [];
-        $sql = $this->db->select('MAX(mcustno) as cus_no, MAX(mcustname) as cus_name')
-            ->group_by('mcustno')
-            ->limit(50)
-            ->order_by('mcustno', 'asc')
-            ->get('vw_Customer_DWH');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
-    }
-
-    public function searchCustomerVW($keywork)
-    {
-
+        $sql =  "SELECT cus_no,cus_name FROM " . CUSTOMER . " where type = 'main'";
+        $order_by = ' order by cus_no asc';
         if (!empty($keywork)) {
-            $this->db->like('mcustno', $keywork, 'both');
+            $sql = $sql . " AND cus_no like '%$keywork%' OR cus_name like '%$keywork%'";
+        }
+        $sql = $sql . $order_by;
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
         }
 
-        if (!empty($keywork)) {
-            $this->db->or_like('mcustname', $keywork, 'both');
-        }
-
-        $result = [];
-        $sql = $this->db->select('MAX(mcustno) as cus_no, MAX(mcustname) as cus_name')
-            ->group_by('mcustno')
-            ->order_by('mcustno', 'asc')
-            ->get('vw_Customer_DWH');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        return $output;
     }
 
     public function getPageIsShow()
     {
         $result = [];
-        $lists = [];
-        $sql = $this->db->select('MAX(uuid) as uuid,MAX(page_name) as page_name,MAX(CONVERT(int,page_sort)) as page_sort,MAX(CONVERT(int,sort)) as sort,MAX(colunm) as colunm,MAX(CONVERT(int,is_show)) as is_show')
-            ->where('is_show', 1)
-            ->group_by('uuid') 
-            ->order_by('page_sort asc,sort asc')
-            ->get('setting');
-        $result = $sql->result();
-        $sql->free_result();
+        $sql =  "SELECT MAX(uuid) as uuid,MAX(page_name) as page_name,MAX(CONVERT(int,page_sort)) as page_sort,MAX(CONVERT(int,sort)) as sort,MAX(colunm) as colunm,MAX(CONVERT(int,is_show)) as is_show FROM " . SETTING . " where is_show = '1' group by uuid order by page_sort asc,sort asc";
+        $stmt = sqlsrv_query($this->conn, $sql);
 
-        foreach ($result as $val) {
-            $lists[$val->page_name][] = $val;
-        }
-        return $lists;
-    }
-
-
-    public function test()
-    {
-        $serverName = "10.51.249.87";
-        $connectionInfo = array(
-            "Database" => "NpiNotification_Dev", "UID" => "NpiNoti_usr01", "PWD" => "NpiNoti01@2022",  "ReturnDatesAsStrings" => true, // Optional, can be used to ensure date handling is as strings
-            "CharacterSet" => "UTF-8"
-        );
-        $conn = sqlsrv_connect($serverName, $connectionInfo);
-
-        if ($conn === false) {
-            die(print_r(sqlsrv_errors(), true));
-        }
-
-        $sql = "select * from tel_customer";
-
-        // $stmt = sqlsrv_query($conn, $sql);
-
-        $stmt = sqlsrv_query($conn, $sql);
         if ($stmt == false) {
-            echo '555';
-            die(print_r(sqlsrv_errors(), true));
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
         } else {
-            $locations = array();
             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                $location = $row;
-                array_push($locations, $location);
+                $res = (object)$row;
+                $result[$res->page_name][] = $res;
             }
-            sqlsrv_free_stmt($stmt);
-            sqlsrv_close($conn);
-            return $locations;
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
         }
+
+        return $output;
     }
 }

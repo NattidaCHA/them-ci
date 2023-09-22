@@ -586,7 +586,7 @@
         text-align: center;
     }
 </style>
-
+<?php $http = ((ENVIRONMENT == 'development') ? '/' : ''); ?>
 <div class="pdf">
     <div class="content">
         <div class="footer">
@@ -601,7 +601,7 @@
                     <?php foreach ($data->report->payment as $payment) { ?>
                         <div class="bank">
                             <span class="input-checkbox"><input type="checkbox"></span>
-                            <img src="../../../../assets/img/<?php echo $payment->image_name; ?>" class="logo-bank mt-1">
+                            <img src="<?php echo $http; ?>assets/img/<?php echo $payment->image_name; ?>" class="logo-bank mt-1">
                             <div class="text-bank-top"><?php echo $payment->bank_name; ?></div>
                             <p class="text-bank-left"><?php echo (!empty($payment->branch) ? $payment->branch : ($payment->image_name == 'krungsri.png' ? '' : 'Comp. Code : ' )). $payment->comp_code; ?> <?php echo !empty($payment->account_no) ? 'เลขที่บ/ช ' . $payment->account_no : ''; ?></p>
                         </div>
@@ -610,10 +610,10 @@
                 <div class="half-50-right">
                     <div>
                         <div class="half2-10">
-                            <img src="/assets/img/logo-300.png" class="logo-pay" />
+                            <img src="<?php echo $http; ?>assets/img/logo-300.png" class="logo-pay" />
                         </div>
                         <div class="half2-30">
-                            <img src="/assets/img/nawaplastic_logo.gif" class="logo-pay-nawa" />
+                            <img src="<?php echo $http; ?>assets/img/nawaplastic_logo.gif" class="logo-pay-nawa" />
                         </div>
                     </div>
                     <div>
@@ -687,10 +687,10 @@
                     <p>โทร………………………………………………</p>
                 </div>
                 <div class="qr-scan">
-                    <img src="../../../../assets/img/qrcode/qrcode.png" class="logo-qr-scan">
+                    <img src="<?php echo $http; ?>assets/img/qrcode/qrcode.png" class="logo-qr-scan">
                 </div>
                 <div class="bacode-scan">
-                    <img src="../../../../assets/img/qrcode/barcode.jpg" class="logo-bacode-scan">
+                    <img src="<?php echo $http; ?>assets/img/qrcode/barcode.jpg" class="logo-bacode-scan">
                     <p style="font-size: 12px;"><?php echo $data->report->barcode->code; ?></p>
                 </div>
             </div>

@@ -14,22 +14,30 @@
         <div class="col-12 col-md-4 col-xl-6">
             <p class="mb-0 text-center text-lg-start text-muted">
                 <small>
-                    © 2022-<span class="current-year"><?php echo date('Y') ?></span> by
-                    <a class="text-primary fw-normal" href="<?php echo site_url(); ?>" target="_blank">EDM Media</a>
+                    © 2022-<span class="current-year"><?php //echo date('Y') 
+                                                        ?></span> by
+                    <a class="text-primary fw-normal" href="<?php //echo site_url(); 
+                                                            ?>" target="_blank">EDM Media</a>
                 </small>
             </p>
         </div>
     </div>
 </footer> -->
 
-<script>
-    var menu_active = '<?php echo $m_active; ?>';
-</script>
-<script src="/assets/vendor/@popperjs/umd/popper.min.js"></script>
-<script src="/assets/vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="/assets/js/moment.min.js"></script>
-<script src="/assets/vendor/smooth-scroll/smooth-scroll.polyfills.min.js"></script>
-<script src="/assets/vendor/sweetalert2/sweetalert2.all.min.js"></script>
+<?php if (ENVIRONMENT == 'development') { ?>
+    <script src="/assets/vendor/@popperjs/umd/popper.min.js"></script>
+    <script src="/assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/assets/js/moment.min.js"></script>
+    <script src="/assets/vendor/smooth-scroll/smooth-scroll.polyfills.min.js"></script>
+    <script src="/assets/vendor/sweetalert2/sweetalert2.all.min.js"></script>
+
+<?php } else { ?>
+    <script src="/invoicenotification/assets/vendor/@popperjs/umd/popper.min.js"></script>
+    <script src="/invoicenotification/assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/invoicenotification/assets/js/moment.min.js"></script>
+    <script src="/invoicenotification/assets/vendor/smooth-scroll/smooth-scroll.polyfills.min.js"></script>
+    <script src="/invoicenotification/assets/vendor/sweetalert2/sweetalert2.all.min.js"></script>
+<?php } ?>
 
 <?php
 if (!empty($js)) {
@@ -39,7 +47,7 @@ if (!empty($js)) {
 }
 ?>
 
-<script src="/assets/js/function.js?v=1.03"></script>
+<script src="<?php echo $http ?>/assets/js/function.js?v=1.03"></script>
 
 <script>
     Swal = Swal.mixin({

@@ -1,5 +1,9 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
 class MY_Controller extends CI_Controller
 {
 
@@ -9,15 +13,17 @@ class MY_Controller extends CI_Controller
     public $partials = array('header', 'sidebar', 'topbar', 'footer');
     public $data = array();
     public $CURUSER = NULL;
-    public $serverName = NULL;
-    // public $config = ["Database" => "", "UID" => "", "PWD" => "", "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
     public $conn = NULL;
+    public $http = ((ENVIRONMENT == 'development') ? '' : '/invoicenotification');
 
 
     public function __construct()
     {
         parent::__construct();
         date_default_timezone_set("Asia/Bangkok");
+        $this->load->model('model_system');
+        $this->load->model('report/model_report');
+        $this->load->model('invoice/model_invoice');
 
         // $memberLogon = self::getSiteCookie();
         // if (!empty($memberLogon)) {
@@ -56,12 +62,13 @@ class MY_Controller extends CI_Controller
 
         // var_dump(ENVIRONMENT);
 
-        // $this->connect();
-        $this->load->database();
+        $this->connect();
+        // $this->load->database();
 
-
-        $this->load->model('model_system');
-        $this->CURUSER = $this->model_system->findCustomerById('0000000281');
+        //getDateSelec
+        //  var_dump($this->model_system->checkSendtoChild('0002000080')->items);
+        $this->CURUSER = $this->model_system->findCustomerById('0000000281')->items;
+        // var_dump($this->CURUSER);
         // $this->CURUSER->cus_name = 'บจ.ป.กวิน';0002000082
         //0002000080
         //0000000281
@@ -70,11 +77,8 @@ class MY_Controller extends CI_Controller
             'site_name' => $this->config->item('site_name'),
             'site_thumb' => $this->config->item('site_thumb'),
             'site_author' => $this->config->item('site_author'),
-            'google_verify' => $this->config->item('google_verify'),
-            'fb_app_id' => $this->config->item('fb_app_id'),
-            'fb_app_secrete' => $this->config->item('fb_app_secrete'),
             'theme' => $this->theme,
-            'm_active' => ''
+            'http' => $this->http
         ];
     }
 
@@ -326,23 +330,248 @@ class MY_Controller extends CI_Controller
         return $result;
     }
 
-    public function connect()
+    protected function connect()
     {
         $config = [];
-        // if (ENVIRONMENT == 'production') {
-        //     $this->serverName = "10.51.249.165";
-        //     $config = ["Database" => "NpiNotification", "UID" => "Npinoti_usr01", "PWD" => "Noti22@PRD", "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
-        // } else {
-        $this->serverName = "10.51.249.87";
         $config = ["Database" => DATABASE, "UID" => UID, "PWD" => PWD, "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
-        //}
 
-        $this->conn = sqlsrv_connect($this->serverName,  $config);
+        $this->conn = sqlsrv_connect(SERVERNAME,  $config);
 
         if ($this->conn === false) {
             die(print_r(sqlsrv_errors(), true));
         }
 
         return $this->conn;
+    }
+
+    protected function genPDF($uuid, $type)
+    {
+
+        require_once  './vendor/autoload.php';
+
+        $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
+        $fontDirs = $defaultConfig['fontDir'];
+
+        $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
+        $fontData = $defaultFontConfig['fontdata'];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'fontDir' => array_merge($fontDirs, ['./assets/fonts']),
+            'fontdata' => $fontData + [
+                'sarabun' => [
+                    'R' => 'THSarabunNew.ttf',
+                    'I' => 'THSarabunNew Italic.ttf',
+                    'B' =>  'THSarabunNew Bold.ttf',
+                ]
+            ],
+            'default_font' => 'sarabun'
+        ]);
+
+        $result = $this->model_report->genPDF($uuid);
+
+
+        foreach ($result->lists as $key => $res) {
+            $result->lists = $res;
+            $size = count($result->lists) > 1 ? 40 : 40;
+            if ($key == 1) {
+                $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size];
+                $html = $this->load->view('report/report_pdf', $data, TRUE);
+                $mpdf->WriteHTML($html);
+            } else {
+                $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size];
+                $key = $this->load->view('report/table_pdf', $data, TRUE);
+                $mpdf->WriteHTML($key);
+            }
+        }
+
+        $title = 'Report_' . $result->bill_info->bill_no;
+        $name = 'Report_' . $result->bill_info->bill_no;
+        $mpdf->SetTitle($title);
+        $footer = $this->load->view('footer_pdf', $data, TRUE);
+        $mpdf->WriteHTML($footer);
+
+        if ($type == 'email') {
+            return $mpdf->Output($name, 'S');
+        }
+
+        return $mpdf->Output($name . '.pdf', 'I');
+    }
+
+
+    protected function genEmail($params, $page, $checkMain = FALSE)
+    {
+        require_once  './vendor/autoload.php';
+        $mail = new PHPMailer(true);
+        $from_email = "nan_zen0003@hotmail.com";
+
+        if (!empty($params)) {
+            $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
+            $emails =  $this->model_report->genEmail($params['cus_no'], $params['cus_main']);
+
+            if ($page == 'invoice' && !empty($checkMain) && $cusType->type == 'child' && !empty($emails[$params['cus_no']])) {
+                $k = array_search($params['cus_main'], array_keys($emails));
+                $emails = array_slice($emails, $k + 1);
+            }
+
+            $reportChild = [];
+            $content = $this->genPDF($params['uuid'], 'email');
+            $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date']))];
+            if ($cusType->type == 'main') {
+                $childs = $this->model_report->checkChildSendto($params['cus_no'], $params['cus_main'])->items;
+                foreach ($childs as $child) {
+                    if ($params['cus_no'] != $child->cus_no) {
+                        $res =  $this->model_report->getReportChildList($child->cus_no, $params['created_date'])->items;
+                        if (!empty($res)) {
+                            array_push($reportChild, $res);
+                        }
+                    }
+                }
+            }
+
+            if ($page == 'invoice' && empty($emails[$params['cus_no']]) && $cusType->type == 'child' &&  !empty($checkMain) && !empty($emails[$params['cus_main']])) {
+                $this->model_report->updateEmail($params['uuid']);
+                return (object)['status' => 200, 'data' => $params, 'email' => $emails];
+            }
+
+            if (!empty($emails[$params['cus_no']]) || !empty($emails[$params['cus_main']])) {
+                try {
+                    $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+                    $mail->isSMTP();
+                    $mail->Host       = 'smtp.office365.com';
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = $from_email;
+                    $mail->Password   = '!Ohsehun1228';
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                    $mail->Port       = 587;
+                    $mail->SMTPSecure = 'tls';
+                    $mail->Mailer = "smtp";
+                    $mail->IsSMTP();
+                    $mail->Debugoutput = 'error_log';
+                    $mail->CharSet = 'utf-8';
+                    $mail->SMTPOptions = array(
+                        'ssl' => array(
+                            'verify_peer' => false,
+                            'verify_peer_name' => false,
+                            'allow_self_signed' => true
+                        )
+                    );
+
+                    $mesg = $this->load->view('report/email_tem', $data, TRUE);
+                    // $from_email = "nattidac@scg.com";
+                    $mail->setFrom($from_email, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
+                    foreach ($emails as $res) {
+                        $mail->addAddress($res->email);
+                    }
+
+                    $mail->isHTML(true);
+                    $mail->Subject = 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date']));
+                    $mail->Body    = $mesg;
+                    $mail->addStringAttachment($content, 'Report_' . $params['bill_no'] . '.pdf', 'base64', 'application/pdf');
+                    if ($cusType->type == 'main') {
+                        foreach ($reportChild as $res) {
+                            $contentChild = $this->genPDF($res->uuid, 'email');
+                            $mail->addStringAttachment($contentChild, 'Report_' . $res->bill_no . '.pdf', 'base64', 'application/pdf');
+                        }
+                    }
+                    $mail->send();
+                    $this->model_report->updateEmail($params['uuid']);
+                    return (object)['status' => 200, 'data' => $params, 'email' => $emails];
+                } catch (Exception $e) {
+                    return (object)['status' => 500, 'msg' =>  $mail->ErrorInfo, 'error' => $mail->ErrorInfo];
+                }
+            } else {
+                return (object)['status' => 204, 'data' => false, 'msg' => 'ไม่พบอีเมลของรหัสลูกค้า ' . $cusType->cus_no];
+            }
+        }
+
+        return (object)['status' => 500, 'msg' => 'API Error', 'error' => 'API Error'];
+    }
+
+
+    protected function ramdomBillNo($main_id)
+    {
+
+        $random = $this->runNumber($main_id);
+        $num = '8' . substr($main_id, 6) . substr(date('Ymd'), 2) . $random;
+        return $num;
+    }
+
+
+    protected function runNumber($main_id)
+    {
+        $number = '00001';
+        $report = $this->model_invoice->getReportId($main_id)->items;
+        if (!empty($report)) {
+            if ($main_id == $report->cus_main && date('Y') == date('Y', strtotime($report->created_date))) {
+                $number = $this->checkNum(substr($report->bill_no, 13));
+            }
+        }
+
+        return $number;
+    }
+
+    protected function checkNum($no)
+    {
+        $calculate = $this->switchCheck($no);
+        $length = strlen($calculate);
+        $num = $calculate;
+
+        if ($length == 1) {
+            $num = '0000' . strval($calculate);
+        }
+        if ($length == 2) {
+            $num = '000' . strval($calculate);
+        }
+        if ($length == 3) {
+            $num = '00' . strval($calculate);
+        }
+        if ($length == 4) {
+            $num = '0' . strval($calculate);
+        }
+
+        return $num;
+    }
+
+    protected function switchCheck($no)
+    {
+
+        $num = (int)substr($no, 3) + 1;
+        if (substr($no, 0) == '0' && substr($no, 1) == '0') {
+            $num = (int)substr($no, 2) + 1;
+        }
+
+        if (substr($no, 0) == '0' && substr($no, 1) != '0') {
+            $num = (int)substr($no, 1) + 1;
+        }
+
+        if (substr($no, 0) != '0') {
+            $num = (int)$no + 1;
+        }
+
+        return $num;
+    }
+
+    protected function genType($res)
+    {
+        $sortType = 0;
+        if (!empty($res == 'RA')) {
+            $sortType  = 1;
+        }
+        if (!empty($res == 'RD')) {
+            $sortType  = 2;
+        }
+        if (!empty($res == 'DC')) {
+            $sortType  = 5;
+        }
+        if (!empty($res == 'RB')) {
+            $sortType  = 4;
+        }
+        if (!empty($res == 'RC')) {
+            $sortType  = 3;
+        }
+        if (!empty($res == 'RE')) {
+            $sortType  = 6;
+        }
+        return  $sortType;
     }
 } // End of class

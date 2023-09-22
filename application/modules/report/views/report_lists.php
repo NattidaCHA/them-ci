@@ -1,7 +1,6 @@
-<?php echo  $this->CURUSER->cus_no; ?>
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
-        <form id="searchForm" method="post" action="/report" class="mb-4">
+        <form id="searchForm" method="post" action="<?php echo $http ?>/report" class="mb-4">
             <div class="section-filter-2">
                 <div class="box-search">
                     <div class="input-search-2">
@@ -90,9 +89,10 @@
                     <table id="status" class="table table-centered table-striped w-100">
                         <thead class="thead-light">
                             <tr>
-                                <th width="20%">วันสร้างบิล</th>
+                                <th width="20%">วันที่สร้างบิล</th>
                                 <th width="25%">ผู้สร้างบิล</th>
                                 <th width="20%">สถานะ</th>
+                                <th width="20%">วันที่อัปเดต</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -199,7 +199,7 @@
                     [0, "asc"]
                 ],
                 "ajax": {
-                    url: "/report/listReport",
+                    url: "<?php echo $http ?>/report/listReport",
                     'data': {
                         cus_no: '<?php echo $cus_no ?>',
                         created_date: '<?php echo $created_date ?>',
@@ -252,33 +252,31 @@
                 let cus_no = $(this).attr("data-cus_no")
                 let cus_name = $(this).attr("data-cus_name")
                 $('.header_text').text('สถานะ : ' + cus_name + ' (' + cus_no + ')');
-
-                $.get('/report/genBill/' + id).done(function(res) {
+                console.log(id)
+                $.get('<?php echo $http ?>/report/genBill/' + id).done(function(res) {
+                    console.log(res)
                     if (res.status == 200) {
                         if (res.data) {
-                            console.log(res.data.created_by)
                             let created_by = res.data.created_by ? res.data.created_by : '-'
                             let is_bill = res.data.is_email == 1 ? 'ส่งรายงานเรียบร้อยแล้ว' : 'ยังไม่ส่งรายงาน'
                             let is_receive_bill = res.data.is_receive_bill == 1 ? 'ได้รับแล้ว' : 'ยังไม่ได้รับ'
                             let html = '<tr>' +
                                 '<td>' + res.data.created_date + '</td>' +
-                                '<td class="text-success">' + created_by + '</td>' +
+                                '<td>' + created_by + '</td>' +
                                 '<td>' + is_bill + '</td>' +
+                                '<td>' + res.data.updated_date + '</td>' +
                                 '</tr>'
-                            let html2 =
-                                '<tr>' +
-                                '<td>' + res.data.created_date + '</td>' +
-                                '<td class="text-muted">' + created_by + '</td>' +
-                                '<td class="text-success">' + is_bill + '</td>' +
-                                '</tr>' +
-                                '<tr>' +
-                                '<td>' + res.data.created_date + '</td>' +
-                                '<td>' + res.data.mcustname + '(' + res.data.cus_no + ')' + '</td>' +
-                                '<td class="text-muted">' + created_by + '</td>' +
-                                '<td class="text-success">' + is_receive_bill + '</td>' +
-                                '</tr>'
-                            let genHtml = is_receive_bill == 1 ? html2 : html
-                            $('#status tbody').html(genHtml)
+
+                            if (res.data.is_receive_bill == 1) {
+                                html += '<tr>' +
+                                    '<td>' + res.data.created_date + '</td>' +
+                                    '<td>' + created_by + '</td>' +
+                                    '<td>' + is_receive_bill + '</td>' +
+                                    '<td>' + res.data.updated_date + '</td>' +
+                                    '</tr>'
+                            }
+
+                            $('#status tbody').html(html)
                         }
                     } else if (res.status == 204) {
                         $('#status tbody').html('')
@@ -287,12 +285,14 @@
             }).on('click', '.modalAction', function(e) {
                 e.preventDefault();
                 let id = $(this).attr("data-uuid")
+                let is_check = $(this).attr("data-is_receive_bill") == 1 ? 'checked' : '';
                 let cus_no = $(this).attr("data-cus_no")
                 let cus_main = $(this).attr("data-cus_main")
                 $('.cfCall').html('<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>')
                 let html = '';
+                let recive = '<div class="form-check"><input class="form-check-input is_receive_bill" type="checkbox" id="is_receive_bill" name="is_receive_bill" value="' + id + '" autocomplete="off"  ' + is_check + '><label class="form-check-label" for="is_receive_bill">ได้รับเอกสาร</label></div><div class="border-bottom mb-3"></div>';
 
-                $.get('/report/genCfCall/' + id + '/' + cus_no).done(function(res) {
+                $.get('<?php echo $http ?>/report/genCfCall/' + id + '/' + cus_no).done(function(res) {
                     if (res.status == 200) {
                         if (res.data.tels.length > 0 && findObjectIsCall(res.data.tels) == true) {
                             if (res.data.cf_call) {
@@ -303,9 +303,9 @@
                                     let lastIndex = res.data.tels.length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
                                     if (o.is_call == 1) {
                                         html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check"><input class="form-check-input" type="hidden" id="uuid" name="uuid[]" value="' + cf_call_uuid + '">' +
-                                            '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
-                                            '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
-                                            '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + cus_no + '">' +
+                                            '<input class="form-check-input" type="hidden" autocomplete="off" id="tel" name="tel[]" value="' + o.tel + '">' +
+                                            '<input class="form-check-input" type="hidden" autocomplete="off" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
+                                            '<input class="form-check-input" type="hidden" autocomplete="off" id="cus_main" name="cus_main[]" value="' + cus_no + '">' +
                                             '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" ' + check + ' id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
                                             '<div class="mb-3 row"><label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
                                             '<input type="text" class="form-control receive_call" id="receive_call" value="' + receive_call + '" name="receive_call[]" autocomplete="off"></div></div><div class="' + lastIndex + '"></div></div>';
@@ -316,9 +316,9 @@
                                     let lastIndex = res.data.tels.length - 1 == i ? 'mb-2' : 'border-bottom mb-2'
                                     if (o.is_call == 1) {
                                         html += '<div class="mb-3"><p class="tel_no"><span class="me-2">เบอร์โทร :</span><span>' + o.tel + '<span></p><div class="form-check">' +
-                                            '<input class="form-check-input" type="hidden" id="tel" name="tel[]" value="' + o.tel + '">' +
-                                            '<input class="form-check-input" type="hidden" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
-                                            '<input class="form-check-input" type="hidden" id="cus_main" name="cus_main[]" value="' + cus_no + '">' +
+                                            '<input class="form-check-input" type="hidden" autocomplete="off" id="tel" name="tel[]" value="' + o.tel + '">' +
+                                            '<input class="form-check-input" type="hidden" autocomplete="off" id="report_uuid" name="report_uuid[]" value="' + id + '">' +
+                                            '<input class="form-check-input" type="hidden" autocomplete="off" id="cus_main" name="cus_main[]" value="' + cus_no + '">' +
                                             '<div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="cf_call" name="cf_call[]" value="' + o.tel + '">' + '<label class="form-check-label" for="cf_call">โทรแจ้ง</label></div></div>' +
                                             '<div class="mb-3 row">' +
                                             '<label for="receive_call" class="col-sm-2 col-form-label">ผู้รับสาย</label><div class="col-sm-10">' +
@@ -330,12 +330,15 @@
                         }
 
                         if (res.data.tels.length > 0 && findObjectIsCall(res.data.tels) == true) {
-                            $('.cfCall').html(html)
+                            $('.cfCall').html(recive + html)
+                            $('.submit-action').prop('disabled', false)
                         } else {
                             $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
+                            $('.submit-action').prop('disabled', true)
                         }
                     } else if (res.status == 204) {
                         $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
+                        $('.submit-action').prop('disabled', true)
                     }
                 });
 
@@ -372,7 +375,7 @@
                         value: created_date
                     },
                 ]
-                $.post('/report/email', formData).done(function(res) {
+                $.post('<?php echo $http ?>/report/email', formData).done(function(res) {
                     if (res.status == 200) {
                         console.log(res)
                         Swal.fire({
@@ -405,7 +408,7 @@
             readyProcess(true);
             if (formUpdate.validate() === true) {
                 let formData = $('.updateAction').serializeArray();
-                $.post("/report/update", formData).done(function(res) {
+                $.post("<?php echo $http ?>/report/update", formData).done(function(res) {
                     $('.modalUpdate').modal('hide')
                     if (res.status === 200) {
 
@@ -566,12 +569,12 @@
                     columns.push({
                         data: 'uuid',
                         render: function(data, type, full) {
-                            let action = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '"><i class="bi bi-pencil"></i></a>' : ''
+                            let action = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '" data-is_receive_bill="' + full.info.is_receive_bill + '"><i class="bi bi-pencil"></i></a>' : ''
                             let mail = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' "><i class="bi bi-envelope"></i></a>' : ''
 
                             return '<div class="tb-15 d-flex justify-content-center">' +
                                 action +
-                                '<a class="btn btn-sm btn-danger" href="/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + '</div>'
+                                '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + '</div>'
                         }
                     })
                 }

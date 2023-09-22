@@ -578,14 +578,16 @@
         height: 100%;
     }
 </style>
+<?php $http = ((ENVIRONMENT == 'development') ? '/' : ''); ?>
 
 <div class="pdf">
     <div class="header">
         <div class="half-10">
-            <img src="/assets/img/logo-300.png" class="logo" />
+            <img src="<?php echo $http; ?>assets/img/logo-300.png" class="logo" />
+
         </div>
         <div class="half-30">
-            <img src="/assets/img/nawaplastic_logo.gif" class="logo-nawa" />
+            <img src="<?php echo $http; ?>assets/img/nawaplastic_logo.gif" class="logo-nawa" />
         </div>
         <div class="box-title">
             <div class="text-header">บริษัท นวพลาสติกอุตสาหกรรม (สระบุรี) จํากัด</div>
@@ -698,7 +700,7 @@
                         <div class="text-amount">จํานวนเอกสารทั้งหมด&nbsp;<?php echo $data->report->total_items ?>&nbsp;รายการ</div>
                         <div>
                             <div class="mt-05 text-total">สอบถามข้อมูลการชําระเงิน ติดต่อ หน่วยยงานบริหารสินเชื่อ ติดต่อ 02-586-2482, 02-586-5172</div>
-                            <div class="text-total">*ประเภท RA = ยอด Invoice, RD = ยอดเพิ่มหนี้, RC = ยอดลดหนี้, RB= ยอดเงินเหลือ,  DC= ยอด Rebate, RE = ยอดเงินเหลือในใบเสร็จ</div>
+                            <div class="text-total">*ประเภท RA = ยอด Invoice, RD = ยอดเพิ่มหนี้, RC = ยอดลดหนี้, RB= ยอดเงินเหลือ, DC= ยอด Rebate, RE = ยอดเงินเหลือในใบเสร็จ</div>
                         </div>
                     </div>
                 <?php } ?>

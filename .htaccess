@@ -1,7 +1,7 @@
 Options +FollowSymLinks
 
 RewriteEngine On
-RewriteCond %{HTTP_HOST} ^backend.edmcompany.co.th [NC]
+RewriteCond %{HTTP_HOST} ^npismodev.scg.com [NC]
 RewriteCond %{HTTPS} off
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 

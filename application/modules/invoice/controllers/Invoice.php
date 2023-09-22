@@ -16,7 +16,7 @@ class Invoice extends MY_Controller
         $days = $this->config->item('day');
         $search = $this->config->item('fullSearch');
         $result = [];
-        $table = $this->model_system->getPageIsShow();
+        $table = $this->model_system->getPageIsShow()->items;
         $keyTable = [];
         $this->data['days'] = [];
         $dateSelect = $this->input->get('dateSelect') ? $this->input->get('dateSelect') : '';
@@ -24,10 +24,8 @@ class Invoice extends MY_Controller
         $endDate = $this->input->get('endDate') ? $this->input->get('endDate') : date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
         $cus_no = NULL;
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
-
-        // var_dump($table['invoice']);
-        // exit;
-
+        $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
+        //is_bill
         foreach ($table['invoice'] as $v) {
             array_push($keyTable, $v->sort);
         }
@@ -49,10 +47,13 @@ class Invoice extends MY_Controller
             'startDate' => $startDate,
             'endDate' => $endDate,
             'cus_no' => $cus_no,
-            'type' => $typeSC
+            'type' => $typeSC,
+            'is_bill' => $is_bill
         ];
 
-        $o = $this->model_system->getTypeBusiness();
+        $o = $this->model_system->getTypeBusiness()->items;
+        // var_dump($o);
+        // // exit;
 
         foreach ($o as $v) {
             $this->data['types'][$v->msaleorg] = $v;
@@ -62,14 +63,11 @@ class Invoice extends MY_Controller
             $this->data['days'][$day->id] = $day;
         }
 
-        $result = $this->model_invoice->getInvoice($condition);
-
-        // var_dump($condition);
-        // exit;
+        $result = !empty($this->model_invoice->getInvoice($condition)->items) ? $this->model_invoice->getInvoice($condition)->items  : [];
 
         $this->data['lists'] = $result;
-        $this->data['selectDays'] = $this->model_system->getDateSelect();
-        $this->data['customers'] = $this->model_system->getCustomer();
+        $this->data['selectDays'] = $this->model_system->getDateSelect()->items;
+        // $this->data['customers'] = $this->model_system->getCustomer()->items;
         $this->data['typeSC'] = $typeSC;
         $this->data['dateSelect'] = $dateSelect;
         $this->data['startDate'] = $startDate;
@@ -78,6 +76,7 @@ class Invoice extends MY_Controller
         $this->data['search'] = $search;
         $this->data['table'] = $table['invoice'];
         $this->data['keyTable'] = $keyTable;
+        $this->data['is_bill'] = $is_bill;
         $this->data['page_header'] = 'Invoice';
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('search_invoice');
@@ -116,6 +115,7 @@ class Invoice extends MY_Controller
         $output = $this->apiDefaultOutput();
         $params = $this->input->post();
 
+        // var_dump($params);
 
         if (!empty($params)) {
             array_walk_recursive($params, function (&$v) {
@@ -125,44 +125,68 @@ class Invoice extends MY_Controller
 
         $invoice =  $params['cf_invoice'];
         $getID = [];
+        $reportMain = [];
         foreach ($invoice as $val) {
             $spiltInvoice = explode('|', $val);
             $getID[$spiltInvoice[1]][] = $spiltInvoice[0];
         }
 
+        // var_dump($getID);
+        // exit;
         if (!empty($getID)) {
             foreach ($getID as $key => $res) {
                 $uuid = genRandomString(16);
                 $data = [
-                    'uuid' => $uuid,
-                    'bill_no' => $this->ramdomBillNo($cus_main),
-                    'cus_main' => $cus_main,
-                    'cus_no' => $key,
-                    'is_email' => FALSE,
-                    'is_sms' => FALSE,
-                    'start_date' => $start,
-                    'end_date' => $end,
-                    'created_by' => '',
-                    'created_date' => date("Y-m-d H:i:s")
+                    $cus_main,
+                    $key,
+                    $this->ramdomBillNo($cus_main),
+                    FALSE,
+                    date("Y-m-d H:i:s"),
+                    $uuid,
+                    $start,
+                    $end,
+                    FALSE,
+                    date("Y-m-d H:i:s"),
+                    NULL,
+                    NULL
                 ];
 
                 $this->model_invoice->createInvoice($data);
-                $report = $this->model_invoice->getReportUuid($uuid);
+                $report = $this->model_invoice->getReportUuid($uuid)->items;
+                $reportMain[$key] = $report;
+
                 $genData = [];
 
                 if (!empty($report)) {
                     $genData = $this->genInvoiceDetail($report, $res, $key, $cus_main);
 
-                    if (!empty($genData)) {
-                        $output['status'] = 200;
-                        $output['data'] = $report;
-                    } else {
-                        $result['status'] = 500;
-                        $result['msg'] = 'Data Timeout';
-                        $result['error'] = 'Data Timeout';
+                    if (empty($genData)) {
+                        $output['status'] = 500;
+                        $output['msg'] = 'ไม่สามารถสร้างใบแจ้งเตือนได้';
+                        $output['error'] = 'ไม่สามารถสร้างใบแจ้งเตือนได้';
                     }
+                } else {
+                    $output['status'] = 500;
+                    $output['msg'] = 'ไม่สามารถสร้างใบแจ้งเตือนได้';
+                    $output['error'] = 'ไม่สามารถสร้างใบแจ้งเตือนได้';
                 }
             }
+
+            $checkMain = !empty($reportMain[$cus_main]) ? true : false;
+            foreach ($reportMain as $key => $repor) {
+                $email = $this->genEmail((array)$repor, 'invoice', $checkMain);
+                if ($email->status == 204) {
+                    $output['status'] = 204;
+                    $output['data'] = (object)['data' => false, 'msg' => 'No email'];
+                } else if ($email->status == 500) {
+                    $output['status'] = 500;
+                    $output['msg'] = $email->msg;
+                    $output['error'] = $email->error;
+                }
+            }
+
+            $output['status'] = 200;
+            $output['data'] = (object)['data' => $reportMain];
         }
 
         $output['source'] = $params;
@@ -171,27 +195,27 @@ class Invoice extends MY_Controller
 
     public function genInvoiceDetail($report, $res, $key, $cus_main)
     {
-        set_time_limit(10000);
+        set_time_limit(0);
         // foreach ($result as $res) {
         foreach ($res as $val) {
-            $item = $this->model_invoice->getItem($val);
+            $item = $this->model_invoice->getItem($val)->items;
             if (!empty($item)) {
                 $data = [
-                    'uuid' => genRandomString(16),
-                    'bill_no' => $report->bill_no,
-                    'bill_id' => $report->uuid,
-                    'macctdoc' => $val,
-                    'cus_no' => $key,
-                    'cus_main' => $cus_main,
-                    'mdoctype' => $item->mdoctype,
-                    'mbillno' => $item->mbillno,
-                    'mpostdate' => $item->mpostdate,
-                    'mduedate' => $item->mduedate,
-                    'msaleorg' => $item->msaleorg,
-                    'mpayterm' => $item->mpayterm,
-                    'mnetamt' => $item->mnetamt,
-                    'mtext' => $item->mtext,
-                    'msort' => $this->genType($item->mdoctype)
+                    genRandomString(16),
+                    $report->bill_no,
+                    $report->uuid,
+                    $val,
+                    $key,
+                    $cus_main,
+                    $item->mdoctype,
+                    $item->mbillno,
+                    $item->mpostdate,
+                    $item->mduedate,
+                    $item->msaleorg,
+                    $item->mpayterm,
+                    $item->mnetamt,
+                    $item->mtext,
+                    $this->genType($item->mdoctype)
                 ];
 
                 $this->model_invoice->createDetailInvoice($data);
@@ -199,97 +223,94 @@ class Invoice extends MY_Controller
         }
 
         return true;
-        // }
     }
 
-    public function ramdomBillNo($main_id)
-    {
+    // public function ramdomBillNo($main_id)
+    // {
 
-        $random = $this->runNumber($main_id);
-        $num = '8' . substr($main_id, 6) . substr(date('Ymd'), 2) . $random;
-        return $num;
-    }
-
-
-    public function runNumber($main_id)
-    {
-        $number = '00001';
-        $report = $this->model_invoice->getReportId($main_id);
-        if (!empty($report)) {
-            if ($main_id == $report->cus_main && date('Y') == date('Y', strtotime($report->created_date))) {
-                $number = $this->checkNum(substr($report->bill_no, 13));
-            }
-        }
-
-        return $number;
-    }
-
-    public function checkNum($no)
-    {
-        $calculate = $this->switchCheck($no);
-        $length = strlen($calculate);
-        $num = $calculate;
-
-        if ($length == 1) {
-            $num = '0000' . strval($calculate);
-        }
-        if ($length == 2) {
-            $num = '000' . strval($calculate);
-        }
-        if ($length == 3) {
-            $num = '00' . strval($calculate);
-        }
-        if ($length == 4) {
-            $num = '0' . strval($calculate);
-        }
-
-        return $num;
-    }
-
-    public function switchCheck($no)
-    {
-
-        $num = (int)substr($no, 3) + 1;
-        if (substr($no, 0) == '0' && substr($no, 1) == '0') {
-            $num = (int)substr($no, 2) + 1;
-        }
-
-        if (substr($no, 0) == '0' && substr($no, 1) != '0') {
-            $num = (int)substr($no, 1) + 1;
-        }
-
-        if (substr($no, 0) != '0') {
-            $num = (int)$no + 1;
-        }
-
-        return $num;
-    }
-
-    public function genType($res)
-    {
-        $sortType = 0;
-        if (!empty($res == 'RA')) {
-            $sortType  = 1;
-        }
-        if (!empty($res == 'RD')) {
-            $sortType  = 2;
-        }
-        if (!empty($res == 'DC')) {
-            $sortType  = 5;
-        }
-        if (!empty($res == 'RB')) {
-            $sortType  = 4;
-        }
-        if (!empty($res == 'RC')) {
-            $sortType  = 3;
-        }
-        if (!empty($res == 'RE')) {
-            $sortType  = 6;
-        }
-        return  $sortType;
-    }
+    //     $random = $this->runNumber($main_id);
+    //     $num = '8' . substr($main_id, 6) . substr(date('Ymd'), 2) . $random;
+    //     return $num;
+    // }
 
 
+    // public function runNumber($main_id)
+    // {
+    //     $number = '00001';
+    //     $report = $this->model_invoice->getReportId($main_id)->items;
+    //     if (!empty($report)) {
+    //         if ($main_id == $report->cus_main && date('Y') == date('Y', strtotime($report->created_date))) {
+    //             $number = $this->checkNum(substr($report->bill_no, 13));
+    //         }
+    //     }
+
+    //     return $number;
+    // }
+
+    // public function checkNum($no)
+    // {
+    //     $calculate = $this->switchCheck($no);
+    //     $length = strlen($calculate);
+    //     $num = $calculate;
+
+    //     if ($length == 1) {
+    //         $num = '0000' . strval($calculate);
+    //     }
+    //     if ($length == 2) {
+    //         $num = '000' . strval($calculate);
+    //     }
+    //     if ($length == 3) {
+    //         $num = '00' . strval($calculate);
+    //     }
+    //     if ($length == 4) {
+    //         $num = '0' . strval($calculate);
+    //     }
+
+    //     return $num;
+    // }
+
+    // public function switchCheck($no)
+    // {
+
+    //     $num = (int)substr($no, 3) + 1;
+    //     if (substr($no, 0) == '0' && substr($no, 1) == '0') {
+    //         $num = (int)substr($no, 2) + 1;
+    //     }
+
+    //     if (substr($no, 0) == '0' && substr($no, 1) != '0') {
+    //         $num = (int)substr($no, 1) + 1;
+    //     }
+
+    //     if (substr($no, 0) != '0') {
+    //         $num = (int)$no + 1;
+    //     }
+
+    //     return $num;
+    // }
+
+    // public function genType($res)
+    // {
+    //     $sortType = 0;
+    //     if (!empty($res == 'RA')) {
+    //         $sortType  = 1;
+    //     }
+    //     if (!empty($res == 'RD')) {
+    //         $sortType  = 2;
+    //     }
+    //     if (!empty($res == 'DC')) {
+    //         $sortType  = 5;
+    //     }
+    //     if (!empty($res == 'RB')) {
+    //         $sortType  = 4;
+    //     }
+    //     if (!empty($res == 'RC')) {
+    //         $sortType  = 3;
+    //     }
+    //     if (!empty($res == 'RE')) {
+    //         $sortType  = 6;
+    //     }
+    //     return  $sortType;
+    // }
 
     public function genCustomerChild($id)
     {
@@ -312,4 +333,10 @@ class Invoice extends MY_Controller
 
         $this->responseJSON($result);
     }
+
+    // public function email($params)
+    // {
+    //     $params = $this->input->post();
+    //     return $this->genEmail($params);
+    // }
 }

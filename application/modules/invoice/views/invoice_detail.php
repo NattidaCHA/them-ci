@@ -23,7 +23,6 @@
                                         </div>
                                     </div>
                                     <div class="border-bottom mb-2"></div>
-                                    <!-- <?php echo count($child->bills) > 10 ? 'scroll' : '' ?> -->
                                     <div class="<?php echo count($child->bills) > 10 ? 'scroll' : '' ?>">
                                         <?php foreach ($child->bills as $val => $bill) { ?>
                                             <div class="group-invoice">
@@ -31,7 +30,7 @@
                                                     <div class="d-flex">
                                                         <div class="checkbox">
                                                             <div class="form-check">
-                                                                <input class="form-check-input select_invoice check-<?php echo $key; ?>" type="checkbox" name="cf_invoice[]" id="cf_invoice" autocomplete="off" value="<?php echo $bill->macctdoc . '|' . $key; ?>">
+                                                                <input class="form-check-input select_invoice check-<?php echo $key; ?>" type="checkbox" name="cf_invoice[]" id="cf_invoice" autocomplete="off" value="<?php echo $bill->macctdoc . '|' . $key; ?>" <?php echo in_array($bill->mdoctype, ['RA', 'RD']) ? 'checked' : '-'; ?>>
                                                             </div>
                                                         </div>
                                                         <p>ชนิดบิล : </p>
@@ -96,12 +95,17 @@
     $(function() {
         var childLists = <?php echo !empty($lists) ? json_encode($lists) : '[]'; ?>;
         let data = []
+
+        if (childLists) {
+            addData();
+            checkDisable();
+        }
+
         $('.invoice')
             .on('click', '.cf_bill', function(e) {
                 e.preventDefault();
                 let mainID = '<?php echo $main_id; ?>';
                 let id = $(this).attr("data-cus_no");
-                console.log(id)
                 Swal.fire({
                     title: 'คุณต้องการทำบิลใช่หรือไม่?',
                     icon: 'warning',
@@ -114,16 +118,23 @@
                     if (result.isConfirmed) {
                         readyProcess(true)
                         let formData = $('.invoice').serializeArray();
-                        $.post('/invoice/create/' + mainID + '/' + '<?php echo $start ?>' + '/' + '<?php echo $end ?>', formData).done(function(res) {
+                        $.post('<?php echo $http ?>/invoice/create/' + mainID + '/' + '<?php echo $start ?>' + '/' + '<?php echo $end ?>', formData).done(function(res) {
                             if (res.status == 200) {
                                 Swal.fire({
                                     icon: 'success',
                                     text: 'สร้างบิลเรียบร้อย',
                                     confirmButtonText: 'ตกลง'
                                 }).then((result) => {
-                                    console.log(res.status)
                                     if (result.isConfirmed) {
-                                        window.location = '/report';
+                                        let key = Object.keys(res.data['data'])
+                                        key.map(o => {
+                                            window.open('<?php echo WWW; ?><?php echo $http ?>/report/pdf/' + res.data['data'][o].uuid, '_blank')
+                                        })
+
+
+                                        setTimeout(function() {
+                                            window.location = '<?php echo $http; ?>/report';
+                                        }, 1500);
                                     }
                                 })
                             } else {
@@ -145,9 +156,9 @@
                 let checkTotal = check.parents('.invoice-list');
                 let am_total = checkTotal.find('.am_total').text();
                 let type = checkTotal.find('.mdoctype-' + genVal[0]).text();
-                // console.log(type.trim())
                 let key = checkTotal.find('.key-id').val();
                 let cf_mnetamt = checkTotal.find('.cf-mnetamt-' + genVal[0]).text();
+
                 if ($(this).is(":checked")) {
                     let invoice = {
                         'id': key,
@@ -160,21 +171,19 @@
                     if (checkData.length < 1) {
                         data.push(invoice)
                     }
+
+                    checkDisable();
                     let total = calculate(key);
                     checkTotal.find('.total-text-' + key).text(addComma(total, 2))
                 } else {
                     let index = data.findIndex(o => genVal[0] == o.value && key == o.id)
                     data.splice(index, 1);
+                    checkDisable();
                     let total = calculate(key) == 0 ? am_total : calculate(key);
                     checkTotal.find('.total-text-' + key).text(addComma(total, 2))
                     checkTotal.find('.cf-all-' + key).prop('checked', false);
                 }
 
-                if (data.length > 0) {
-                    $('.cf_bill').prop('disabled', false);
-                } else {
-                    $('.cf_bill').prop('disabled', true);
-                }
             }).on('change', '.check_all', function(e) {
                 let value = $(this).val();
                 let check = $(this);
@@ -194,6 +203,7 @@
                         if (checkData.length < 1) {
                             data.push(invoice)
                         }
+                        checkDisable();
                         let total = calculate(childLists.childs[value].info.cus_no);
                         checkTotal.find('.total-text-' + childLists.childs[value].info.cus_no).text(
                             addComma(total, 2))
@@ -204,13 +214,8 @@
                         let index = data.findIndex(o => o.value == x.macctdoc && o.id == childLists
                             .childs[value].info.cus_no)
                         data.splice(index, 1);
+                        checkDisable();
                     })
-                }
-
-                if (data.length > 0) {
-                    $('.cf_bill').prop('disabled', false);
-                } else {
-                    $('.cf_bill').prop('disabled', true);
                 }
             });
 
@@ -248,6 +253,28 @@
             } else {
                 $('.cf_bill').show();
                 $('.cf_bill-loading').hide();
+            }
+        }
+
+        function checkDisable() {
+            if (data.length > 0) {
+                $('.invoice .cf_bill').prop('disabled', false);
+            } else {
+                $('.invoice .cf_bill').prop('disabled', true);
+            }
+        }
+
+        function addData() {
+            if (childLists.childs) {
+                let key = Object.keys(childLists.childs)
+                key.map(o => {
+                    childLists.childs[o].bills.map(x => ['RA', 'RD'].includes(x.mdoctype) ? data.push({
+                        'id': o,
+                        'value': x.macctdoc,
+                        'balance': x.balance,
+                        'mdoctype': x.mdoctype
+                    }) : '')
+                })
             }
         }
     });

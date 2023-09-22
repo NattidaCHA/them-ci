@@ -1,6 +1,6 @@
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
-        <form id="invoiceForm" method="get" action="/customer" class="mb-4">
+        <form id="invoiceForm" method="get" action="<?php echo $http ?>/customer" class="mb-4">
             <div class="box-customer-search">
                 <div class="input-search-2">
                     <label for="customer" class="form-label">ลูกค้า</label>
@@ -15,7 +15,7 @@
                 </div>
             </div>
             <div class="d-flex justify-content-end mb-3 mt-4 me-3">
-                <a type="button" class="btn btn-success" href="/customer/process/create">+ สร้างข้อมูลลูกค้า</a>
+                <a type="button" class="btn btn-success" href="<?php echo $http ?>/customer/process/create">+ สร้างข้อมูลลูกค้า</a>
             </div>
         </form>
         <div class="table-responsive">
@@ -59,7 +59,7 @@
             allowClear: false,
             placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
             ajax: {
-                url: "/api/searchCustomer",
+                url: "<?php echo $http ?>/api/searchCustomer",
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
@@ -92,7 +92,7 @@
                     [0, "asc"]
                 ],
                 "ajax": {
-                    url: '/customer/listCustomer/<?php echo $cus_no; ?>',
+                    url: '<?php echo $http ?>/customer/listCustomer/<?php echo $cus_no; ?>',
                     dataFilter: function(data) {
                         let json = jQuery.parseJSON(data);
                         if (json.error) {
@@ -200,7 +200,7 @@
                     columns.push({
                         data: 'uuid',
                         render: function(data, type, full) {
-                            return '<a class="btn btn-sm btn-gray-700 text-center" href="/customer/process/update?customer=' + full.info.cus_no + '" target="_blank"><i class="bi bi-pencil"></i></a>'
+                            return '<a class="btn btn-sm btn-gray-700 text-center" href="<?php echo $http ?>/customer/process/update?customer=' + full.info.cus_no + '" target="_blank"><i class="bi bi-pencil"></i></a>'
                         }
                     })
                 }
@@ -212,7 +212,6 @@
             if (repo.loading) {
                 return repo.text;
             }
-
             return $('<span>' + repo.cus_name + '(' + repo.cus_no + ')' + '</span>');
         }
 

@@ -1,7 +1,6 @@
-<?php echo  $this->CURUSER->cus_no; ?>
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
-        <form id="invoiceForm" method="get" action="/invoice" class="mb-4">
+        <form id="invoiceForm" method="get" action="<?php echo $http ?>/invoice" class="mb-4">
             <div class="section-filter">
                 <div class="box-search">
                     <div class="input-search">
@@ -47,14 +46,17 @@
                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                         <select class="form-select" id="type" name="type">
                             <option value="" selected>เลือก ...</option>
+                            <?php foreach ($types as $type) { ?>
+                                <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : ''; ?>><?php echo $type->msaleorg_des ?></option>
+                            <?php }; ?>
                         </select>
                     </div>
                     <div class="input-search">
                         <label for="type" class="form-label">ทำบิล</label>
                         <select class="form-select" id="is_bill" name="is_bill">
-                            <option value="0" selected>ทั้งหมด</option>
-                            <option value="1">ทำบิลแล้ว</option>
-                            <option value="2">ยังไม่ได้ทำบิล</option>
+                            <option value="1" <?php echo $is_bill == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                            <option value="2" <?php echo $is_bill == '2' ? 'selected' : ''; ?>>ทำใบแจ้งเตือนแล้ว</option>
+                            <option value="3" <?php echo $is_bill == '3' ? 'selected' : ''; ?>>ยังไม่ได้ทำใบแจ้งเตือน</option>
                         </select>
                     </div>
                     <div class="mb-3 mt-4">
@@ -68,14 +70,6 @@
             <table id="paymentList" class="table table-centered table-striped w-100">
                 <thead class="thead-light">
                     <tr>
-                        <!-- <th width="10%">ประเภทธุรกิจ</th>
-                        <th width="30%">ลูกค้า</th>
-                        <th width="10%">ยอดหนี้</th>
-                        <th width="10%">รีเบท</th>
-                        <th width="10%">เงินเหลือ</th>
-                        <th width="10%">ลดหนี้</th>
-                        <th width="10%">เพิ่มหนี้</th>
-                        <th width="10%" class="no-search no-sort text-center">Action</th> -->
                         <?php foreach ($table as $res) { ?>
                             <th width="<?php if (in_array($res->sort, [2])) {
                                             echo '30%';
@@ -158,7 +152,7 @@
             allowClear: false,
             placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
             ajax: {
-                url: "/api/searchCustomerMain",
+                url: "<?php echo $http ?>/api/searchCustomerMain",
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
@@ -211,9 +205,9 @@
                 let send = $('#dateSelect').val()
                 $('.header_text').text(name + ' (' + id + ')');
                 $('.customer').html('<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>')
-                $('.btn-detail').attr("href", 'http://notification.com/invoice/detail/' + id + '?start=' + start + '&end=' + end + '&send=' + send)
+                $('.btn-detail').attr("href", '<?php echo WWW; ?><?php echo $http; ?>/invoice/detail/' + id + '?start=' + start + '&end=' + end + '&send=' + send)
 
-                $.get('/invoice/genCustomerChild/' + id).done(function(res) {
+                $.get('<?php echo $http; ?>/invoice/genCustomerChild/' + id).done(function(res) {
                     if (res.status == 200) {
                         let text = "";
                         if (res.data.length > 0) {
@@ -244,7 +238,6 @@
                 return $('<span>' + repo.text.trim() + '</span>');
             }
             return repo.text;
-
         }
 
     });

@@ -1,6 +1,6 @@
 <nav class="navbar navbar-dark navbar-expand-lg px-4 col-12" style="background-color: rgb(255,0,0,0.9);">
     <a class="navbar-brand me-lg-5 p-2" href="<?php echo site_url(); ?>" style="background-color: #fff">
-        <img src="/assets/img/logo-300.png" alt="logo" />
+        <img src="<?php echo $http ?>/assets/img/logo-300.png" alt="logo" />
     </a>
     <button class="navbar-toggler d-lg-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -9,13 +9,16 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="/invoice">Invoice</a>
+                    <a class="nav-link active" aria-current="page" href="<?php echo $http ?>/invoice">Invoice</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/report">Report</a>
+                    <a class="nav-link" href="<?php echo $http ?>/report">Report</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/customer">Customer</a>
+                    <a class="nav-link" href="<?php echo $http ?>/customer">Customer</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?php echo $http ?>/setting">Setting</a>
                 </li>
             </ul>
             <!-- <div class="d-block">
@@ -31,14 +34,16 @@
     <div class="sidebar-inner px-3 pt-3">
         <div class="user-card d-flex align-items-center justify-content-between justify-content-md-center pb-4">
             <div class="d-flex align-items-center">
-                <div class="avatar-lg me-4">
-                    <img src="/assets/img/user.png" class="card-img-top rounded-circle border-white" alt="Bonnie Green">
-                </div>
                 <div class="d-block">
-                    <h2 class="h5 mb-3">fff</h2>
-                    <a href="/logout" class="btn btn-danger btn-sm d-inline-flex align-items-center">
+                    <span class="sidebar-icon">
+                        <img src="<?php echo $http ?>/assets/img/logo-300.png" height="20" alt="Logo">
+                    </span>
+                    <span class="mt-1 ms-1 sidebar-text">Notification system</span>
+                    <!-- <h2 class="h5 mb-3">fff</h2>
+                    <a href="<?php //echo $http 
+                                ?>/logout" class="btn btn-danger btn-sm d-inline-flex align-items-center">
                         <span class="icon icon-xs me-1"><i class="bi bi-box-arrow-right"></i></span> Sign Out
-                    </a>
+                    </a> -->
                 </div>
             </div>
             <div class="collapse-close">
@@ -50,28 +55,34 @@
             </div>
         </div>
         <ul class="nav flex-column pt-3 pt-md-0">
-            <li class="nav-item pb-3">
+            <!-- <li class="nav-item pb-3">
                 <span class="sidebar-icon">
-                    <img src="/assets/img/logo-300.png" height="20" alt="Logo">
+                    <img src="<?php //echo $http ?>/assets/img/logo-300.png" height="20" alt="Logo">
                 </span>
                 <span class="mt-1 ms-1 sidebar-text">Notification system</span>
-            </li>
+            </li> -->
             <li class="nav-item" id="_menu-dashboard">
-                <a href="/invoice" class="nav-link">
-                    <span class="sidebar-icon"><i class="bi bi-speedometer2"></i></span>
+                <a href="<?php echo $http ?>/invoice" class="nav-link">
+                    <span class="sidebar-icon"></span>
                     <span class="sidebar-text">Invoice</span>
                 </a>
             </li>
             <li class="nav-item" id="_menu-dashboard">
-                <a href="/report" class="nav-link">
-                    <span class="sidebar-icon"><i class="bi bi-speedometer2"></i></span>
+                <a href="<?php echo $http ?>/report" class="nav-link">
+                    <span class="sidebar-icon"></span>
                     <span class="sidebar-text">Report</span>
                 </a>
             </li>
             <li class="nav-item" id="_menu-dashboard">
-                <a href="/customer" class="nav-link">
-                    <span class="sidebar-icon"><i class="bi bi-speedometer2"></i></span>
+                <a href="<?php echo $http ?>/customer" class="nav-link">
+                    <span class="sidebar-icon"></span>
                     <span class="sidebar-text">Customer</span>
+                </a>
+            </li>
+            <li class="nav-item" id="_menu-dashboard">
+                <a href="<?php echo $http ?>/setting" class="nav-link">
+                    <span class="sidebar-icon"></span>
+                    <span class="sidebar-text">Setting</span>
                 </a>
             </li>
             <li role="separator" class="dropdown-divider border-gray-700"></li>

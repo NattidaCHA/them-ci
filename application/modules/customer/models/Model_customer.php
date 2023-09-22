@@ -2,10 +2,10 @@
 
 class Model_customer extends MY_Model
 {
-    private $tableAllowFieldsCustomer = ['uuid', 'cus_name', 'cus_no', 'send_date', 'type', 'created_date', 'updated_date'];
-    private $tableAllowFieldsTelContact = ['uuid', 'cus_main',  'tel', 'contact', 'is_call', 'created_date', 'updated_date'];
-    private $tableAllowFieldsEmailContact = ['uuid', 'cus_main', 'email', 'created_date', 'updated_date'];
-    private $tableAllowFieldsSendTo = ['uuid', 'cus_no', 'cus_main', 'is_check'];
+    private $tableAllowFieldsCustomer = ('uuid, cus_no,cus_name, send_date,created_date, updated_date,type,created_by, updated_by');
+    private $tableAllowFieldsTelContact = ('uuid, cus_main,  tel, created_date,updated_date, is_call, contact');
+    private $tableAllowFieldsEmailContact = ('uuid, email, cus_main, created_date, updated_date');
+    private $tableAllowFieldsSendTo = ('uuid, cus_no, cus_main,is_check');
 
     public function __construct()
     {
@@ -14,58 +14,116 @@ class Model_customer extends MY_Model
 
     public function getContact()
     {
-        $sql = $this->db->get('cust_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return $result;
+        $result = [];
+        $sql =  "SELECT * FROM " . CUST_NOTI;
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
     }
 
     public function findMain($id)
     {
         $result = (object)[];
-        $sql = $this->db->select('MAX(T1.mcustno) as cus_no,MAX(T1.mcustname) as cus_name,MAX(T2.mcontact) as contact,MAX(T1.msendto) as msendto,MAX(T1.msaleorg) as msaleorg')
-            ->where('T1.msendto', $id)
-            ->join('tbl_custtel T2', 'T1.mcustno = T2.mcustno', 'left')
-            ->get('vw_Customer_DWH T1');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $select =  "MAX(" . VW_Customer . ".mcustno) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . TBL_CUT . ".mcontact) as contact,MAX(" . VW_Customer . ".msendto) as msendto,MAX(" . VW_Customer . ".msaleorg) as msaleorg ";
+        $join = " left join " . TBL_CUT . " on " . TBL_CUT . ".mcustno = " . VW_Customer . ".mcustno";
+        $sql =  "SELECT $select FROM " . VW_Customer . "$join" . " where " . VW_Customer . ".msendto = '$id'";
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function findChild($id)
     {
         $result = (object)[];
-        $sql = $this->db->select('MAX(T1.mcustno) as cus_no,MAX(T1.mcustname) as cus_name,MAX(T2.mcontact) as contact,MAX(T1.msendto) as msendto,MAX(T1.msaleorg) as msaleorg,MAX(T2.mtel) as tel,MAX(T2.memail) as email')
-            ->where('T1.mcustno', $id)
-            ->join('tbl_custtel T2', 'T1.mcustno = T2.mcustno', 'left')
-            ->group_by('T1.mcustno')
-            ->get('vw_Customer_DWH T1');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $select =  "MAX(" . VW_Customer . ".mcustno) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . TBL_CUT . ".mcontact) as contact,MAX(" . VW_Customer . ".msendto) as msendto,MAX(" . VW_Customer . ".msaleorg) as msaleorg,MAX(" . TBL_CUT . ".mtel) as tel,MAX(" . TBL_CUT . ".memail) as email ";
+        $join = " left join " . TBL_CUT . " on " . TBL_CUT . ".mcustno = " . VW_Customer . ".mcustno";
+        $sql =  "SELECT $select FROM " . VW_Customer . "$join" . " where " . VW_Customer . ".mcustno = '$id' group by "  . VW_Customer . ".mcustno";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
 
     public function findChildList($id)
     {
         $result = [];
-        $sql = $this->db->select('MAX(mcustno) as cus_no,MAX(mcustname) as cus_name,MAX(msaleorg) as msaleorg')
-            ->where('msendto', $id)
-            ->group_by('mcustno')
-            ->get('vw_Customer_DWH');
-        $result = $sql->result();
-        $sql->free_result();
+        $sql =  "SELECT MAX(mcustno) as cus_no,MAX(mcustname) as cus_name,MAX(msaleorg) as msaleorg FROM " . VW_Customer .  " where msendto = '$id' group by mcustno";
 
-        return  $result;
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
     }
 
     public function createCustomer($params)
     {
-        $checkFields = array_fill_keys($this->tableAllowFieldsCustomer, 0);
-        $create = array_intersect_key($params, $checkFields);
-        $res = $this->db->insert('customer_notification', $create);
+        $sql = "INSERT INTO " . CUSTOMER . ' (' . $this->tableAllowFieldsCustomer . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
-            return $res;
+            return true;
         }
 
         return FALSE;
@@ -73,9 +131,8 @@ class Model_customer extends MY_Model
 
     public function createTelContact($params)
     {
-        $checkFields = array_fill_keys($this->tableAllowFieldsTelContact, 0);
-        $create = array_intersect_key($params, $checkFields);
-        $res = $this->db->insert('tel_customer', $create);
+        $sql = "INSERT INTO " . TEL . ' (' . $this->tableAllowFieldsTelContact . ") VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
             return $res;
         }
@@ -85,9 +142,8 @@ class Model_customer extends MY_Model
 
     public function createEmailContact($params)
     {
-        $checkFields = array_fill_keys($this->tableAllowFieldsEmailContact, 0);
-        $create = array_intersect_key($params, $checkFields);
-        $res = $this->db->insert('email_customer', $create);
+        $sql = "INSERT INTO " . EMAIL . ' (' . $this->tableAllowFieldsEmailContact . ") VALUES (?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
             return $res;
         }
@@ -95,13 +151,10 @@ class Model_customer extends MY_Model
         return FALSE;
     }
 
-
     public function createSendto($params)
     {
-
-        $checkFields = array_fill_keys($this->tableAllowFieldsSendTo, 0);
-        $create = array_intersect_key($params, $checkFields);
-        $res = $this->db->insert('sendto_customer', $create);
+        $sql = "INSERT INTO " . SENTO_CUS . ' (' . $this->tableAllowFieldsSendTo . ") VALUES (?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
             return $res;
         }
@@ -112,86 +165,196 @@ class Model_customer extends MY_Model
     public function customer($id)
     {
         $result = (object)[];
-        $sql = $this->db->where('cus_no', $id)->get('customer_notification');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . CUSTOMER . " where cus_no = '$id'";
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function email($id)
     {
-
         $result = [];
-        $sql = $this->db->where('cus_main', $id)->get('email_customer');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . EMAIL . " where cus_main = '$id'";
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+                array_push($result, $res);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function tel($id)
     {
-
         $result = [];
-        $sql = $this->db->where('cus_main', $id)->get('tel_customer');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . TEL . " where cus_main = '$id'";
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
 
     public function checkSendTo($cus_no, $cus_main)
     {
         $result = (object)[];
-        $sql = $this->db->where("(cus_no = '$cus_no' AND cus_main = '$cus_main')")->get('sendto_customer');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . SENTO_CUS . " where cus_no = '$cus_no' AND cus_main = '$cus_main'";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function checkSendToChild($cus_no)
     {
         $result = (object)[];
-        $sql = $this->db->where("(cus_no = '$cus_no' AND cus_main = '$cus_no')")->get('sendto_customer');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . SENTO_CUS . " where cus_no = '$cus_no' AND cus_main = '$cus_no'";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getSendToId($id)
     {
         $result = (object)[];
-        $sql = $this->db->where('uuid', $id)->get('sendto_customer');
-        $result = $sql->row();
-        $sql->free_result();
-        return  $result;
+        $sql =  "SELECT * FROM " . SENTO_CUS . " where uuid = '$id'";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            $result =  sqlsrv_fetch_object($stmt);
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getSendTo($id)
     {
         $result = [];
         $lists = [];
-        $sql = $this->db->select('cus_no,MAX(cus_main) as cus_main,MAX(uuid) as uuid,MAX(CONVERT(int,is_check)) as is_check')
-            ->where('cus_main', $id)
-            ->group_by('cus_no')
-            ->get('sendto_customer');
-        $result = $sql->result();
-        $sql->free_result();
+        $sql =  "SELECT cus_no,MAX(cus_main) as cus_main,MAX(uuid) as uuid,MAX(CONVERT(int,is_check)) as is_check FROM " . SENTO_CUS . " where cus_main = '$id' group by cus_no";
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
 
-        foreach ($result as $res) {
-            $sendto = $this->findChild($res->cus_no);
-            $sendto->is_check = $res->is_check;
-            $sendto->uuid = $res->uuid;
-            $lists[$sendto->cus_no] =  $sendto;
+            foreach ($result as $res) {
+                $sendto = $this->findChild($res->cus_no)->items;
+                $sendto->is_check = $res->is_check;
+                $sendto->uuid = $res->uuid;
+                $lists[$sendto->cus_no] =  $sendto;
+            }
+
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $lists,
+                'msg'  => "success",
+            ];
         }
 
-        return  $lists;
+        return $output;
     }
 
     public function removeEmail($id)
     {
-        $sql = $this->db->where('uuid', $id)->delete('email_customer');
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "DELETE FROM " . EMAIL . " where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql);
+
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
@@ -199,136 +362,135 @@ class Model_customer extends MY_Model
 
     public function removeTel($id)
     {
-        $sql = $this->db->where('uuid', $id)->delete('tel_customer');
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "DELETE FROM " . TEL . " where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql);
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
     }
 
 
-    public function updateSendTo($id, $sendTo)
+    public function updateSendTo($id, $params)
     {
-        // var_dump($id, $sendTo);
-        // exit;
-        $sql = $this->db->set('is_check', $sendTo)->where('uuid', $id)->update('sendto_customer');
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "update " . SENTO_CUS . " set is_check=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
     }
 
 
-    public function updateTelContact($id, $contact)
+    public function updateTelContact($id, $params)
     {
-        $sql = $this->db->where('uuid', $id)->update('tel_customer', $contact);
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "update " . TEL . " set tel=(?), updated_date=(?),is_call=(?),contact=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
     }
 
-    public function updateEmailContact($id, $contact)
+    public function updateEmailContact($id, $params)
     {
-        $sql = $this->db->where('uuid', $id)->update('email_customer', $contact);
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "update " . EMAIL . " set email=(?), updated_date=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
     }
 
-    public function updateInfo($id, $contact)
+    public function updateInfo($id, $params)
     {
-        $sql = $this->db->where('uuid', $id)->update('customer_notification', $contact);
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "update " . CUSTOMER . " set send_date=(?), updated_date=(?), updated_by=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
-    }
-
-    public function findCustomer($id)
-    {
-        $sql = $this->db->where('cus_no', $id)->get('customer_notification');
-        $result = $sql->row();
-        $sql->free_result();
-        return $result;
-    }
-
-    public function getCustomerList()
-    {
-
-        $result = [];
-        $sql = $this->db->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
     }
 
     public function countCustomer($cus_no)
     {
+        $result = [];
+        $sql =  "SELECT * FROM " . CUSTOMER;
 
         if (!empty($cus_no)) {
-            $this->db->where('cus_no', $cus_no);
+            $sql = $sql . " where cus_no = '$cus_no'";
         }
 
-        $result = [];
-        $sql = $this->db->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
     }
 
     public function getCustomerTb($cus_no = FALSE, $limit, $page)
     {
 
-        $totalRecord = !empty($this->countCustomer($cus_no)) ? count($this->countCustomer($cus_no)) : 0;
-
-        if (!empty($cus_no)) {
-            $this->db->where('cus_no', $cus_no);
-        }
-
-
-        if (!empty($limit)) {
-            $offset = max($page - 1, 0) * $limit;
-            $this->db->limit($limit, $offset);
-        }
-
+        $totalRecord = !empty($this->countCustomer($cus_no)) ? count($this->countCustomer($cus_no)->items) : 0;
         $result = [];
         $lists = [];
+        $offset = max($page - 1, 0) * $limit;
 
-        $sql = $this->db->order_by('cus_no', 'asc')->get('customer_notification');
-        $result = $sql->result();
-        $sql->free_result();
+        $sql =  "SELECT * FROM " . CUSTOMER;
 
-        if (!empty($result)) {
-            foreach ($result as $key => $val) {
-                array_push($lists, (object)['info' => $val, 'tels' => $this->getTel($val->cus_no), 'emails' => $this->getEmail($val->cus_no)]);
-            }
+        if (!empty($cus_no)) {
+            $sql = $sql . " where cus_no = '$cus_no' order by cus_no asc offset $offset rows fetch next $limit rows only";
+        } else {
+            $sql = $sql . " order by cus_no asc offset $offset rows fetch next $limit rows only";
         }
 
-        return  (object)['lists' => $lists, 'totalRecord' => $totalRecord];
-    }
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
 
-    public function getEmail($cus_no)
-    {
-        $result = [];
-        $sql = $this->db->where('cus_main', $cus_no)->get('email_customer');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
-    }
 
-    public function getTel($cus_no)
-    {
-        $result = [];
-        $sql = $this->db->where('cus_main', $cus_no)->get('tel_customer');
-        $result = $sql->result();
-        $sql->free_result();
-        return  $result;
+            if (!empty($result)) {
+                foreach ($result as $key => $val) {
+                    array_push($lists, (object)['info' => $val, 'tels' => $this->tel($val->cus_no)->items, 'emails' => $this->email($val->cus_no)->items]);
+                }
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $lists,
+                'msg'  => "success",
+            ];
+        }
+
+        return (object)['lists' => $output, 'totalRecord' => $totalRecord];
     }
 }

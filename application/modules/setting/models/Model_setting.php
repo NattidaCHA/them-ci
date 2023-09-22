@@ -2,7 +2,7 @@
 
 class Model_setting extends MY_Model
 {
-    private $tableAllowFieldsSetting = ['uuid', 'page_name', 'colunm', 'sort', 'page_sort', 'is_show'];
+    private $tableAllowFieldsSetting = ('uuid,page_name, colunm, sort, page_sort, is_show');
 
     public function __construct()
     {
@@ -11,12 +11,10 @@ class Model_setting extends MY_Model
 
     public function create($params)
     {
-        $checkFields = array_fill_keys($this->tableAllowFieldsSetting, 0);
-        $create = array_intersect_key($params, $checkFields);
-        $res = $this->db->insert('setting', $create);
-
+        $sql = "INSERT INTO " . CUSTOMER . ' (' . $this->tableAllowFieldsSetting . ") VALUES (?, ?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
-            return $res;
+            return true;
         }
 
         return FALSE;
@@ -26,26 +24,161 @@ class Model_setting extends MY_Model
     {
         $result = [];
         $lists = [];
-        $sql = $this->db->select('MAX(uuid) as uuid,MAX(page_name) as page_name,MAX(CONVERT(int,page_sort)) as page_sort,MAX(CONVERT(int,sort)) as sort,MAX(colunm) as colunm,MAX(CONVERT(int,is_show)) as is_show')
-            ->group_by('uuid')
-            ->order_by('page_sort asc,sort asc')
-            ->get('setting');
-        $result = $sql->result();
-        $sql->free_result();
+        $sql =  "SELECT MAX(uuid) as uuid,MAX(page_name) as page_name,MAX(CONVERT(int,page_sort)) as page_sort,MAX(CONVERT(int,sort)) as sort,MAX(colunm) as colunm,MAX(CONVERT(int,is_show)) as is_show FROM " . SETTING . " group by uuid order by page_sort asc,sort asc";
 
-        foreach ($result as $val) {
-            $lists[$val->page_name][$val->uuid] = $val;
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+
+            foreach ($result as $val) {
+                $lists[$val->page_name][$val->uuid] = $val;
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $lists,
+                'msg'  => "success",
+            ];
         }
-        return $lists;
+        return $output;
     }
 
-    public function updateSetting($id, $data)
+    public function updateSetting($id, $params)
     {
-        $sql = $this->db->set('is_show', $data)->where('uuid', $id)->update('setting');
-        if (!empty($sql)) {
-            return $sql;
+        $sql = "update " . SETTING . " set is_show=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
         }
 
         return FALSE;
+    }
+
+    public function getInvoice($val)
+    {
+
+        $result = [];
+        $data = [];
+        $select =  "" . BILLPAY . ".mcustno," . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno," . VW_Customer . ".msendto," . CUST_NOTI . ".mday," . BILLPAY . ".mbillno," . BILLPAY . ".mpostdate," . BILLPAY . ".mduedate," . BILLPAY . ".mpayterm," . BILLPAY . ".mtext ";
+
+        $join = " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno left join " . VW_Customer . " on " . VW_Customer . ".mcustno = " . BILLPAY . ".mcustno";
+
+        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
+
+        if (!empty($val->is_bill)) {
+            $result2 = [];
+            $sql2 = "SELECT cus_main FROM " . REPORT . " where start_date >= '$val->startDate' AND  end_date <='$val->endDate' group by cus_main";
+            $stmt2 = sqlsrv_query($this->conn, $sql2);
+
+            while ($row2 = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
+                array_push($result2, $row2["cus_main"]);
+            }
+
+            // if ($val->is_bill == '2') {
+            //     $sendTo2 = [];
+            //     foreach ($result2 as $cus_main) {
+            //         $res = $this->sendTo($cus_main);
+            //         foreach ($res as $val) {
+            //             array_push($sendTo2, $val);
+            //         }
+            //     }
+
+            //     $sql = $sql . " AND " . BILLPAY . ".mcustno in (" . implode(',', $sendTo2) . ")";
+            // }
+
+
+            if ($val->is_bill == '3' && !empty($result2)) {
+                $sendTo3 = [];
+                foreach ($result2 as $cus_main) {
+                    $res = $this->sendTo($cus_main);
+                    foreach ($res as $val) {
+                        array_push($sendTo3, $val);
+                    }
+                }
+
+                $sql = $sql . " AND " . BILLPAY . ".mcustno not in (" . implode(',', $sendTo3) . ")";
+            }
+        }
+
+
+        if (!empty($val->cus_no)) {
+            $sendTo = $this->sendTo($val->cus_no);
+            $sql = $sql . " AND " . BILLPAY . ".mcustno in (" . implode(',', $sendTo) . ")";
+        }
+
+        if (!empty($val->type)) {
+            $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
+        }
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+
+            if (!empty($result)) {
+                foreach ($result as $row) {
+                    $data[$row->mcustno][] = $row;
+                }
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $data,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
+    }
+
+
+    public function sendTo($cus_no)
+    {
+        $result = [];
+        $sql = "SELECT cus_no FROM " . SENTO_CUS . " where cus_main = '$cus_no' AND  is_check = 1 group by cus_no";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+            array_push($result, $row["cus_no"]);
+        }
+
+        return $result;
+    }
+
+    public function checkReport($val)
+    {
+        $result = [];
+        $key = [];
+        $sql2 = "SELECT * FROM " . REPORT . " where start_date >= '$val->startDate' AND  end_date <='$val->endDate'";
+
+        if (!empty($val->cus_no)) {
+            $sendTo = $this->sendTo($val->cus_no);
+            $sql2 = $sql2 . " AND " . REPORT . ".cus_no in (" . implode(',', $sendTo) . ")";
+        }
+
+        $stmt2 = sqlsrv_query($this->conn, $sql2);
+
+        while ($row2 = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
+            $key[$row2["cus_no"]] = $row2["cus_no"];
+            $result[$row2["cus_no"]] = (object)$row2;
+        }
+
+        return (object)['key' => $key, 'report' => $result];
     }
 }

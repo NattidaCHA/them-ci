@@ -1,5 +1,4 @@
 <?php
-
 class Api extends MY_Controller
 {
 
@@ -9,6 +8,7 @@ class Api extends MY_Controller
     {
         parent::__construct();
         $this->load->model('model_system');
+        $this->load->model('model_report');
     }
 
 
@@ -36,7 +36,7 @@ class Api extends MY_Controller
         $result = [];
 
         if (strlen($keyword) <= 2) {
-            if ($apiCustomer = $this->model_system->defaultCustomer()) {
+            if ($apiCustomer = $this->model_system->defaultCustomer()->items) {
                 if (!empty($apiCustomer)) {
                     foreach ($apiCustomer as $val) {
                         $result[] = [
@@ -53,7 +53,7 @@ class Api extends MY_Controller
                 $output['msg'] = 'API Error';
             }
         } else {
-            if ($apiCustomer = $this->model_system->searchCustomer($keyword)) {
+            if ($apiCustomer = $this->model_system->searchCustomer($keyword)->items) {
                 if (!empty($apiCustomer)) {
                     foreach ($apiCustomer as $val) {
                         $result[] = [
@@ -82,7 +82,7 @@ class Api extends MY_Controller
         $result = [];
 
         if (strlen($keyword) <= 2) {
-            if ($apiCustomer = $this->model_system->getCustomerMainDefault()) {
+            if ($apiCustomer = $this->model_system->defaultCustomer()->items) {
                 if (!empty($apiCustomer)) {
                     foreach ($apiCustomer as $val) {
                         $result[] = [
@@ -99,7 +99,7 @@ class Api extends MY_Controller
                 $output['msg'] = 'API Error';
             }
         } else {
-            if ($apiCustomer = $this->model_system->searchCustomerMain($keyword)) {
+            if ($apiCustomer = $this->model_system->searchCustomer($keyword)->items) {
                 if (!empty($apiCustomer)) {
                     foreach ($apiCustomer as $val) {
                         $result[] = [
@@ -127,7 +127,7 @@ class Api extends MY_Controller
         $result = [];
 
         if (strlen($keyword) <= 2) {
-            if ($apiCustomer = $this->model_system->getCustomerDefaultVW()) {
+            if ($apiCustomer = $this->model_system->getCustomerDefaultVW()->items) {
                 if (!empty($apiCustomer)) {
                     foreach ($apiCustomer as $val) {
                         $result[] = [

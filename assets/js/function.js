@@ -49,19 +49,19 @@ d.addEventListener("DOMContentLoaded", function(event) {
     });
 
 
-    if (menu_active) {
-        let _menu = $('#sidebarMenu').find('#_menu-'+menu_active);
-        if (_menu.length) {
-            _menu.addClass('active');
-            let parent = _menu.parents('.nav-item');
-            if (parent.length) {
-                parent
-                    .find('.multi-level').addClass('show').end()
-                    .find('.collapsed').removeClass('collapsed').attr('aria-expanded', 'true');
-            }
-        }
+    // if (menu_active) {
+    //     let _menu = $('#sidebarMenu').find('#_menu-'+menu_active);
+    //     if (_menu.length) {
+    //         _menu.addClass('active');
+    //         let parent = _menu.parents('.nav-item');
+    //         if (parent.length) {
+    //             parent
+    //                 .find('.multi-level').addClass('show').end()
+    //                 .find('.collapsed').removeClass('collapsed').attr('aria-expanded', 'true');
+    //         }
+    //     }
 
-    }
+    // }
 
 })
 
