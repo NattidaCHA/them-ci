@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 // $config = array(
 //     "protocol" => "mail",smtp
@@ -24,7 +24,7 @@ $config['smtp_port'] = 587;
 // $config['smtp_user'] = "nattidac@scg.com";
 // $config['smtp_pass'] = "Year@2023";
 $config['smtp_user'] = "nan_zen0003@hotmail.com";
-$config['smtp_pass'] = "!Ohsehun1228"; 
+$config['smtp_pass'] = "!Ohsehun1228";
 $config['smtp_crypto'] = 'tls';
 $config['smtp_timeout'] = 7;
 $config['charset'] = "utf-8";

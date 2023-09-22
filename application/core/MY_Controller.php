@@ -403,7 +403,7 @@ class MY_Controller extends CI_Controller
         require_once  './vendor/autoload.php';
         $mail = new PHPMailer(true);
         $from_email = "nan_zen0003@hotmail.com";
-
+        // $from_email = "nattidac@scg.com";
         if (!empty($params)) {
             $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
             $emails =  $this->model_report->genEmail($params['cus_no'], $params['cus_main']);
@@ -438,12 +438,14 @@ class MY_Controller extends CI_Controller
                     $mail->SMTPDebug = SMTP::DEBUG_SERVER;
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.office365.com';
+                    // $mail->Host       = 'soms.scg.com';
                     $mail->SMTPAuth   = true;
                     $mail->Username   = $from_email;
-                    $mail->Password   = '!Ohsehun1228';
+                    $mail->Password   = 'Year@2023';
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
                     $mail->Port       = 587;
-                    $mail->SMTPSecure = 'tls';
+                    // $mail->Port       = 25;
+                    $mail->SMTPSecure = 'ssl';
                     $mail->Mailer = "smtp";
                     $mail->IsSMTP();
                     $mail->Debugoutput = 'error_log';
