@@ -631,9 +631,9 @@
             <div>
                 <?php if ($data->report->total_page == $data->index) { ?>
                     <div class="boder-noti">
-                        <p>กรุณาชำระให้ตรง DUE เพื่อป้องกันการเก็บเงินล่าช้า</p>
+                        <p><?php echo  $data->tem['page_footer'][0]->due_detail; ?></p>
                         <div class="boder-bottom-red"></div>
-                        <p>ค่าล่าช้า = ยอดค้างชำระ X 18% ต่อปี X จำนวนวันที่ค้างชำระ /365</p>
+                        <p><?php echo  $data->tem['page_footer'][0]->cal; ?></p>
                     </div>
                     <div class="detail-summary">
                         <div class="table-summary">
@@ -656,8 +656,8 @@
                         </div>
                         <div class="text-amount">จํานวนเอกสารทั้งหมด&nbsp;<?php echo $data->report->total_items ?>&nbsp;รายการ</div>
                         <div>
-                            <div class="mt-05 text-total">สอบถามข้อมูลการชําระเงิน ติดต่อ หน่วยยงานบริหารสินเชื่อ ติดต่อ 02-586-2482, 02-586-5172</div>
-                            <div class="text-total">*ประเภท RA = ยอด Invoice, RD = ยอดเพิ่มหนี้, RC = ยอดลดหนี้, RB= ยอดเงินเหลือ, DC= ยอด Rebate, RE = ยอดเงินเหลือในใบเสร็จ</div>
+                            <div class="mt-05 text-total"><?php echo  $data->tem['page_footer'][0]->contact; ?></div>
+                            <div class="text-total"><?php echo  $data->tem['page_footer'][0]->type; ?></div>
                         </div>
                     </div>
                 <?php } ?>

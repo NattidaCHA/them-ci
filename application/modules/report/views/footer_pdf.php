@@ -597,13 +597,12 @@
                 <div class="half-50-left">
                     <div class="text-title-bank">ใบแจ้งการชําระหนี้ผ่านธนาคาร (PAY-IN-SLIP)</div>
                     <div class="bank">เพื่อเข้าบัญชีบริษัทนวพลาสติกอุตสาหกรรม (สระบุรี) จํากัด</div>
-
-                    <?php foreach ($data->report->payment as $payment) { ?>
+                    <?php foreach ($data->tem['bank'] as $payment) { ?>
                         <div class="bank">
                             <span class="input-checkbox"><input type="checkbox"></span>
                             <img src="<?php echo $http; ?>assets/img/<?php echo $payment->image_name; ?>" class="logo-bank mt-1">
                             <div class="text-bank-top"><?php echo $payment->bank_name; ?></div>
-                            <p class="text-bank-left"><?php echo (!empty($payment->branch) ? $payment->branch : ($payment->image_name == 'krungsri.png' ? '' : 'Comp. Code : ' )). $payment->comp_code; ?> <?php echo !empty($payment->account_no) ? 'เลขที่บ/ช ' . $payment->account_no : ''; ?></p>
+                            <p class="text-bank-left"><?php echo (!empty($payment->branch) ? $payment->branch : ($payment->image_name == 'krungsri.png' ? '' : 'Comp. Code : ')) . $payment->comp_code; ?> <?php echo !empty($payment->account_no) ? 'เลขที่บ/ช ' . $payment->account_no : ''; ?></p>
                         </div>
                     <?php } ?>
                 </div>
@@ -696,32 +695,32 @@
             </div>
 
             <div class="box-detail-payment">
-                <p><u><strong>วิธีการชำระเงิน</strong></u></p>
+                <p><u><strong><?php echo  $data->tem['footer'][0]->payment_title; ?></strong></u></p>
                 <ol>
                     <li>
-                        <p>ชำระเป็นเงินสด/เช็ค ผ่านธนาคารที่ระบุ ณ สาขาทั่วประเทศ โดยกรอกรายละเอียดการชำระเงินลงใน</p>
-                        <p>ใบแจ้งการขำระเงินผ่านธนาคาร (Pay - in Slip) ฉบับนี้</p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_1_1; ?></p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_1_2; ?></p>
                         </il>
                     <li>
-                        <p>ธนาคารที่รับชำระมี ดังนี้</p>
-                        <p>2.1 บมจ. ธนาคารกสิกรไทย 2.2 บมจ. ธนาคารไทยพาณิชย์ 2.3 บมจ. ธนาคารกรุงเทพ 2.4 ธนาคารกรุงไทย 2.5 บมจ. ธนาคารกรุงศรีอยุธยา</p>
-                        <p><u>กรณีที่ท่านชำระโดยเช็ค</u></p>
-                        <p>- เช็คที่นำฝากต้องไม่เป็นเช็คลงวันที่ล่วงหน้า และนำฝากให้ทันภายในเวลาเคลียร์ริ่ง ณ วันนั้น</p>
-                        <p>- โปรดขีดคร่อม <strong>A/C Payee Only</strong> สั่งจ่ายในนาม "บริษัท นวพลาสติกอุตสาหกรรม จำกัด"</p>
-                        <p>- จ่ายชำระด้วยเช็ค 1 ใบ ต่อ 1 ใบแจ้งการชำระเงินผ่านธนาคาร (Pay - in Slip)</p>
-                        <p>- บมจ. ธนาคารกรุงเทพ และ บมจ. ธนาคารไทยพาณิชย์ ทุกสาขาทั่วประเทศจะรับชำระเงินได้ทั้งเงินสดและเช็ค โดยเช็คจะต้องเป็นเช็คในเขต</p>
-                        <p>&nbsp;&nbsp;สำนักหักบัญชีเดียวกันกับสาขาที่รับชำระ สำหรับ บมจ. ธนาคารกสิกรไทย ในเขตกรุงเทพฯ และปริมณฑลจะรับชำระด้ววยเช็ค เฉพาะสาขาในเขต</p>
-                        <p>&nbsp;&nbsp;สำนักหักบัญชีกรุงเทพมหานครเท่านั้น ส่วนภูมิภาคชำระเฉพาะเช็คของธนาคารของสาขาผู้รับชำระเท่านั้น</p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_2; ?></p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_2_1; ?></p>
+                        <p><u><?php echo  $data->tem['footer'][0]->detail_2_2; ?></u></p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_2_3; ?></p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_2_4; ?></p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_2_5; ?></p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_2_6; ?></p>
+                        <p>&nbsp;&nbsp;<?php echo  $data->tem['footer'][0]->detail_2_7; ?></p>
+                        <p>&nbsp;&nbsp;<?php echo  $data->tem['footer'][0]->detail_2_8; ?></p>
                         </il>
                     <li>
-                        <p>กรุณาตรวจสอบความถูกต้องและเก็บสำเนาใบแจ้งการชำระเงิน ที่ธนาคารลงนามแล้วเก็บไว้เป็นหลักฐาน</p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_3; ?></p>
                         </il>
                     <li>
-                        <p>ธนาคารผู้รับชำระจะนำเงินสด/เช็คที่ท่านมาชำระเข้าบัญชีของบริษัทฯ</p>
+                        <p><?php echo  $data->tem['footer'][0]->detail_4; ?></p>
                         </il>
                 </ol>
 
-                <div class="text-contact">หากมีข้อสงสัย โปรติดต่อ แผนกประสานงานขาย โทร. 0-25863290-2 หรือ แผนกบัญชีสินเชื่อฯ โทร. 0-25865171-2</div>
+                <div class="text-contact"><?php echo  $data->tem['footer'][0]->detail_5; ?></div>
             </div>
 
         </div>

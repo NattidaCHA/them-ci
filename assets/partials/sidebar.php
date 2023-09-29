@@ -1,24 +1,32 @@
-<nav class="navbar navbar-dark navbar-expand-lg px-4 col-12" style="background-color: rgb(255,0,0,0.9);">
-    <a class="navbar-brand me-lg-5 p-2" href="<?php echo site_url(); ?>" style="background-color: #fff">
-        <img src="<?php echo $http ?>/assets/img/logo-300.png" alt="logo" />
-    </a>
-    <button class="navbar-toggler d-lg-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-dark navbar-expand-lg col-12 navbar-blackground-sm">
+    <div class="logo-lg">
+        <a class="navbar-brand" href="<?php echo $http ?>/invoice">
+            <img src="<?php echo $http ?>/assets/img/logo-300.png" alt="logo" />
+        </a>
+    </div>
+    <button class="navbar-toggler d-lg-none collapsed justify-content-end" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation" style="background-color: rgb(255, 0, 0, 0.9)">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="container-fluid">
+    <div class="container-fluid navbar-blackground-lg">
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="<?php echo $http ?>/invoice">Invoice</a>
+                    <a class="nav-link active" aria-current="page" href="<?php echo $http ?>/invoice">การแจ้งเตือน</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $http ?>/report">Report</a>
+                    <a class="nav-link" href="<?php echo $http ?>/report">รายงาน</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $http ?>/customer">Customer</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $http ?>/setting">Setting</a>
+                <!-- <li class="nav-item">
+                        <a class="nav-link" href="<?php echo $http ?>/customer">ลูกค้า</a>
+                    </li> -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-bs-toggle="dropdown" aria-expanded="false">
+                        ตั้งค่า <i class="bi bi-chevron-down mt-4"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="<?php echo $http . '/customer' ?>">ข้อมูลลูกค้า</a></li>
+                        <li><a class="dropdown-item" href="<?php echo $http . '/setting?tab=invoice' ?>">แก้ไขคอลัมน์และซ่อมข้อมูล</a></li>
+                    </ul>
                 </li>
             </ul>
             <!-- <div class="d-block">
@@ -28,17 +36,21 @@
             </div> -->
         </div>
     </div>
+
+    <div class="displayname">
+        <div class="name-role">
+            <span>Nattida&nbsp;Chatavitayakul</span>
+
+        </div>
+    </div>
 </nav>
 
 <nav id="sidebarMenu" class="sidebar bg-gray-800 text-white collapse d-lg-none" data-simplebar>
     <div class="sidebar-inner px-3 pt-3">
-        <div class="user-card d-flex align-items-center justify-content-between justify-content-md-center pb-4">
-            <div class="d-flex align-items-center">
+        <div class="user-card d-flex align-items-center justify-content-between pb-4">
+            <div class="d-flex align-items-center justify-content-start">
                 <div class="d-block">
-                    <span class="sidebar-icon">
-                        <img src="<?php echo $http ?>/assets/img/logo-300.png" height="20" alt="Logo">
-                    </span>
-                    <span class="mt-1 ms-1 sidebar-text">Notification system</span>
+                    <span class="mt-1 sidebar-text">Notification system</span>
                     <!-- <h2 class="h5 mb-3">fff</h2>
                     <a href="<?php //echo $http 
                                 ?>/logout" class="btn btn-danger btn-sm d-inline-flex align-items-center">
@@ -55,37 +67,58 @@
             </div>
         </div>
         <ul class="nav flex-column pt-3 pt-md-0">
-            <!-- <li class="nav-item pb-3">
+            <li class="nav-item py-3">
                 <span class="sidebar-icon">
-                    <img src="<?php //echo $http ?>/assets/img/logo-300.png" height="20" alt="Logo">
+                    <img src="<?php echo $http
+                                ?>/assets/img/logo-300.png" height="20" alt="Logo">
                 </span>
                 <span class="mt-1 ms-1 sidebar-text">Notification system</span>
-            </li> -->
+            </li>
             <li class="nav-item" id="_menu-dashboard">
                 <a href="<?php echo $http ?>/invoice" class="nav-link">
                     <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">Invoice</span>
+                    <span class="sidebar-text">การแจ้งเตือน</span>
                 </a>
             </li>
             <li class="nav-item" id="_menu-dashboard">
                 <a href="<?php echo $http ?>/report" class="nav-link">
                     <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">Report</span>
+                    <span class="sidebar-text">รายงาน</span>
                 </a>
             </li>
+            <!-- <li class="nav-item" id="_menu-dashboard">
+                <a href="<?php echo $http ?>/customer" class="nav-link">
+                    <span class="sidebar-icon"></span>
+                    <span class="sidebar-text">ลูกค้า</span>
+                </a>
+            </li> -->
             <li class="nav-item" id="_menu-dashboard">
                 <a href="<?php echo $http ?>/customer" class="nav-link">
                     <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">Customer</span>
+                    <span class="sidebar-text">ข้อมูลลูกค้า</span>
                 </a>
             </li>
             <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo $http ?>/setting" class="nav-link">
+                <a href="<?php echo $http . '/setting?tab=invoice' ?>" class="nav-link">
                     <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">Setting</span>
+                    <span class="sidebar-text">แก้ไขคอลัมน์และซ่อมข้อมูล</span>
                 </a>
             </li>
             <li role="separator" class="dropdown-divider border-gray-700"></li>
         </ul>
     </div>
 </nav>
+
+<!-- <script>
+    $(function() {
+        $(".dropdown").hover(function() {
+            var isHovered = $(this).is(":hover");
+            console.log(isHovered)
+            if (isHovered) {
+                $(this).children("ul").stop().slideDown(300);
+            } else {
+                $(this).children("ul").stop().slideUp(300);
+            }
+        });
+    });
+</script> -->

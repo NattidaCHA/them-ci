@@ -3,8 +3,10 @@
         <div class="d-flex justify-content-between w-100" id="navbarSupportedContent">
             <div class="d-flex align-items-center mb-3">
                 <?php if (!empty($page_header)) { ?>
-                    <h3 class="text-muted"><?php echo $page_header; ?></h5>
-                <?php } ?>
+                    <h4 class="text-muted">
+                        <?php echo $page_header; ?></h5>
+                    <?php } ?>
+                    </h4>
             </div>
 
             <!-- <ul class="navbar-nav align-items-center">

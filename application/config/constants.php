@@ -85,20 +85,21 @@ defined('EXIT__AUTO_MIN')      or define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 //vw_billpay_txt02
-defined('REPORT')      or define('REPORT', 'report_notification');
-defined('CUSTOMER')      or define('CUSTOMER', 'customer_notification');
+defined('REPORT')      or define('REPORT', 'tran_report_notification');
+defined('CUSTOMER')      or define('CUSTOMER', 'master_customer');
 defined('VW_Customer')      or define('VW_Customer', 'vw_Customer_DWH');
 defined('CUST_NOTI')      or define('CUST_NOTI', 'cust_notification');
 defined('TBL_CUT')      or define('TBL_CUT', 'tbl_custtel');
-defined('SALEORG')      or define('SALEORG', 'saleorg');
-defined('SENTO_CUS')      or define('SENTO_CUS', 'sendto_customer');
-defined('SETTING')      or define('SETTING', 'setting');
-defined('EMAIL')      or define('EMAIL', 'email_customer');
-defined('TEL')      or define('TEL', 'tel_customer');
-defined('CFCALL')      or define('CFCALL', 'cf_call_report');
-defined('REPORT_DETAIL')      or define('REPORT_DETAIL', 'report_notification_detail');
-defined('PAYMENT')      or define('PAYMENT', 'payment');
+defined('SALEORG')      or define('SALEORG', 'master_saleorg');
+defined('SENTO_CUS')      or define('SENTO_CUS', 'master_customer_sendto');
+defined('SETTING')      or define('SETTING', 'master_setting');
+defined('EMAIL')      or define('EMAIL', 'master_customer_email');
+defined('TEL')      or define('TEL', 'master_customer_tel');
+defined('CFCALL')      or define('CFCALL', 'tran_confirm_call');
+defined('REPORT_DETAIL')      or define('REPORT_DETAIL', 'tran_report_notification_detail');
+defined('PAYMENT')      or define('PAYMENT', 'master_template_report');
 defined('BILLPAY')      or define('BILLPAY', 'vw_billpay_txt02');
+defined('LOG')      or define('LOG', 'log_notification');
 
 //https://npismo.scg.com/
 if (ENVIRONMENT == 'production') {

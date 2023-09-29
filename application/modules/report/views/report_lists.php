@@ -24,7 +24,7 @@
                     </div>
                     <div class="input-search-2">
                         <label for="customer" class="form-label">ลูกค้า</label>
-                        <div class="input-group mb-3">
+                        <div class="input-group mb-3 report-select2">
                             <select class="select2 form-select customer" name="customer[]" id="customer" multiple>
                                 <option value="all" class="all">เลือกทั้งหมด</option>
                                 <?php foreach ($customers as $k => $customer) { ?>
@@ -56,7 +56,7 @@
                                 </th>
                             <?php } else  if (in_array($info->cus_no, $fullSearch)) { ?>
                                 <th width="<?php if (in_array($res->sort, [2, 3, 4, 9, 6])) {
-                                                echo '15%';
+                                                echo '10%';
                                             } else if (in_array($res->sort, [1, 7])) {
                                                 echo '10%';
                                             } else if (in_array($res->sort, [5, 8])) {
@@ -336,6 +336,7 @@
                             $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
                             $('.submit-action').prop('disabled', true)
                         }
+
                     } else if (res.status == 204) {
                         $('.cfCall').html('<p class="text-center mt-3">ไม่พบข้อมูล</p>')
                         $('.submit-action').prop('disabled', true)
@@ -378,6 +379,12 @@
                 $.post('<?php echo $http ?>/report/email', formData).done(function(res) {
                     if (res.status == 200) {
                         console.log(res)
+                        $.post('<?php echo $http ?>/api/addMainLog/update', {
+                            page: 'ส่งอีเมล',
+                            url: CURRENT_URL,
+                            detail: JSON.stringify(formData),
+                        });
+
                         Swal.fire({
                             icon: 'success',
                             text: 'ส่งอีเมลเรียบร้อยแล้ว',
@@ -411,6 +418,13 @@
                 $.post("<?php echo $http ?>/report/update", formData).done(function(res) {
                     $('.modalUpdate').modal('hide')
                     if (res.status === 200) {
+
+                        $.post('<?php echo $http ?>/api/addMainLog/update', {
+                            page: 'การโทรแจ้ง',
+                            url: CURRENT_URL,
+                            detail: JSON.stringify(res.data),
+                        });
+
 
                         Swal.fire({
                             icon: 'success',
@@ -487,8 +501,8 @@
                             let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
                             let _i = 0;
                             let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + '' : o.email) : full.tels.length > 1 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + '') : full.emails[0].email ? full.emails[0].email : '-' : ''
-                            let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + '')
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 1 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + ' ') : full.emails[0].email ? full.emails[0].email : '-' : ''
+                            let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + ' ')
 
                             return full.emails.length > 0 ? '<div class="tb-15" id="email_' + full.info.cus_no + '">' +
                                 '<div class="" id="email_heading_' + full.info.cus_no + '">' + show3Top + '</div>' +

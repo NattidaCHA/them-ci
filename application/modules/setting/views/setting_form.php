@@ -1,19 +1,19 @@
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3 setting">
         <!-- Tab Nav -->
-        <div class="nav-wrapper position-relative mb-2 w-50">
-            <ul class="nav nav-pills nav-fill flex-column flex-md-row" id="tabs-text" role="tablist">
+        <div class="nav-wrapper position-relative mb-2">
+            <ul class="nav nav-pills nav-fill setting-tab" id="tabs-text" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'invoice' ? 'active' : '' ?>" type="button" id="tabs-text-1-tab" href="<?php echo $http ?>/setting?tab=invoice" aria-controls="tabs-text-1">Invoice</a>
+                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'invoice' ? 'active' : '' ?>" type="button" id="tabs-text-1-tab" href="<?php echo $http ?>/setting?tab=invoice" aria-controls="tabs-text-1">การแจ้งเตือน</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'report' ? 'active' : '' ?>" type="button" id="tabs-text-2-tab" href="<?php echo $http ?>/setting?tab=report" aria-controls="tabs-text-2">Report</a>
+                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'report' ? 'active' : '' ?>" type="button" id="tabs-text-2-tab" href="<?php echo $http ?>/setting?tab=report" aria-controls="tabs-text-2">รายงาน</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'customer' ? 'active' : '' ?>" type="button" id="tabs-text-3-tab" href="<?php echo $http ?>/setting?tab=customer" aria-controls="tabs-text-3">Customer</a>
+                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'customer' ? 'active' : '' ?>" type="button" id="tabs-text-3-tab" href="<?php echo $http ?>/setting?tab=customer" aria-controls="tabs-text-3">ลูกค้า</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'repair' ? 'active' : '' ?>" type="button" id="tabs-text-4-tab" href="<?php echo $http ?>/setting?tab=repair" aria-controls="tabs-text-4">Repair</a>
+                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'repair' ? 'active' : '' ?>" type="button" id="tabs-text-4-tab" href="<?php echo $http ?>/setting?tab=repair" aria-controls="tabs-text-4">ซ่อมข้อมูล</a>
                 </li>
             </ul>
         </div>
@@ -233,8 +233,8 @@
 
         $('.repairPage').on('click', '.submit', function(e) {
             e.preventDefault();
-            // $('.repairPage .submit').prop("disabled", true);
-            // $('#tabs-text-4 .alert').removeClass('d-none').addClass('d-block')
+            $('.repairPage .submit').prop("disabled", true);
+            $('#tabs-text-4 .alert').removeClass('d-none').addClass('d-block')
             let formData = [{
                 name: 'dateSelect',
                 value: $('#dateSelect').val()
@@ -264,6 +264,12 @@
                         confirmButtonText: 'ตกลง'
                     })
                     $('.repairPage .submit').prop("disabled", false);
+
+                    $.post('<?php echo $http ?>/api/addMainLog/update', {
+                        page: 'ซ่อมข้อมูล',
+                        url: CURRENT_URL,
+                        detail: JSON.stringify(res.data),
+                    });
                 } else {
                     $('#tabs-text-4 .alert').removeClass('d-block').addClass('d-none')
                     $('.repairPage .submit').prop("disabled", false);
@@ -291,6 +297,12 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location = '<?php echo $http ?>/setting?tab=' + '<?php echo $tab; ?>';
+
+                            $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                page: 'setting_<?php echo $tab; ?>',
+                                url: CURRENT_URL,
+                                detail: JSON.stringify(res.data),
+                            });
                         }
                     })
                 } else {
@@ -328,7 +340,7 @@
 
         function formatRepoSelection(repo) {
             if (repo.id) {
-                return $('<span>' + repo.text.trim() + '</span>');
+                return $('<span>' + repo.cus_name + '(' + repo.cus_no + ')' + '</span>');
             }
             return repo.text;
         }

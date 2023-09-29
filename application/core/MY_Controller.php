@@ -15,6 +15,7 @@ class MY_Controller extends CI_Controller
     public $CURUSER = NULL;
     public $conn = NULL;
     public $http = ((ENVIRONMENT == 'development') ? '' : '/invoicenotification');
+    public $tableAllowLog = ('uuid, page,action,detail,created_date,created_by,updated_date,updated_by,url');
 
 
     public function __construct()
@@ -25,6 +26,13 @@ class MY_Controller extends CI_Controller
         $this->load->model('report/model_report');
         $this->load->model('invoice/model_invoice');
 
+
+        // require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/setting.php');
+
+
+        // var_dump($pdo->db->DATABASE);
+        // exit;
+        // var_dump(self::getSiteCookie());
         // $memberLogon = self::getSiteCookie();
         // if (!empty($memberLogon)) {
         //     if ($memberLogon->expire < date('Y-m-d H:i:s')) {
@@ -66,8 +74,11 @@ class MY_Controller extends CI_Controller
         // $this->load->database();
 
         //getDateSelec
+        // var_dump($this->conn);
         //  var_dump($this->model_system->checkSendtoChild('0002000080')->items);
         $this->CURUSER = $this->model_system->findCustomerById('0000000281')->items;
+        // var_dump($this->CURUSER);
+
         // var_dump($this->CURUSER);
         // $this->CURUSER->cus_name = 'บจ.ป.กวิน';0002000082
         //0002000080
@@ -214,28 +225,6 @@ class MY_Controller extends CI_Controller
         return $this;
     }
 
-
-
-    protected function addSystemLog($action, $url, $page, $section = '', $add_on = [])
-    {
-        $this->load->library('mongo_db', NULL, 'mdb');
-        $result = $this->mdb->insert('system_log', [
-            'url' => $url,
-            'action' => $action,
-            'page' => $page,
-            'section' => $section,
-            'memberInfo' => [
-                'member_id' => $this->CURUSER->member_id,
-                'display_name' => $this->CURUSER->display_name,
-            ],
-            'addOn' => (!empty($add_on)) ? $add_on : NULL,
-            'createdDate' => $this->mdb->date()
-        ]);
-
-        return $result;
-    }
-
-
     protected function curlRemote($url, $param = NULL, $method = 'POST', $json = FALSE)
     {
         $refer = site_url('');
@@ -271,6 +260,16 @@ class MY_Controller extends CI_Controller
         return $data;
     }
 
+    protected function addSystemLog($params)
+    {
+        $sql = "INSERT INTO " . LOG . ' (' . $this->tableAllowLog . ") VALUES (?, ?, ?, ?, ?,?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
+        }
+
+        return FALSE;
+    }
 
     protected function setSiteCookie($member)
     {
@@ -332,10 +331,11 @@ class MY_Controller extends CI_Controller
 
     protected function connect()
     {
+        require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/setting.php');
         $config = [];
-        $config = ["Database" => DATABASE, "UID" => UID, "PWD" => PWD, "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
+        $config = ["Database" => $pdo->db->DATABASE, "UID" => $pdo->db->UID, "PWD" => $pdo->db->PWD, "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
 
-        $this->conn = sqlsrv_connect(SERVERNAME,  $config);
+        $this->conn = sqlsrv_connect($pdo->db->SERVERNAME,  $config);
 
         if ($this->conn === false) {
             die(print_r(sqlsrv_errors(), true));
@@ -369,20 +369,27 @@ class MY_Controller extends CI_Controller
 
         $result = $this->model_report->genPDF($uuid);
 
+        $tem = $this->model_system->getTemPDF()->items;
+
+        // var_dump($tem);
+        // exit;
 
         foreach ($result->lists as $key => $res) {
             $result->lists = $res;
             $size = count($result->lists) > 1 ? 40 : 40;
             if ($key == 1) {
-                $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size];
+                $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size, 'tem' => $tem];
                 $html = $this->load->view('report/report_pdf', $data, TRUE);
                 $mpdf->WriteHTML($html);
             } else {
-                $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size];
+                $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size, 'tem' => $tem];
                 $key = $this->load->view('report/table_pdf', $data, TRUE);
                 $mpdf->WriteHTML($key);
             }
         }
+
+        // var_dump($data['data']->tem['header']);
+        // exit;
 
         $title = 'Report_' . $result->bill_info->bill_no;
         $name = 'Report_' . $result->bill_info->bill_no;
@@ -400,9 +407,11 @@ class MY_Controller extends CI_Controller
 
     protected function genEmail($params, $page, $checkMain = FALSE)
     {
+        require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/email.php');
         require_once  './vendor/autoload.php';
+
         $mail = new PHPMailer(true);
-        $from_email = "nan_zen0003@hotmail.com";
+        // $from_email = $email->username;
         // $from_email = "nattidac@scg.com";
         if (!empty($params)) {
             $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
@@ -415,7 +424,7 @@ class MY_Controller extends CI_Controller
 
             $reportChild = [];
             $content = $this->genPDF($params['uuid'], 'email');
-            $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date']))];
+            $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date'])), 'uuid' => $params['uuid'], 'http' => $this->http];
             if ($cusType->type == 'main') {
                 $childs = $this->model_report->checkChildSendto($params['cus_no'], $params['cus_main'])->items;
                 foreach ($childs as $child) {
@@ -437,15 +446,17 @@ class MY_Controller extends CI_Controller
                 try {
                     $mail->SMTPDebug = SMTP::DEBUG_SERVER;
                     $mail->isSMTP();
-                    $mail->Host       = 'smtp.office365.com';
+                    $mail->Host       = $pdo->email->host;
                     // $mail->Host       = 'soms.scg.com';
                     $mail->SMTPAuth   = true;
-                    $mail->Username   = $from_email;
-                    $mail->Password   = 'Year@2023';
+                    $mail->Username   = $pdo->email->username;
+                    $mail->Password   = $pdo->email->password;
+                    // $mail->Password   = 'Year@2023';
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                    $mail->Port       = 587;
+                    $mail->Port       = $pdo->email->port;
                     // $mail->Port       = 25;
-                    $mail->SMTPSecure = 'ssl';
+                    // $mail->SMTPSecure = 'ssl';
+                    $mail->SMTPSecure = $pdo->email->SMTPSecure;
                     $mail->Mailer = "smtp";
                     $mail->IsSMTP();
                     $mail->Debugoutput = 'error_log';
@@ -459,8 +470,7 @@ class MY_Controller extends CI_Controller
                     );
 
                     $mesg = $this->load->view('report/email_tem', $data, TRUE);
-                    // $from_email = "nattidac@scg.com";
-                    $mail->setFrom($from_email, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
+                    $mail->setFrom($pdo->email->username, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
                     foreach ($emails as $res) {
                         $mail->addAddress($res->email);
                     }

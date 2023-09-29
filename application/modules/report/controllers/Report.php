@@ -53,7 +53,11 @@ class Report extends MY_Controller
             $cus_no = implode(',', $sendto);
         }
 
-        $billNos = $this->model_report->getBillNo()->items;
+        if (!empty($cus_no)) {
+            $billNos = $this->model_report->getBillNo($cus_no)->items;
+        } else {
+            $billNos = $this->model_report->getBillNo()->items;
+        }
 
         $this->data['billNos'] = !empty($billNos) ? $billNos : [];
         $this->data['customers'] = $searchLists;
@@ -61,7 +65,7 @@ class Report extends MY_Controller
         $this->data['bill_no'] = $bill_no;
         $this->data['cus_no'] = $cus_no;
         $this->data['fullSearch'] = $search;
-        $this->data['page_header'] = 'Report';
+        $this->data['page_header'] = 'รายงาน';
         $this->data['table'] = $table['report'];
         $this->data['info'] = $this->CURUSER;
         $this->loadAsset(['dataTables', 'datepicker', 'select2', 'parsley']);
@@ -77,7 +81,7 @@ class Report extends MY_Controller
     {
         $output = ['status' => 500, 'msg' => 'Can not send email !'];
         $params = $this->input->post();
-        $email = $this->genEmail($params,'report');
+        $email = $this->genEmail($params, 'report');
         if ($email->status == 200) {
             $output['status'] = 200;
             $output['data'] = (object)['data' => $email->data, 'email' => $email->email];
@@ -89,90 +93,6 @@ class Report extends MY_Controller
             $output['msg'] = $email->msg;
             $output['error'] = $email->error;
         }
-        // return $this->genEmail($params);
-        //     require_once  './vendor/autoload.php';
-        //     $mail = new PHPMailer(true);
-        //     $from_email = "nan_zen0003@hotmail.com";
-
-        //     $output = ['status' => 500, 'msg' => 'Can not send email !'];
-        //     $params = $this->input->post();
-
-
-        //     if (!empty($params)) {
-        //         $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
-        //         $emails =  $this->model_report->genEmail($params['cus_no'], $params['cus_main']);
-        //         $reportChild = [];
-        //         $content = $this->genPDF($params['uuid'], 'email');
-        //         $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date']))];
-        //         if ($cusType->type == 'main') {
-        //             $childs = $this->model_report->checkChildSendto($params['cus_no'], $params['cus_main'])->items;
-        //             foreach ($childs as $child) {
-        //                 if ($params['cus_no'] != $child->cus_no) {
-        //                     $res =  $this->model_report->getReportChildList($child->cus_no, $params['created_date'])->items;
-        //                     if (!empty($res)) {
-        //                         array_push($reportChild, $res);
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-        //         if (!empty($emails[$params['cus_no']])) {
-        //             try {
-        //                 $mail->SMTPDebug = SMTP::DEBUG_SERVER;
-        //                 $mail->isSMTP();
-        //                 $mail->Host       = 'smtp.office365.com';
-        //                 $mail->SMTPAuth   = true;
-        //                 $mail->Username   = $from_email;
-        //                 $mail->Password   = '!Ohsehun1228';
-        //                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        //                 $mail->Port       = 587;
-        //                 $mail->SMTPSecure = 'tls';
-        //                 $mail->Mailer = "smtp";
-        //                 $mail->IsSMTP();
-        //                 $mail->Debugoutput = 'error_log';
-        //                 $mail->CharSet = 'utf-8';
-        //                 $mail->SMTPOptions = array(
-        //                     'ssl' => array(
-        //                         'verify_peer' => false,
-        //                         'verify_peer_name' => false,
-        //                         'allow_self_signed' => true
-        //                     )
-        //                 );
-
-        //                 $mesg = $this->load->view('email_tem', $data, TRUE);
-        //                 // $from_email = "nattidac@scg.com";
-        //                 $mail->setFrom($from_email, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
-        //                 foreach ($emails as $res) {
-        //                     $mail->addAddress($res);
-        //                 }
-
-
-        //                 $mail->isHTML(true);
-        //                 $mail->Subject = 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date']));
-        //                 $mail->Body    = $mesg;
-        //                 $mail->addStringAttachment($content, 'Report_' . $params['bill_no'] . '.pdf', 'base64', 'application/pdf');
-
-        //                 if ($cusType->type == 'main') {
-        //                     foreach ($reportChild as $res) {
-        //                         $contentChild = $this->genPDF($res->uuid, 'email');
-        //                         $mail->addStringAttachment($contentChild, 'Report_' . $res->bill_no . '.pdf', 'base64', 'application/pdf');
-        //                     }
-        //                 }
-        //                 $mail->send();
-        //                 $this->model_report->updateEmail($params['uuid']);
-        //                 $output['status'] = 200;
-        //                 $output['data'] = (object)['data' => $params, 'email' => $emails];
-        //             } catch (Exception $e) {
-        //                 $output['status'] = 500;
-        //                 $output['msg'] = $mail->ErrorInfo;
-        //                 $output['error'] = $mail->ErrorInfo;
-        //             }
-        //         } else {
-        //             $output['status'] = 204;
-        //             $output['msg'] = 'No email';
-        //             $output['data'] = false;
-        //         }
-        //     }
 
         $this->responseJSON($output);
     }
@@ -253,59 +173,6 @@ class Report extends MY_Controller
         $output['source'] = $params;
         $this->responseJSON($output);
     }
-
-    // function genPDF($uuid, $type)
-    // {
-
-    //     require_once  './vendor/autoload.php';
-
-    //     $defaultConfig = (new Mpdf\Config\ConfigVariables())->getDefaults();
-    //     $fontDirs = $defaultConfig['fontDir'];
-
-    //     $defaultFontConfig = (new Mpdf\Config\FontVariables())->getDefaults();
-    //     $fontData = $defaultFontConfig['fontdata'];
-
-    //     $mpdf = new \Mpdf\Mpdf([
-    //         'fontDir' => array_merge($fontDirs, ['./assets/fonts']),
-    //         'fontdata' => $fontData + [
-    //             'sarabun' => [
-    //                 'R' => 'THSarabunNew.ttf',
-    //                 'I' => 'THSarabunNew Italic.ttf',
-    //                 'B' =>  'THSarabunNew Bold.ttf',
-    //             ]
-    //         ],
-    //         'default_font' => 'sarabun'
-    //     ]);
-
-    //     $result = $this->model_report->genPDF($uuid);
-
-
-    //     foreach ($result->lists as $key => $res) {
-    //         $result->lists = $res;
-    //         $size = count($result->lists) > 1 ? 40 : 40;
-    //         if ($key == 1) {
-    //             $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size];
-    //             $html = $this->load->view('report_pdf', $data, TRUE);
-    //             $mpdf->WriteHTML($html);
-    //         } else {
-    //             $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size];
-    //             $key = $this->load->view('table_pdf', $data, TRUE);
-    //             $mpdf->WriteHTML($key);
-    //         }
-    //     }
-
-    //     $title = 'Report_' . $result->bill_info->bill_no;
-    //     $name = 'Report_' . $result->bill_info->bill_no;
-    //     $mpdf->SetTitle($title);
-    //     $footer = $this->load->view('footer_pdf', $data, TRUE);
-    //     $mpdf->WriteHTML($footer);
-
-    //     if ($type == 'email') {
-    //         return $mpdf->Output($name, 'S');
-    //     }
-
-    //     return $mpdf->Output($name . '.pdf', 'I');
-    // }
 
     public function listReport()
     {

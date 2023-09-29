@@ -14,17 +14,26 @@ class Api extends MY_Controller
 
     public function addMainLog($action = 'read')
     {
-        $section = $this->input->post('section', TRUE);
         $page = $this->input->post('page', TRUE);
+        $detail = $this->input->post('detail', TRUE);
+        $created_by = NULL;
+        $updated_by = NULL;
         $url = $this->input->post('url');
-        $add_on = $this->input->post();
-        unset($add_on['section'], $add_on['page'], $add_on['url']);
 
         $output = ['status' => 500, 'msg' => 'Something wrong !'];
-        if ($result = $this->addSystemLog($section, $page, $url, $action, $add_on)) {
+        $result = $this->addSystemLog([
+            genRandomString(16), $page, $action, $detail, date('Y-m-d H:i'), $created_by,
+            date('Y-m-d H:i'), $updated_by, $url
+        ]);
+
+        // var_dump($result);
+
+        if (!empty($result)) {
             $output = ['status' => 200, 'msg' => 'OK', 'data' => $result];
         }
 
+        // var_dump($this->responseJSON($output));
+        // exit;
         $this->responseJSON($output);
     }
 
@@ -77,9 +86,11 @@ class Api extends MY_Controller
     public function searchCustomerMain()
     {
         $output = $this->apiDefaultOutput();
-        $keyword = $this->input->get('q');
+        $search = $this->config->item('fullSearch');
+        $keyword = !in_array($this->CURUSER->cus_no, $search) ? $this->CURUSER->cus_no : $this->input->get('q');
         $keyword = trim($keyword);
         $result = [];
+
 
         if (strlen($keyword) <= 2) {
             if ($apiCustomer = $this->model_system->defaultCustomer()->items) {
@@ -108,6 +119,9 @@ class Api extends MY_Controller
                             'cus_name' => $val->cus_name
                         ];
                     }
+
+                    // var_dump($result);
+                    // exit;
                     $output = ['status' => 200, 'msg' => 'OK', 'results' => $result];
                 } else if (empty($apiCustomer)) {
                     $output['msg'] = 'Empty';

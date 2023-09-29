@@ -128,13 +128,23 @@
                                     if (result.isConfirmed) {
                                         let key = Object.keys(res.data['data'])
                                         key.map(o => {
-                                            window.open('<?php echo WWW; ?><?php echo $http ?>/report/pdf/' + res.data['data'][o].uuid, '_blank')
-                                        })
+                                            setTimeout(function() {
+                                                window.open('<?php echo WWW; ?><?php echo $http ?>/report/pdf/' + res.data['data'][o].uuid, '_blank')
+                                            }, 500);
 
+                                        })
 
                                         setTimeout(function() {
                                             window.location = '<?php echo $http; ?>/report';
-                                        }, 1500);
+                                        }, 2000);
+
+
+                                        $.post('<?php echo $http ?>/api/addMainLog/create', {
+                                            page: 'สร้างใบแจ้งเตือน',
+                                            url: CURRENT_URL,
+                                            detail: JSON.stringify(res.data['data']),
+                                        });
+
                                     }
                                 })
                             } else {

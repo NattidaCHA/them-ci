@@ -17,22 +17,9 @@ class Setting extends MY_Controller
         $days = $this->config->item('day');
 
         $this->data['days'] = [];
-        // $dateSelect = $this->input->get('dateSelect') ? $this->input->get('dateSelect') : '';
         $startDate =  date('Y-m-d');
         $endDate =  date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
-        // $cus_no =  $this->input->get('customer') ? $this->input->get('endDate') : '';
         $typeSC =  '0281';
-        // $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
-
-        // $condition = (object)[
-        //     'dateSelect' => $dateSelect,
-        //     'startDate' => $startDate,
-        //     'endDate' => $endDate,
-        //     'cus_no' => $cus_no,
-        //     'type' => $typeSC,
-        //     'is_bill' => $is_bill
-        // ];
-
         $o = $this->model_system->getTypeBusiness()->items;
         // var_dump($condition);
         // exit;
@@ -45,10 +32,9 @@ class Setting extends MY_Controller
             $this->data['days'][$day->id] = $day;
         }
 
-        // $this->data['page'] = 'Setting';
         $this->data['lists'] = $result;
         $this->data['tab'] = $tab;
-        $this->data['page_header'] = 'Setting';
+        $this->data['page_header'] = 'แก้ไขคอลัมน์และซ่อมข้อมูล';
         $this->data['selectDays'] = $this->model_system->getDateSelect()->items;
         $this->data['typeSC'] = $typeSC;
         $this->data['startDate'] = $startDate;
@@ -73,6 +59,50 @@ class Setting extends MY_Controller
                 ];
                 $this->model_setting->create($params);
             }
+        }
+    }
+
+    public function create_paymentPDF()
+    {
+        $list = $this->config->item('pdf_tem');
+        foreach ($list as $page) {
+            $params = [
+                genRandomString(16),
+                $page->page,
+                $page->company,
+                $page->address,
+                $page->tel,
+                $page->tel2,
+                $page->tax,
+                $page->account_no,
+                $page->account_name,
+                $page->image_name,
+                $page->bank_name,
+                $page->branch,
+                $page->comp_code,
+                $page->due_detail,
+                $page->cal,
+                $page->contact,
+                $page->type,
+                $page->payment_title,
+                $page->detail_1_1,
+                $page->detail_1_2,
+                $page->detail_2,
+                $page->detail_2_1,
+                $page->detail_2_2,
+                $page->detail_2_3,
+                $page->detail_2_4,
+                $page->detail_2_5,
+                $page->detail_2_6,
+                $page->detail_2_7,
+                $page->detail_2_8,
+                $page->detail_3,
+                $page->detail_4,
+                $page->detail_5,
+                $page->sort,
+
+            ];
+            $this->model_setting->create_tem_pdf($params);
         }
     }
 

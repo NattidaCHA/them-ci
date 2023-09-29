@@ -15,11 +15,17 @@ class Model_report extends MY_Model
         $this->load->model('customer/model_customer');
     }
 
-    public function getBillNo()
+    public function getBillNo($cus_no = FALSE)
     {
-        // " where cus_main in $cus_no"
         $result = [];
         $sql =  "SELECT * FROM " . REPORT;
+
+        if (!empty($cus_no)) {
+            $sql = $sql . " where cus_no in ($cus_no)";
+        }
+
+        $sql = $sql . ' order by bill_no asc';
+
         $stmt = sqlsrv_query($this->conn, $sql);
 
         if ($stmt == false) {
@@ -414,8 +420,8 @@ class Model_report extends MY_Model
                 $data->total_page = $count;
                 $data->total = $this->calculateTotallChild($itemLists);
                 //"|010556217035200\n . $info->mcustno .\n. str_replace('N', '8', $bill_info->bill_no) .\n0"
-                //$code =  "|010556217035200\r\n" . $info->mcustno .  "\r\n" . str_replace('N', '8', $bill_info->bill_no) .   "\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
-                $code = "|010556217035200\r\n$info->mcustno\r\n$bill_info->bill_no\r\n0";
+                //$code =  "|010556217035200\r\n" . $info->mcustno .  "\r\n" . str_replace('N', '8', $bill_info->bill_no) .   "\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));0273022069
+                $code = "|0105562170352\r\n$info->mcustno\r\n$bill_info->bill_no\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
                 $data->qrcode = $this->qrcode($code);
                 $data->barcode->image = $this->barcode($code);
                 $data->barcode->code = $code;

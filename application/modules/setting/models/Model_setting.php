@@ -3,6 +3,7 @@
 class Model_setting extends MY_Model
 {
     private $tableAllowFieldsSetting = ('uuid,page_name, colunm, sort, page_sort, is_show');
+    private $tableAllowFieldsTemPDF = ('uuid,page, company, address, tel, tel2,tax, account_no, account_name, image_name, bank_name, branch,comp_code, due_detail, cal, contact, type, payment_title, detail_1_1,detail_1_2, detail_2, detail_2_1, detail_2_2, detail_2_3, detail_2_4,detail_2_5, detail_2_6, detail_2_7, detail_2_8, detail_3,detail_4, detail_5, sort');
 
     public function __construct()
     {
@@ -11,8 +12,20 @@ class Model_setting extends MY_Model
 
     public function create($params)
     {
-        $sql = "INSERT INTO " . CUSTOMER . ' (' . $this->tableAllowFieldsSetting . ") VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO " . SETTING . ' (' . $this->tableAllowFieldsSetting . ") VALUES (?, ?, ?, ?, ?, ?)";
         $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return true;
+        }
+
+        return FALSE;
+    }
+
+    public function create_tem_pdf($params)
+    {
+        $sql = "INSERT INTO " . PAYMENT . ' (' . $this->tableAllowFieldsTemPDF . ") VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+
         if (!empty($res)) {
             return true;
         }

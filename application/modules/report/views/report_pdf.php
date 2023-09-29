@@ -590,10 +590,10 @@
             <img src="<?php echo $http; ?>assets/img/nawaplastic_logo.gif" class="logo-nawa" />
         </div>
         <div class="box-title">
-            <div class="text-header">บริษัท นวพลาสติกอุตสาหกรรม (สระบุรี) จํากัด</div>
-            <div class="text-boder">เลขที่ 1 ถนนปูนซีเมนต์ไทย แขวงบางซื่อ เขตบางซื่อ กรุงเทพมหานคร 10800</div>
-            <div class="text-boder">โทร. 02-555-0888 โทรสาร 02-586-2929</div>
-            <div class="text-boder">Tax-ID: 0-1055-33141-54-4</div>
+            <div class="text-header"><?php echo  $data->tem['header'][0]->company; ?></div>
+            <div class="text-boder"><?php echo  $data->tem['header'][0]->address; ?></div>
+            <div class="text-boder">โทร. <?php echo  $data->tem['header'][0]->tel; ?> โทรสาร <?php echo  $data->tem['header'][0]->tel2; ?></div>
+            <div class="text-boder">Tax-ID: <?php echo  $data->tem['header'][0]->tax; ?></div>
         </div>
     </div>
     <div class="border-bottom-header"></div>
@@ -674,9 +674,9 @@
             <div>
                 <?php if ($data->report->total_page == $data->index) { ?>
                     <div class="boder-noti">
-                        <p>กรุณาชำระให้ตรง DUE เพื่อป้องกันการเก็บเงินล่าช้า</p>
+                        <p><?php echo  $data->tem['page_footer'][0]->due_detail; ?></p>
                         <div class="boder-bottom-red"></div>
-                        <p>ค่าล่าช้า = ยอดค้างชำระ X 18% ต่อปี X จำนวนวันที่ค้างชำระ /365</p>
+                        <p><?php echo  $data->tem['page_footer'][0]->cal; ?></p>
                     </div>
                     <div class="detail-summary">
                         <div class="table-summary">
@@ -699,8 +699,8 @@
                         </div>
                         <div class="text-amount">จํานวนเอกสารทั้งหมด&nbsp;<?php echo $data->report->total_items ?>&nbsp;รายการ</div>
                         <div>
-                            <div class="mt-05 text-total">สอบถามข้อมูลการชําระเงิน ติดต่อ หน่วยยงานบริหารสินเชื่อ ติดต่อ 02-586-2482, 02-586-5172</div>
-                            <div class="text-total">*ประเภท RA = ยอด Invoice, RD = ยอดเพิ่มหนี้, RC = ยอดลดหนี้, RB= ยอดเงินเหลือ, DC= ยอด Rebate, RE = ยอดเงินเหลือในใบเสร็จ</div>
+                            <div class="mt-05 text-total"><?php echo  $data->tem['page_footer'][0]->contact; ?></div>
+                            <div class="text-total"><?php echo  $data->tem['page_footer'][0]->type; ?></div>
                         </div>
                     </div>
                 <?php } ?>

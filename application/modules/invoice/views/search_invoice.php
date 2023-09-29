@@ -36,9 +36,15 @@
                         <div class="input-group mb-3">
                             <select class="select2 form-select" name="customer" id="customer" <?php echo in_array($this->CURUSER->cus_no, $search) ? '' : 'disabled' ?>>
                                 <?php echo in_array($this->CURUSER->cus_no, $search) ? '<option value="">เลือก ...</option>' : ''; ?>
-                                <?php if (!in_array($this->CURUSER->cus_no, $search)) { ?>
-                                    <option value="<?php echo $this->CURUSER->cus_no; ?>" selected><?php echo $this->CURUSER->cus_name . ' (' . $this->CURUSER->cus_no . ')' ?></option>
-                                <?php } ?>
+
+                                <?php if (!in_array($this->CURUSER->cus_no, $search)) {
+                                ?>
+                                    <option value="<?php echo $this->CURUSER->cus_no;
+                                                    ?>" selected><?php echo $this->CURUSER->cus_name . ' (' . $this->CURUSER->cus_no . ')'
+                                                                    ?></option>
+                                <?php }
+                                ?>
+
                             </select>
                         </div>
                     </div>
@@ -150,7 +156,7 @@
         $('#customer').select2({
             theme: "bootstrap-5",
             allowClear: false,
-            placeholder: "พิมพ์ชื่อลูกค้าหรือรหัสลูกค้าบางส่วนเพื่อค้นหา",
+            placeholder: "ลูกค้าทั้งหมด",
             ajax: {
                 url: "<?php echo $http ?>/api/searchCustomerMain",
                 dataType: 'json',
@@ -173,7 +179,6 @@
             templateResult: formatRepo,
             templateSelection: formatRepoSelection
         });
-
 
         $('#paymentList')
             .DataTable({
@@ -235,10 +240,10 @@
 
         function formatRepoSelection(repo) {
             if (repo.id) {
-                return $('<span>' + repo.text.trim() + '</span>');
+                let show = search.includes('<?php echo $this->CURUSER->cus_no; ?>') ? repo.cus_name + '(' + repo.cus_no + ')' : repo.text;
+                return $('<span>' + show + '</span>');
             }
             return repo.text;
         }
-
     });
 </script>

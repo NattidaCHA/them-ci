@@ -75,7 +75,7 @@ class Customer extends MY_Controller
     {
         $cus_no = $this->input->get('customer') ? $this->input->get('customer') : '';
         $table = $this->model_system->getPageIsShow()->items;
-        $this->data['page_header'] = 'ลูกค้า';
+        $this->data['page_header'] = 'ข้อมูลลูกค้า';
         $this->data['cus_no'] = $cus_no;
         $this->data['table'] = $table['customer'];
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);

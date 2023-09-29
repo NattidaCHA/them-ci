@@ -9,7 +9,7 @@
     </div>
 </div> -->
 
-<!-- <footer class="bg-white rounded shadow p-2 mb-1 mt-4">
+<footer class="bg-white p-2 mt-4">
     <div class="row">
         <div class="col-12 col-md-4 col-xl-6">
             <p class="mb-0 text-center text-lg-start text-muted">
@@ -22,7 +22,7 @@
             </p>
         </div>
     </div>
-</footer> -->
+</footer>
 
 <?php if (ENVIRONMENT == 'development') { ?>
     <script src="/assets/vendor/@popperjs/umd/popper.min.js"></script>

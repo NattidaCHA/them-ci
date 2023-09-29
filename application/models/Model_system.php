@@ -2,6 +2,7 @@
 
 class Model_system extends MY_Model
 {
+    // private $tableAllowLog = ('uuid, page,action,detail,created_date,created_by,updated_date,updated_by,url');
 
     public function __construct()
     {
@@ -447,6 +448,33 @@ class Model_system extends MY_Model
             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                 $res = (object)$row;
                 $result[$res->page_name][] = $res;
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
+    }
+
+    public function getTemPDF()
+    {
+        $result = [];
+        $sql =  "SELECT * FROM " . PAYMENT;
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result[$row['page']][] = (object)$row;
             }
 
             $output = (object)[

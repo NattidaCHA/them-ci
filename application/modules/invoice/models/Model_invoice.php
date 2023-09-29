@@ -129,17 +129,6 @@ class Model_invoice extends MY_Model
         return  $this->calculateTotall($lists);
     }
 
-    // public function getCustomerChain($result)
-    // {
-
-    //     $lists = [];
-    //     foreach ($result as $rows) {
-    //         $val = $this->findChildCustomer((object)['cus_no' => $rows->cus_no]);
-    //         $lists[$rows->cus_no] = $val;
-    //     }
-    //     return $lists;
-    // }
-
     public function getCustomerChain($id)
     {
 
@@ -175,20 +164,6 @@ class Model_invoice extends MY_Model
 
         return $result;
     }
-
-    // public function findChildCustomer($condition)
-    // {
-    //     $result = [];
-    //     $sql = $this->db->select('MAX(T1.mcustno) as cus_no, MAX(T2.mcustname) as cus_name,MAX(T2.msaleorg) as saleorg')
-    //         ->where('T1.mcustno_sendto', $condition->cus_no)
-    //         // ->where('T1.mcustno_sendto', '0002000386')
-    //         ->join('vw_Customer_DWH T2', 'T2.mcustno = T1.mcustno', 'left')
-    //         ->group_by('T1.mcustno')
-    //         ->get('cust_notifcation_sendto T1');
-    //     $result = $sql->result();
-    //     $sql->free_result();
-    //     return  $result;
-    // }
 
     public function findChildCustomer($condition)
     {
@@ -284,12 +259,6 @@ class Model_invoice extends MY_Model
         $val = json_decode(json_encode($res));
         $customer = (object)[];
         if (!empty($val)) {
-            // $sql =  "SELECT mcustname FROM " . TBL_CUT . " where mcustno = '$val->cus_no'";
-            // $stmt = sqlsrv_query($this->conn, $sql);
-
-            // if (!empty($stmt)) {
-            //     $customer =  sqlsrv_fetch_object($stmt);
-            // }
             $customer = $this->model_system->findCustomerById($val->cus_no)->items;
             $res = $customer->type == 'main' && !empty($customer) ? $this->findChildCustomer($val)->items : $this->findCustomerDefault($val)->items;
             foreach ($res as $bill) {
