@@ -9,17 +9,25 @@
     </div>
 </div> -->
 
-<footer class="bg-white p-2 mt-4">
-    <div class="row">
-        <div class="col-12 col-md-4 col-xl-6">
-            <p class="mb-0 text-center text-lg-start text-muted">
-                <small>
-                    © 2022-<span class="current-year"><?php //echo date('Y') 
-                                                        ?></span> by
-                    <a class="text-primary fw-normal" href="<?php //echo site_url(); 
-                                                            ?>" target="_blank">EDM Media</a>
-                </small>
-            </p>
+<footer class="footer_tem p-2 mt-4">
+    <div class="footer-section">
+        <div class="footer-container">
+            <div class="contact">
+                <div class="mb-1"><a class="text-white" href="<?php echo WWW . '/contactus'; ?>" target="_blank">ติดต่อเรา</a>
+                </div>
+                <img class="mb-1" src="https://npismodev.scg.com/images/footer/scg-contact-center.png" style="width: 250px;">
+                <div>+66 2555 0888</div>
+            </div>
+            <div class=" contact">
+                <div>เว็บไซต์ที่เกี่ยวข้อง</div>
+                <a href="http://npi-pipe.com/" target="_blank"><img src="https://npismodev.scg.com/images/footer/scg-corporate.png"></a>
+            </div>
+            <div class="contact">
+                <a title="กรมพัฒนาธุรกิจการค้า Trustmarkthai" style="padding-left: 5px;" href="https://www.trustmarkthai.com/callbackData/popup.php?data=868adfb-21-5-aee1146171eb8a769661219b1a008d08f8e177&markID=firstmar" target="_blank"><img style="max-width: 100%;max-height: 75px; background-color:#fff" alt="กรมพัฒนาธุรกิจการค้า Trustmarkthai" src="https://www.trustmarkthai.com/trust_banners/bns_registered.png"></a>
+            </div>
+        </div>
+        <div class="text-com">
+            Ⓒ สงวนลิขสิทธิ 2019 บริษัท นวพลาสติกอุตสาหกรรม (สระบุรี) จำกัด
         </div>
     </div>
 </footer>

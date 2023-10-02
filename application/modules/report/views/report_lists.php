@@ -575,7 +575,7 @@
                     columns.push({
                         data: 'is_email',
                         render: function(data, type, full) {
-                            return '<a class="btn btn-sm btn-success modalStatus tb-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_status" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_name="' + full.info.cus_name + '"><i class="bi bi-file-earmark"></i></a>'
+                            return '<a class="btn btn-sm btn-success modalStatus tb-5" type="button" data-bs-toggle="modal" data-bs-target="#modal_status" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_name="' + full.info.cus_name + '"><i class="bi bi-eye"></i></a>'
                         }
                     })
                 }
