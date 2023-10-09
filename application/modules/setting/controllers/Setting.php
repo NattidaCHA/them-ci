@@ -340,9 +340,9 @@ class Setting extends MY_Controller
         }
 
         $params = (object)[
-            'dateSelect' => 'Thursday', //date('l'),
-            'startDate' => '2023-09-11', //date('Y-m-d'),
-            'endDate' => '2023-09-29', //date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d')))),
+            'dateSelect' => date('l'), //date('l') Thursday,
+            'startDate' => date('Y-m-d'), //date('Y-m-d'),
+            'endDate' => date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d')))), //date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d')))),
             'type' => '0281'
         ];
 
