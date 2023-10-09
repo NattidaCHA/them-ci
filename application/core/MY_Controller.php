@@ -415,7 +415,7 @@ class MY_Controller extends CI_Controller
         // $from_email = "nattidac@scg.com";
         if (!empty($params)) {
             $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
-            $emails =  $this->model_report->genEmail($params['cus_no'], $params['cus_main']);
+            $emails =  $this->model_report->genEmail($params['cus_no'], $cusType->is_email);
             if ($page == 'invoice' && !empty($checkMain) && $cusType->type == 'child' && !empty($emails[$params['cus_no']])) {
                 $k = array_search($params['cus_main'], array_keys($emails));
                 $emails = array_slice($emails, $k + 1);

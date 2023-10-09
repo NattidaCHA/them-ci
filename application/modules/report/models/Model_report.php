@@ -65,7 +65,7 @@ class Model_report extends MY_Model
         return  $lists;
     }
 
-    public function genEmail($cus_no)
+    public function genEmail($cus_no, $is_email)
     {
         $result = [];
         $isCheck = [];
@@ -75,9 +75,11 @@ class Model_report extends MY_Model
         foreach ($isCheck as $val) {
             $result = $this->model_customer->email($val->cus_main)->items;
 
+            // if (($val->cus_main == $cus_no && !empty($is_email)) || $val->cus_main != $cus_no) {
             foreach ($result as $val) {
                 $lists[$val->cus_main] = $val;
             }
+            // }
         }
         return  $lists;
     }
@@ -228,7 +230,7 @@ class Model_report extends MY_Model
         $totalRecord = !empty($this->countBill($conn)->items) ? $this->countBill($conn)->items : 0;
 
         $result = [];
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno";
+        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no ";
 
 
         if (!empty($conn->cus_no)) {

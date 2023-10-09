@@ -22,6 +22,7 @@ class Report extends MY_Controller
         parent::__construct();
         $this->load->model('model_report');
         $this->load->model('model_system');
+        $this->load->model('customer/model_customer');
     }
 
     public function index()
@@ -297,6 +298,28 @@ class Report extends MY_Controller
 
         if (!empty($uuid)) {
             $lists = $this->model_report->getBillById($uuid)->items;
+
+            if (!empty($lists)) {
+                $result['status'] = 200;
+                $result['msg'] = 'OK';
+                $result['data'] = $lists;
+            } else {
+                $result['status'] = 204;
+                $result['msg'] = 'empty data';
+                $result['data'] = false;
+            }
+        }
+
+        $this->responseJSON($result);
+    }
+
+    public function genFax($cus_no)
+    {
+        $result = ['status' => 500, 'msg' => 'Can not check data !'];
+        $lists = [];
+
+        if (!empty($cus_no)) {
+            $lists = $this->model_customer->fax($cus_no)->items;
 
             if (!empty($lists)) {
                 $result['status'] = 200;

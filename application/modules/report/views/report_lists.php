@@ -101,7 +101,27 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary close" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary close" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal_fax" tabindex="-1" aria-labelledby="faxModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex">
+                    <h5 class="modal-title text-muted header_text me-3" id="faxModalLabel">Fax</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="flex-column cs-list fax">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary close" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -252,9 +272,7 @@
                 let cus_no = $(this).attr("data-cus_no")
                 let cus_name = $(this).attr("data-cus_name")
                 $('.header_text').text('สถานะ : ' + cus_name + ' (' + cus_no + ')');
-                console.log(id)
                 $.get('<?php echo $http ?>/report/genBill/' + id).done(function(res) {
-                    console.log(res)
                     if (res.status == 200) {
                         if (res.data) {
                             let created_by = res.data.created_by ? res.data.created_by : '-'
@@ -378,7 +396,6 @@
                 ]
                 $.post('<?php echo $http ?>/report/email', formData).done(function(res) {
                     if (res.status == 200) {
-                        console.log(res)
                         $.post('<?php echo $http ?>/api/addMainLog/update', {
                             page: 'ส่งอีเมล',
                             url: CURRENT_URL,
@@ -399,6 +416,29 @@
                             confirmButtonColor: '#3085d6',
                             confirmButtonText: 'ยืนยัน',
                         });
+                    } else {
+                        if (res.error) {
+                            Swal.fire("Error", res.error, "error");
+                        } else {
+                            Swal.fire("Error", 'Something went wrong', "error");
+                        }
+                    }
+                });
+            }).on('click', '.modelFax', function(e) {
+                e.preventDefault();
+                let cus_no = $(this).attr("data-cus_no")
+                $('.fax').html('<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>')
+                $.get('<?php echo $http ?>/report/genFax/' + cus_no).done(function(res) {
+                    if (res.status == 200) {
+                        let fax = '';
+                        res.data.map(o => {
+                            if (o.fax) {
+                                fax += '<p> - ' + o.fax + '</p>'
+                            }
+                        })
+                        $('.fax').html(fax)
+                    } else if (res.status == 200) {
+                        $('.fax').html('<p>ไม่พบข้อมูล Fax</p>')
                     } else {
                         if (res.error) {
                             Swal.fire("Error", res.error, "error");
@@ -501,7 +541,7 @@
                             let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
                             let _i = 0;
                             let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 0 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + ' ') : full.emails[0].email ? full.emails[0].email : '-' : ' '
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 0 ? full.emails.slice(0, 3).map((x, j) => x.email ? x.email + ' ' : '') : full.emails[0].email ? full.emails[0].email : '-' : ' '
                             let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + ' ')
 
                             return full.emails.length > 0 ? '<div class="tb-15" id="email_' + full.info.cus_no + '">' +
@@ -517,7 +557,7 @@
                             let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
                             let _i = 0;
                             let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingtel_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsetel_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.tel ? j == 1 ? x.tel : x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.tel ? x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
 
 
                             let moveShow = full.tels.slice(3).map((x, i) => x.tel ? _i++ == count ? x.tel : x.tel + ' ' : '')
@@ -544,7 +584,7 @@
                             let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
                             let _i = 0;
                             let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingcontact_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecontact_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.contact ? i < 2 ? o.contact + ' ' : o.contact : ' ') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.contact ? j == 1 ? x.contact : x.contact + ' ' : ' ') : full.tels[0].contact ? full.tels[0].contact : '-' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.contact ? i < 2 ? o.contact + ' ' : o.contact : ' ') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.contact ? x.contact + ' ' : ' ') : full.tels[0].contact ? full.tels[0].contact : '-' : ''
                             let moveShow = full.tels.slice(3).map((x, i) => x.contact ? _i++ == count ? x.contact : x.contact + ' ' : '')
 
                             return full.tels.length > 0 ? '<div class="tb-10" id="contact_' + full.info.cus_no + '">' +
@@ -561,7 +601,7 @@
                             let _i = 0;
                             let move = full.cf_call.length > 3 ? '&nbsp;&nbsp;<span id="headingcall_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecall_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
 
-                            let show3Top = full.cf_call.length > 0 ? full.cf_call.length > 3 ? full.cf_call.slice(0, 3).map((o, i) => i < 2 ? o.receive_call + ' ' : o.receive_call + ' ') : full.cf_call.length > 0 ? full.cf_call.slice(0, ).map((x, j) => j == 1 ? x.receive_call : x.receive_call + ' ') : full.cf_call[0].receive_call ? full.cf_call[0].receive_call + ' ' : '-' : ''
+                            let show3Top = full.cf_call.length > 0 ? full.cf_call.length > 3 ? full.cf_call.slice(0, 3).map((o, i) => i < 2 ? o.receive_call + ' ' : o.receive_call + ' ') : full.cf_call.length > 0 ? full.cf_call.slice(0, ).map((x, j) => x.receive_call ? x.receive_call + ' ' : '') : full.cf_call[0].receive_call ? full.cf_call[0].receive_call + ' ' : '-' : ''
 
                             let moveShow = full.cf_call.slice(3).map((x, i) => _i++ == count ? x.receive_call : x.receive_call + ' ')
 
@@ -584,11 +624,13 @@
                         data: 'uuid',
                         render: function(data, type, full) {
                             let action = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '" data-is_receive_bill="' + full.info.is_receive_bill + '"><i class="bi bi-pencil"></i></a>' : ''
-                            let mail = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' "><i class="bi bi-envelope"></i></a>' : ''
+                            let mail = search.includes(info.cus_no) && full.info.m_is_email ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' "><i class="bi bi-envelope"></i></a>' : ''
+
+                            let fax = full.info.is_fax ? '<a class="btn btn-sm btn-success modelFax" type="button" data-bs-toggle="modal" data-bs-target="#modal_fax"  id="fax" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-bill_no="' + full.info.bill_no + '"><i class="bi bi-printer"></i></a>' : ''
 
                             return '<div class="tb-15 d-flex justify-content-center">' +
                                 action +
-                                '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + '</div>'
+                                '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + fax + '</div>'
                         }
                     })
                 }
