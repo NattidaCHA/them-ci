@@ -29,18 +29,17 @@
                     </ul>
                 </li>
             </ul>
-            <!-- <div class="d-block">
-                <a href="/logout" class="btn btn-danger btn-sm d-inline-flex align-items-center">
-                    <span class="icon icon-xs me-1"><i class="bi bi-box-arrow-right"></i></span> Sign Out
+            <div class="d-block">
+                <a href="<?php echo WWW; ?>" class="d-inline-flex align-items-center text-white">
+                    Back to smo
                 </a>
-            </div> -->
+            </div>
         </div>
     </div>
 
     <div class="displayname">
         <div class="name-role">
             <span>Nattida&nbsp;Chatavitayakul</span>
-
         </div>
     </div>
 </nav>
@@ -86,12 +85,6 @@
                     <span class="sidebar-text">รายงาน</span>
                 </a>
             </li>
-            <!-- <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo $http ?>/customer" class="nav-link">
-                    <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">ลูกค้า</span>
-                </a>
-            </li> -->
             <li class="nav-item" id="_menu-dashboard">
                 <a href="<?php echo $http ?>/customer" class="nav-link">
                     <span class="sidebar-icon"></span>
@@ -104,7 +97,12 @@
                     <span class="sidebar-text">แก้ไขคอลัมน์และซ่อมข้อมูล</span>
                 </a>
             </li>
-            <li role="separator" class="dropdown-divider border-gray-700"></li>
+            <li class="nav-item" id="_menu-dashboard">
+                <a href="<?php echo WWW; ?>" class="nav-link">
+                    <span class="sidebar-icon"></span>
+                    <span class="sidebar-text">Back to smo</span>
+                </a>
+            </li>
         </ul>
     </div>
 </nav>

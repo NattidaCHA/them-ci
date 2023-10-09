@@ -3,7 +3,7 @@
 class Model_setting extends MY_Model
 {
     private $tableAllowFieldsSetting = ('uuid,page_name, colunm, sort, page_sort, is_show');
-    private $tableAllowFieldsTemPDF = ('uuid,page, company, address, tel, tel2,tax, account_no, account_name, image_name, bank_name, branch,comp_code, due_detail, cal, contact, type, payment_title, detail_1_1,detail_1_2, detail_2, detail_2_1, detail_2_2, detail_2_3, detail_2_4,detail_2_5, detail_2_6, detail_2_7, detail_2_8, detail_3,detail_4, detail_5, sort');
+    private $tableAllowFieldsTemPDF = ('uuid,page, company, address, tel, tel2,tax, account_no, account_name, image_name, bank_name, branch,comp_code, due_detail, cal, contact, type, payment_title, detail_1_1,detail_1_2, detail_2, detail_2_1, detail_2_2, detail_2_3, detail_2_4,detail_2_5, detail_2_6, detail_2_7, detail_2_8, detail_3,detail_4, detail_5, sort,tran_header,tran_detail_1,tran_detail_2,tran_detail_3');
 
     public function __construct()
     {
@@ -23,7 +23,7 @@ class Model_setting extends MY_Model
 
     public function create_tem_pdf($params)
     {
-        $sql = "INSERT INTO " . PAYMENT . ' (' . $this->tableAllowFieldsTemPDF . ") VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO " . PAYMENT . ' (' . $this->tableAllowFieldsTemPDF . ") VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $res = sqlsrv_query($this->conn, $sql, $params);
 
         if (!empty($res)) {
@@ -86,6 +86,20 @@ class Model_setting extends MY_Model
 
         $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
 
+        if (!empty($val->is_fax) && $val->is_fax != '1') {
+            $fax = $val->is_fax == '2' ? 1 : 0;
+            $sql = $sql . " AND " . CUST_NOTI . ".m_isfax = $fax";
+        }
+
+        if (!empty($val->is_email) && $val->is_email != '1') {
+            $email = $val->is_email == '2' ? 1 : 0;
+            $sql = $sql . " AND " . CUST_NOTI . ".m_isemail = $email";
+        }
+
+        if (!empty($val->type)) {
+            $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
+        }
+
         if (!empty($val->is_bill)) {
             $result2 = [];
             $sql2 = "SELECT cus_main FROM " . REPORT . " where start_date >= '$val->startDate' AND  end_date <='$val->endDate' group by cus_main";
@@ -95,25 +109,12 @@ class Model_setting extends MY_Model
                 array_push($result2, $row2["cus_main"]);
             }
 
-            // if ($val->is_bill == '2') {
-            //     $sendTo2 = [];
-            //     foreach ($result2 as $cus_main) {
-            //         $res = $this->sendTo($cus_main);
-            //         foreach ($res as $val) {
-            //             array_push($sendTo2, $val);
-            //         }
-            //     }
-
-            //     $sql = $sql . " AND " . BILLPAY . ".mcustno in (" . implode(',', $sendTo2) . ")";
-            // }
-
-
             if ($val->is_bill == '3' && !empty($result2)) {
                 $sendTo3 = [];
                 foreach ($result2 as $cus_main) {
                     $res = $this->sendTo($cus_main);
-                    foreach ($res as $val) {
-                        array_push($sendTo3, $val);
+                    foreach ($res as $_val) {
+                        array_push($sendTo3, $_val);
                     }
                 }
 
@@ -127,10 +128,8 @@ class Model_setting extends MY_Model
             $sql = $sql . " AND " . BILLPAY . ".mcustno in (" . implode(',', $sendTo) . ")";
         }
 
-        if (!empty($val->type)) {
-            $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
-        }
-
+        // var_dump($sql);
+        // exit;
         $stmt = sqlsrv_query($this->conn, $sql);
 
         if ($stmt == false) {
@@ -149,6 +148,9 @@ class Model_setting extends MY_Model
                     $data[$row->mcustno][] = $row;
                 }
             }
+
+            // var_dump($data);
+            // exit;
 
             $output = (object)[
                 'status' => 200,

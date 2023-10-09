@@ -126,22 +126,27 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="box-search-2">
+                                <div class="box-search">
                                     <div class="input-search">
                                         <label for="customer" class="form-label">ลูกค้า</label>
                                         <div class="input-group mb-3">
                                             <select class="select2 form-select" name="customer" id="customer">
+                                                <option value="">เลือกลูกค้า</option>
                                             </select>
                                         </div>
                                     </div>
+
                                     <div class="input-search">
                                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                                         <select class="form-select" id="type" name="type">
-                                            <option value="">เลือก ...</option>
+                                            <option value="" selected>เลือก ...</option>
                                             <?php foreach ($types as $type) { ?>
                                                 <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : ''; ?>><?php echo $type->msaleorg_des ?></option>
                                             <?php }; ?>
                                         </select>
+                                    </div>
+                                    <div class="box-text">
+                                        <p class="text-form"></p>
                                     </div>
                                     <div class="input-search">
                                         <label for="type" class="form-label">ทำบิล</label>
@@ -151,8 +156,31 @@
                                             <option value="3" selected>ยังไม่ได้ทำใบแจ้งเตือน</option>
                                         </select>
                                     </div>
-                                    <div class="mb-3 mt-4">
+                                </div>
+                                <div class="box-search-2">
+                                    <div class="input-search">
+                                        <label for="type" class="form-label">Fax</label>
+                                        <select class="form-select" id="is_fax" name="is_fax">
+                                            <option value="1" selected>ทั้งหมด</option>
+                                            <option value="2">มี Fax</option>
+                                            <option value="3">ไม่มี Fax</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="input-search">
+                                        <label for="type" class="form-label">อีเมล</label>
+                                        <select class="form-select" id="is_email" name="is_email">
+                                            <option value="1" selected>ทั้งหมด</option>
+                                            <option value="2">มีอีเมล</option>
+                                            <option value="3">ไม่มีอีเมล</option>
+                                        </select>
+                                    </div>
+                                    <!-- <div class="box-text">
+                        <p class="text-form"></p>
+                    </div> -->
+                                    <div class="btn-full mb-3 mt-4">
                                         <button type="button" class="btn btn-primary submit">ค้นหา</button>
+                                        <!-- <button type="submit" class="btn btn-success">Export excel</button> -->
                                     </div>
                                 </div>
                             </div>
@@ -253,6 +281,12 @@
             }, {
                 name: 'is_bill',
                 value: $('#is_bill').val()
+            }, {
+                name: 'is_email',
+                value: $('#is_email').val()
+            }, {
+                name: 'is_fax',
+                value: $('#is_fax').val()
             }]
 
             $.post("<?php echo $http ?>/setting/repair", formData).done(function(res) {

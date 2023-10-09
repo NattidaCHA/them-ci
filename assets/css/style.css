@@ -23357,7 +23357,7 @@ fieldset:disabled .btn {
 
 .content {
 	/* overflow: hidden; */
-	padding: 20px 120px 1rem 120px;
+	padding: 20px 90px 1rem 90px;
 	transition: all 0.3s;
 }
 
@@ -29984,7 +29984,7 @@ article .h6 {
 	.name-role {
 		padding-left: 10px;
 		padding-right: 10px;
-		width: 150px;
+		width: 170px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: normal;
@@ -30043,5 +30043,13 @@ article .h6 {
 				margin-top: 1.5rem;
 			}
 		}
+	}
+}
+
+.btn-full {
+	width: 33%;
+
+	@media (max-width: 610px) {
+		width: 100%;
 	}
 }

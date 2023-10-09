@@ -567,10 +567,19 @@
 
     .box-detail-payment {
         padding: 5px;
-        margin-top: 200px;
+        margin-top: 10px;
         border: 1px solid gray;
         width: 100%;
         height: 90px;
+        font-size: 14px;
+    }
+
+    .box-tran {
+        padding: 5px;
+        margin-top: 50px;
+        border-top: 1px solid gray;
+        width: 100%;
+        /* height: 20px; */
         font-size: 14px;
     }
 
@@ -685,15 +694,36 @@
                     <p>ผู้นำฝาก…………………………………………</p>
                     <p>โทร………………………………………………</p>
                 </div>
-                <div class="qr-scan">
-                    <img src="<?php echo $http; ?>assets/img/qrcode/qrcode.png" class="logo-qr-scan">
+                <!-- <div class="qr-scan">
+                    <img src="<?php //echo $http; 
+                                ?>assets/img/qrcode/qrcode.png" class="logo-qr-scan">
                 </div>
                 <div class="bacode-scan">
-                    <img src="<?php echo $http; ?>assets/img/qrcode/barcode.jpg" class="logo-bacode-scan">
-                    <p style="font-size: 12px;"><?php echo $data->report->barcode->code; ?></p>
-                </div>
+                    <img src="<?php //echo $http; 
+                                ?>assets/img/qrcode/barcode.jpg" class="logo-bacode-scan">
+                    <p style="font-size: 12px;"><?php //echo $data->report->barcode->code; 
+                                                ?></p>
+                </div> -->
             </div>
 
+            <div class="box-tran">
+                <p><u><strong><?php echo  $data->tem['bank_tran_detail'][0]->tran_header; ?></strong></u></p>
+                <ol>
+                    <li>
+                        <p><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_1; ?></p>
+                        </il>
+                    <li>
+                        <p><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_2; ?></p>
+                        </il>
+                </ol>
+                <?php foreach ($data->tem['bank_tran'] as $tran) { ?>
+                    <p style="margin-left: 20px;"><strong>
+                            <span style="margin-right: 5%;"><?php echo $tran->account_name; ?></span>
+                            <span style="margin-right: 150px;"><?php echo $tran->branch; ?></span>
+                            <span style="margin-right: 150px;"><?php echo $tran->account_no; ?></span>
+                        </strong> </p>
+                <?php } ?>
+            </div>
             <div class="box-detail-payment">
                 <p><u><strong><?php echo  $data->tem['footer'][0]->payment_title; ?></strong></u></p>
                 <ol>

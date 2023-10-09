@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
+    <div class="bg-white rounded shadow rounded d-flex flex-column px-4 pt-3 pb-3">
         <form id="searchForm" method="post" action="<?php echo $http ?>/report" class="mb-4">
             <div class="section-filter-2">
                 <div class="box-search">
@@ -501,7 +501,7 @@
                             let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
                             let _i = 0;
                             let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 1 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + ' ') : full.emails[0].email ? full.emails[0].email : '-' : ''
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 0 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + ' ') : full.emails[0].email ? full.emails[0].email : '-' : ' '
                             let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + ' ')
 
                             return full.emails.length > 0 ? '<div class="tb-15" id="email_' + full.info.cus_no + '">' +
@@ -517,7 +517,7 @@
                             let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
                             let _i = 0;
                             let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingtel_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsetel_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => x.tel ? j == 1 ? x.tel : x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.tel ? j == 1 ? x.tel : x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
 
 
                             let moveShow = full.tels.slice(3).map((x, i) => x.tel ? _i++ == count ? x.tel : x.tel + ' ' : '')
@@ -544,7 +544,7 @@
                             let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
                             let _i = 0;
                             let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingcontact_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecontact_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.contact ? i < 2 ? o.contact + ' ' : o.contact : ' ') : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => x.contact ? j == 1 ? x.contact : x.contact + ' ' : ' ') : full.tels[0].contact ? full.tels[0].contact : '-' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.contact ? i < 2 ? o.contact + ' ' : o.contact : ' ') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.contact ? j == 1 ? x.contact : x.contact + ' ' : ' ') : full.tels[0].contact ? full.tels[0].contact : '-' : ''
                             let moveShow = full.tels.slice(3).map((x, i) => x.contact ? _i++ == count ? x.contact : x.contact + ' ' : '')
 
                             return full.tels.length > 0 ? '<div class="tb-10" id="contact_' + full.info.cus_no + '">' +
@@ -561,7 +561,7 @@
                             let _i = 0;
                             let move = full.cf_call.length > 3 ? '&nbsp;&nbsp;<span id="headingcall_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsecall_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
 
-                            let show3Top = full.cf_call.length > 0 ? full.cf_call.length > 3 ? full.cf_call.slice(0, 3).map((o, i) => i < 2 ? o.receive_call + ' ' : o.receive_call + ' ') : full.cf_call.length > 1 ? full.cf_call.slice(0, ).map((x, j) => j == 1 ? x.receive_call : x.receive_call + ' ') : full.cf_call[0].receive_call ? full.cf_call[0].receive_call + ' ' : '-' : ''
+                            let show3Top = full.cf_call.length > 0 ? full.cf_call.length > 3 ? full.cf_call.slice(0, 3).map((o, i) => i < 2 ? o.receive_call + ' ' : o.receive_call + ' ') : full.cf_call.length > 0 ? full.cf_call.slice(0, ).map((x, j) => j == 1 ? x.receive_call : x.receive_call + ' ') : full.cf_call[0].receive_call ? full.cf_call[0].receive_call + ' ' : '-' : ''
 
                             let moveShow = full.cf_call.slice(3).map((x, i) => _i++ == count ? x.receive_call : x.receive_call + ' ')
 

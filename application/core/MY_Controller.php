@@ -416,7 +416,6 @@ class MY_Controller extends CI_Controller
         if (!empty($params)) {
             $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
             $emails =  $this->model_report->genEmail($params['cus_no'], $params['cus_main']);
-
             if ($page == 'invoice' && !empty($checkMain) && $cusType->type == 'child' && !empty($emails[$params['cus_no']])) {
                 $k = array_search($params['cus_main'], array_keys($emails));
                 $emails = array_slice($emails, $k + 1);
@@ -471,8 +470,13 @@ class MY_Controller extends CI_Controller
 
                     $mesg = $this->load->view('report/email_tem', $data, TRUE);
                     $mail->setFrom($pdo->email->username, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
-                    foreach ($emails as $res) {
-                        $mail->addAddress($res->email);
+
+                    // foreach ($emails as $res) {
+                    //     $mail->addAddress($res->email);
+                    //'npibs_pipess01@scg.com', 'phrueksp@scg.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com',
+                    // }
+                    foreach (['nattida.ncha@gmail.com', 'nattidac@scg.com'] as $res) {
+                        $mail->addAddress($res);
                     }
 
                     $mail->isHTML(true);

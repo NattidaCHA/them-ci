@@ -25,6 +25,8 @@ class Invoice extends MY_Controller
         $cus_no = NULL;
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
         $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
+        $is_fax = $this->input->get('is_fax') ? $this->input->get('is_fax') : '1';
+        $is_email = $this->input->get('is_fax') ? $this->input->get('is_email') : '1';
 
         foreach ($table['invoice'] as $v) {
             array_push($keyTable, $v->sort);
@@ -48,7 +50,9 @@ class Invoice extends MY_Controller
             'endDate' => $endDate,
             'cus_no' => $cus_no,
             'type' => $typeSC,
-            'is_bill' => $is_bill
+            'is_bill' => $is_bill,
+            'is_fax' => $is_fax,
+            'is_email' => $is_email
         ];
 
         $o = $this->model_system->getTypeBusiness()->items;
@@ -77,6 +81,8 @@ class Invoice extends MY_Controller
         $this->data['table'] = $table['invoice'];
         $this->data['keyTable'] = $keyTable;
         $this->data['is_bill'] = $is_bill;
+        $this->data['is_fax'] = $is_fax;
+        $this->data['is_email'] = $is_email;
         $this->data['page_header'] = 'การแจ้งเตือน';
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('search_invoice');

@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <div class="bg-white rounded shadow rounded d-flex flex-column px-5 pt-3 pb-3">
+    <div class="bg-white rounded shadow rounded d-flex flex-column px-4 pt-3 pb-3">
         <form id="invoiceForm" method="get" action="<?php echo $http ?>/invoice" class="mb-4">
             <div class="section-filter">
                 <div class="box-search">
@@ -30,7 +30,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="box-search-2">
+                <div class="box-search">
                     <div class="input-search">
                         <label for="customer" class="form-label">ลูกค้า</label>
                         <div class="input-group mb-3">
@@ -48,6 +48,7 @@
                             </select>
                         </div>
                     </div>
+
                     <div class="input-search">
                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                         <select class="form-select" id="type" name="type">
@@ -57,6 +58,9 @@
                             <?php }; ?>
                         </select>
                     </div>
+                    <div class="box-text">
+                        <p class="text-form"></p>
+                    </div>
                     <div class="input-search">
                         <label for="type" class="form-label">ทำบิล</label>
                         <select class="form-select" id="is_bill" name="is_bill">
@@ -65,8 +69,31 @@
                             <option value="3" <?php echo $is_bill == '3' ? 'selected' : ''; ?>>ยังไม่ได้ทำใบแจ้งเตือน</option>
                         </select>
                     </div>
-                    <div class="mb-3 mt-4">
-                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                </div>
+                <div class="box-search-2">
+                    <div class="input-search">
+                        <label for="type" class="form-label">Fax</label>
+                        <select class="form-select" id="is_fax" name="is_fax">
+                            <option value="1" <?php echo $is_fax == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                            <option value="2" <?php echo $is_fax == '2' ? 'selected' : ''; ?>>มี Fax</option>
+                            <option value="3" <?php echo $is_fax == '3' ? 'selected' : ''; ?>>ไม่มี Fax</option>
+                        </select>
+                    </div>
+
+                    <div class="input-search">
+                        <label for="type" class="form-label">อีเมล</label>
+                        <select class="form-select" id="is_email" name="is_email">
+                            <option value="1" <?php echo $is_email == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                            <option value="2" <?php echo $is_email == '2' ? 'selected' : ''; ?>>มีอีเมล</option>
+                            <option value="3" <?php echo $is_email == '3' ? 'selected' : ''; ?>>ไม่มีอีเมล</option>
+                        </select>
+                    </div>
+                    <!-- <div class="box-text">
+                        <p class="text-form"></p>
+                    </div> -->
+                    <div class="btn-full mb-3 mt-4">
+                        <button type="submit" class="btn btn-primary me-2">ค้นหา</button>
+                        <!-- <button type="submit" class="btn btn-success">Export excel</button> -->
                     </div>
                 </div>
             </div>

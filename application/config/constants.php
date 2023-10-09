@@ -95,6 +95,7 @@ defined('SENTO_CUS')      or define('SENTO_CUS', 'master_customer_sendto');
 defined('SETTING')      or define('SETTING', 'master_setting');
 defined('EMAIL')      or define('EMAIL', 'master_customer_email');
 defined('TEL')      or define('TEL', 'master_customer_tel');
+defined('FAX')      or define('FAX', 'master_customer_fax');
 defined('CFCALL')      or define('CFCALL', 'tran_confirm_call');
 defined('REPORT_DETAIL')      or define('REPORT_DETAIL', 'tran_report_notification_detail');
 defined('PAYMENT')      or define('PAYMENT', 'master_template_report');

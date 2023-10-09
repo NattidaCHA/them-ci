@@ -98,6 +98,28 @@ class Model_report extends MY_Model
         return  $lists;
     }
 
+    public function getFaxById($cus_no)
+    {
+        $result = [];
+        $isCheckFax = (object)[];
+        $lists = [];
+
+        $isCheckFax = $this->model_system->findCustomerById($cus_no)->items;
+        // foreach ($isCheck as $val) {
+        //     $result = $this->model_customer->tel($val->cus_main)->items;
+        //     foreach ($result as $val) {
+        //         array_push($lists, $val);
+        //     }
+        // }
+        if (!empty($isCheckFax)) {
+            $result = $this->model_customer->fax($cus_no)->items;
+            foreach ($result as $val) {
+                array_push($lists, $val);
+            }
+        }
+        return  $lists;
+    }
+
     public function checkChildSendto($cus_no)
     {
         $result = [];
@@ -232,8 +254,6 @@ class Model_report extends MY_Model
             }
         }
 
-
-
         if (!empty($conn->bill_no)) {
             if (!empty($conn->cus_no)) {
                 $sql = $sql . " AND " . REPORT . ".bill_no = '$conn->bill_no'";
@@ -278,7 +298,7 @@ class Model_report extends MY_Model
 
         if (!empty($output->items)) {
             foreach ($result as $key => $val) {
-                array_push($lists, (object)['info' => $val, 'tels' => $this->getTelById($val->cus_no), 'emails' => $this->getEmailById($val->cus_no), 'cf_call' => $this->getCfCallByuuid($val->uuid)->items]);
+                array_push($lists, (object)['info' => $val, 'tels' => $this->getTelById($val->cus_no), 'emails' => $this->getEmailById($val->cus_no), 'cf_call' => $this->getCfCallByuuid($val->uuid)->items, 'faxs' => $this->getFaxById($val->cus_no)]);
             }
         }
 

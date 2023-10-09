@@ -74,8 +74,9 @@
                             <div class="contact-header">
                                 <h4 class="text-muted">ข้อมูลติดต่อ</h4>
                                 <div class="d-flex">
-                                    <button type="button" class="btn btn-success btn-sm add-email me-2">+ เพิ่มอีเมล</button>
-                                    <button type="button" class="btn btn-gray-700 btn-sm add-tel">+ เพิ่มเบอร์โทร</button>
+                                    <button type="button" class="btn btn-success btn-sm add-email me-1">+ เพิ่มอีเมล</button>
+                                    <button type="button" class="btn btn-gray-700 btn-sm add-tel me-1">+ เพิ่มเบอร์โทร</button>
+                                    <button type="button" class="btn btn-primary btn-sm add-fax">+ เพิ่ม Fax</button>
                                 </div>
                             </div>
                             <div class="border-bottom mb-3"></div>
@@ -86,6 +87,7 @@
                                             <div class="nav nav-tabs mb-4" id="nav-tab" role="tablist">
                                                 <a class="nav-item nav-link active" id="nav-email-tab" data-bs-toggle="tab" href="#nav-email" role="tab" aria-controls="nav-email" aria-selected="true">อีเมล</a>
                                                 <a class="nav-item nav-link" id="nav-tel-tab" data-bs-toggle="tab" href="#nav-tel" role="tab" aria-controls="nav-tel" aria-selected="false">เบอร์โทร</a>
+                                                <a class="nav-item nav-link" id="nav-fax-tab" data-bs-toggle="tab" href="#nav-fax" role="tab" aria-controls="nav-fax" aria-selected="false">Fax</a>
                                             </div>
                                         </nav>
                                         <div class="tab-content" id="nav-tabContent">
@@ -141,6 +143,26 @@
                                                     echo ' <p class="noData-tel text-center mt-3 mb-3">ไม่มีข้อมูลติดต่อ</p>';
                                                 } ?>
                                             </div>
+                                            <div class="tab-pane fade" id="nav-fax" role="tabpanel" aria-labelledby="nav-fax-tab">
+                                                <?php if (!empty($faxs)) {
+                                                    foreach ($faxs as $val) { ?>
+                                                        <div class="contact-fax px-3">
+                                                            <div class="contact-list">
+                                                                <div class="form-contact">
+                                                                    <label for="email" class="form-label mt-2">Fax</label>
+                                                                    <input type="hidden" id="uuid_fax" name="uuid_fax[]" value="<?php echo  !empty($val) && !empty($val->uuid) ? $val->uuid : ''; ?>" autocomplete="off">
+                                                                    <input type="text" class="form-control input-form email-contact" id="fax" name="fax[]" placeholder="Fax" autocomplete="off" value="<?php echo !empty($val->fax) && !empty($val) ? $val->fax : ''; ?>">
+                                                                    <div class="text-end mt-2"><a type="button" href="javascript:void(0)"><i class="bi bi-trash text-danger delete"></i></a></div>
+                                                                </div>
+                                                                <div class="text-danger mb-3 modal-contact-contact-errors"></div>
+                                                                <div class="border-bottom mt-3 mb-3"></div>
+                                                            </div>
+                                                        </div>
+                                                    <?php } ?>
+                                                <?php } else {
+                                                    echo ' <p class="noData-fax text-center mt-3 mb-3">ไม่มีข้อมูลติดต่อ</p>';
+                                                } ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -176,6 +198,7 @@
             readyProcess(true)
             if (formCreateClient.validate() === true && checkValidate == false) {
                 let formData = $('#customerForm').serializeArray();
+                console.log(formData)
                 let cusNo = formData[2].value
                 if (type == 'update' && uncheckChild.length > 0) {
                     uncheckChild.map(o => formData.push({
@@ -342,7 +365,59 @@
                 }
             });
         });
+        $('#nav-fax').on('click', '.delete', function(e) {
+            Swal.fire({
+                title: 'คุณต้องการลบข้อมูลการติดต่อใช่หรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ยืนยัน',
+                cancelButtonText: 'ยกเลิก',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let remove = $(this).parents('.contact-fax')
+                    let id = remove.find($('input[name="uuid_fax[]"]'))
+                    if ('<?php echo $action ?>' == 'update' && id.val() != '1') {
+                        $.post("<?php echo $http ?>/customer/removeFax/" + id.val()).done(function(res) {
+                            if (res.status === 200) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    text: 'ลบข้อมูลติดต่อเรียบร้อยแล้ว',
+                                    confirmButtonText: 'ตกลง'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        if ($('.contact-fax').length > 1) {
+                                            remove.remove();
+                                        } else {
+                                            $('#nav-fax').html('<p class="text-center noData-fax mt-3">ไม่มีข้อมูลติดต่อ</p>')
+                                        }
+                                    }
+                                })
+                            } else {
+                                if (res.error) {
+                                    Swal.fire("Error", res.error, "error");
+                                } else {
+                                    Swal.fire("Error", 'Something went wrong', "error");
+                                }
+                            }
+                        });
+                    } else {
+                        if ($('.contact-fax').length > 1) {
+                            remove.remove()
+                            if ($('.contact-fax').length > 7) {
+                                $('#nav-fax').addClass('tab-fax')
+                            } else {
+                                $('#nav-fax').removeClass('tab-fax')
+                            }
+                        } else {
+                            $('#nav-fax').html('<p class="text-center noData-fax mt-3">ไม่มีข้อมูลติดต่อ</p>')
+                        }
+                    }
+                }
+            });
 
+        });
 
         $('#nav-tel').on('change', '.contact-tel,input[name="tel[]"]', function(e) {
             let val = $(this).val()
@@ -361,6 +436,24 @@
 
         })
 
+        $('#nav-fax').on('change', '.contact-fax,input[name="fax[]"]', function(e) {
+            let val = $(this).val()
+            console.log(val)
+            let text = $(this).parents('.contact-list')
+            let alert = text.find('.contact-fax,.modal-contact-contact-errors')
+            let check = validate('tel', val)
+            if (check) {
+                alert.text('Fax ต้องน้อยกว่า 50 หลัก และเฉพาะตัวเลข หรืออักขระพิเศษ (+ . - # / , ( )) เท่านั้น')
+            }
+        }).on('keyup', '.contact-fax,input[name="fax[]"]', function(e) {
+            let text = $(this).parents('.contact-list')
+            let alert = text.find('.contact-fax,.modal-contact-contact-errors')
+            alert.text('');
+            checkValidate = false
+
+        })
+
+
         $('#nav-email').on('change', '.contact-email,input[name="email[]"]', function(e) {
             let val = $(this).val();
             let text = $(this).parents('.contact-list')
@@ -374,7 +467,6 @@
             let alert = text.find('.modal-contact-contact-errors')
             alert.text('');
             checkValidate = false
-
         });
 
         $('.add-email').on('click', function(e) {
@@ -419,6 +511,26 @@
             }
 
             $('#nav-tel').append(html)
+
+        });
+
+        $('.add-fax').on('click', function(e) {
+            let html = '<div class="contact-fax px-3"><div class="contact-list"><div class="form-contact">' +
+                '<label for="fax" class="form-label mt-2">Fax</label><input type="hidden" id="uuid_fax" name="uuid_fax[]" value="1"  autocomplete="off">' +
+                '<input type="text" class="form-control input-form" id="fax" name="fax[]" placeholder="Fax" autocomplete="off"><div class="text-end mt-2 delete"><a type="button" href="javascript:void(0)"><i class="bi bi-trash text-danger"></i></a></div></div>' +
+                '<div class="text-danger mb-3 modal-contact-contact-errors"></div><div class="border-bottom mt-3 mb-3"></div></div></div>'
+
+            if ($('#nav-fax').length <= 1) {
+                $('#nav-fax .noData-fax').remove()
+            }
+
+            if ($('.contact-fax').length > 7) {
+                $('#nav-fax').addClass('tab-fax')
+            } else {
+                $('#nav-fax').removeClass('tab-fax')
+            }
+
+            $('#nav-fax').append(html)
 
         });
 

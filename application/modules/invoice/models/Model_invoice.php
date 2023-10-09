@@ -44,14 +44,22 @@ class Model_invoice extends MY_Model
             }
         }
 
-
-
         if (!empty($val->cus_no)) {
             $sql = $sql . " AND " . BILLPAY . ".mcustno = '$val->cus_no'";
         }
 
         if (!empty($val->type)) {
             $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
+        }
+
+        if (!empty($val->is_fax) && $val->is_fax != '1') {
+            $fax = $val->is_fax == '2' ? 1 : 0;
+            $sql = $sql . " AND " . CUST_NOTI . ".m_isfax = $fax";
+        }
+
+        if (!empty($val->is_email) && $val->is_email != '1') {
+            $email = $val->is_email == '2' ? 1 : 0;
+            $sql = $sql . " AND " . CUST_NOTI . ".m_isemail = $email";
         }
 
         $sql = $sql . " group by "  . BILLPAY . ".mdoctype,"  . BILLPAY . ".mcustno";
@@ -369,13 +377,6 @@ class Model_invoice extends MY_Model
     public function getReportUuid($uuid)
     {
         $result = (object)[];
-        // $sql = $this->db->select('*')
-        //     ->where("uuid", $uuid)
-        //     ->get('report_notification');
-        // $result = $sql->row();
-        // $sql->free_result();
-        // return $result;
-
         $sql =  "SELECT * FROM " . REPORT . " where uuid = '$uuid'";
         $stmt = sqlsrv_query($this->conn, $sql);
         if ($stmt == false) {
@@ -398,13 +399,7 @@ class Model_invoice extends MY_Model
 
     public function getReport()
     {
-        // $result = [];
-        // $sql = $this->db->select('*')
-        //     ->order_by('report_notification.created_date', 'desc')
-        //     ->get('report_notification');
-        // $result = $sql->result();
-        // $sql->free_result();
-        // return $result;
+        $result = [];
         $sql =  "SELECT * FROM " . REPORT . " order by " . REPORT . ".created_date desc";
         $stmt = sqlsrv_query($this->conn, $sql);
         if ($stmt == false) {
@@ -426,43 +421,6 @@ class Model_invoice extends MY_Model
 
         return $output;
     }
-
-    // public function getBillNo()
-    // {
-    //     $result = [];
-    //     $sql = $this->db->select('*')->get('report_notification');
-    //     $result = $sql->result();
-    //     $sql->free_result();
-    //     return $result;
-    // }
-
-    // public function getBill($condition)
-    // {
-    //     $val = json_decode(json_encode($condition));
-    //     $result = [];
-
-    //     if (!empty($val->cus_no)) {
-    //         $this->db->where('T1.cus_no', $val->cus_no);
-    //     }
-
-    //     if (!empty($val->bill_no)) {
-    //         $this->db->where('T1.bill_no', $val->bill_no);
-    //     }
-
-    //     if (!empty($val->created_date)) {
-    //         $this->db->where('T1.created_date', $val->created_date);
-    //     }
-
-    //     $sql = $this->db->select('T1.uuid,T1.bill_no,MAX(CONVERT(int,T1.is_email)) as is_email,MAX(T1.cus_main) as cus_main,MAX(T1.created_date) as created_date,MAX(T1.cus_no) as cus_no,MAX(T2.memail) as memail,MAX(T2.mfax) as mfax,MAX(T2.mcustname) as mcustname')
-    //         ->join('tbl_custtel T2', 'T2.mcustno = T1.cus_no', 'left')
-    //         ->order_by('bill_no', 'desc')
-    //         ->group_by('T1.uuid')
-    //         ->group_by('T1.bill_no')
-    //         ->get('report_notification T1');
-    //     $result = $sql->result();
-    //     $sql->free_result();
-    //     return $result;
-    // }
 
     public function getItem($macctdoc)
     {

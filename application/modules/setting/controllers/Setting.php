@@ -21,8 +21,6 @@ class Setting extends MY_Controller
         $endDate =  date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
         $typeSC =  '0281';
         $o = $this->model_system->getTypeBusiness()->items;
-        // var_dump($condition);
-        // exit;
 
         foreach ($o as $v) {
             $this->data['types'][$v->msaleorg] = $v;
@@ -100,7 +98,10 @@ class Setting extends MY_Controller
                 $page->detail_4,
                 $page->detail_5,
                 $page->sort,
-
+                $page->tran_header,
+                $page->tran_detail_1,
+                $page->tran_detail_2,
+                $page->tran_detail_3,
             ];
             $this->model_setting->create_tem_pdf($params);
         }
