@@ -127,10 +127,14 @@ class Customer extends MY_Controller
                     if (strpos($customer->tel, ",") > 0) {
                         $mobile = explode(',', $customer->tel);
                         foreach ($mobile as $tel) {
-                            array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                            if (!empty($tel) ||  trim($tel) != '-') {
+                                array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                            }
                         }
                     } else {
-                        array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                        if (!empty($customer->tel) ||  trim($customer->tel) != '-') {
+                            array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                        }
                     }
                 }
 
@@ -138,10 +142,14 @@ class Customer extends MY_Controller
                     if (strpos($customer->email, ";") > 0) {
                         $res = explode(';', $customer->email);
                         foreach ($res as $email) {
-                            array_push($emails, (object)['email' => $email]);
+                            if (!empty($email) ||  trim($email) != '-') {
+                                array_push($emails, (object)['email' => $email]);
+                            }
                         }
                     } else {
-                        array_push($emails, (object)['email' => $customer->email]);
+                        if (!empty($customer->email) ||  trim($customer->email) != '-') {
+                            array_push($emails, (object)['email' => $customer->email]);
+                        }
                     }
                 }
 
@@ -175,10 +183,14 @@ class Customer extends MY_Controller
                         if (strpos($customer->tel, ",") > 0) {
                             $mobile = explode(',', $customer->tel);
                             foreach ($mobile as $tel) {
-                                array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                                if (!empty($tel) ||  trim($tel) != '-') {
+                                    array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                                }
                             }
                         } else {
-                            array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                            if (!empty($customer->tel) ||  trim($customer->tel) != '-') {
+                                array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                            }
                         }
                     }
 
@@ -186,10 +198,14 @@ class Customer extends MY_Controller
                         if (strpos($customer->email, ";") > 0) {
                             $res = explode(';', $customer->email);
                             foreach ($res as $email) {
-                                array_push($emails, (object)['email' => $email]);
+                                if (!empty($email) ||  trim($email) != '-') {
+                                    array_push($emails, (object)['email' => $email]);
+                                }
                             }
                         } else {
-                            array_push($emails, (object)['email' => $customer->email]);
+                            if (!empty($customer->email) ||  trim($customer->email) != '-') {
+                                array_push($emails, (object)['email' => $customer->email]);
+                            }
                         }
                     }
 
@@ -257,14 +273,13 @@ class Customer extends MY_Controller
             });
         }
         if (!empty($params)) {
-            // var_dump($action);
-            // exit;
             if ($action == 'create') {
-                $checkCustomer = $this->model_system->findCustomerById($params['cus_no'])->items;
                 $checkCustomer = NULL;
+                $checkCustomer = $this->model_system->findCustomerById($params['cus_no'])->items;
+                $findCus = $this->model_customer->findChild($params['cus_no'])->items;
                 if (empty($checkCustomer)) {
                     $customer = [
-                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], NULL, NULL
+                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], NULL, NULL, $findCus->is_email, $findCus->is_fax
                     ];
 
                     $create = $this->model_customer->createCustomer($customer);

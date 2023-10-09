@@ -60,7 +60,7 @@
                                             <p class="d-none uncheck-<?php echo  $customer->cus_no; ?>"><?php echo (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && !empty($isCheck[$customer->cus_no]->uuid)) ? trim($isCheck[$customer->cus_no]->uuid) : ''; ?> </p>
                                         <?php  } ?>
                                         <?php if (empty($customer->type)) { ?>
-                                            <input class="form-check-input  cf-<?php echo  $customer->cus_no; ?> uncheck" type="checkbox" value="<?php echo $customer->cus_no; ?>" id="sendto" name="sendto[]" <?php echo $action == 'create' ? '' : (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && $action == 'update' ? 'checked' : '') ?> autocomplete="off">
+                                            <input class="form-check-input  cf-<?php echo  $customer->cus_no; ?> uncheck" type="checkbox" value="<?php echo $customer->cus_no; ?>" id="sendto" name="sendto[]" <?php echo $action == 'create' ? 'checked' : (!empty($isCheck[$customer->cus_no]) && $isCheck[$customer->cus_no]->is_check == 1 && $action == 'update' ? 'checked' : '') ?> autocomplete="off">
                                         <?php } ?>
                                         <label class="form-check-label" for="sendto">
                                             <?php echo $customer->cus_name . '(' . $customer->cus_no . ')'; ?>

@@ -210,7 +210,7 @@
                             let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
                             let _i = 0;
                             let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 1 ? full.emails.slice(0, 3).map((x, j) => j == 1 ? x.email : x.email + ' ') : full.emails[0].email ? full.emails[0].email : '-' : ''
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 0 ? full.emails.slice(0, 3).map((x, j) => x.email ? x.email + ' ' : '') : full.emails[0].email ? full.emails[0].email : '-' : ' '
                             let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + ' ')
 
                             return full.emails.length > 0 ? '<div class="tb-15" id="email_' + full.info.cus_no + '">' +
@@ -226,7 +226,7 @@
                             let count = full.tels.length > 0 ? full.tels.slice(3).length : 0
                             let _i = 0;
                             let move = full.tels.length > 3 ? '&nbsp;&nbsp;<span id="headingtel_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsetel_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 1 ? full.tels.slice(0, 3).map((x, j) => x.tel ? j == 1 ? x.tel : x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
+                            let show3Top = full.tels.length > 0 ? full.tels.length > 3 ? full.tels.slice(0, 3).map((o, i) => o.tel ? i < 2 ? o.tel + ' ' : o.tel : '') : full.tels.length > 0 ? full.tels.slice(0, 3).map((x, j) => x.tel ? x.tel + ' ' : '') : full.tels[0].tel ? full.tels[0].tel : '-' : ''
 
 
                             let moveShow = full.tels.slice(3).map((x, i) => x.tel ? _i++ == count ? x.tel : x.tel + ' ' : '')
@@ -244,7 +244,7 @@
                             let count = full.faxs.length > 0 ? full.faxs.slice(3).length : 0
                             let _i = 0;
                             let move = full.faxs.length > 3 ? '&nbsp;&nbsp;<span id="headingtel_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapsetel_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.faxs.length > 0 ? full.faxs.length > 3 ? full.faxs.slice(0, 3).map((o, i) => o.fax ? i < 2 ? o.fax + ' ' : o.fax : '') : full.faxs.length > 1 ? full.faxs.slice(0, 3).map((x, j) => x.fax ? j == 1 ? x.fax : x.fax + ' ' : '') : full.faxs[0].fax ? full.faxs[0].fax : '-' : ''
+                            let show3Top = full.faxs.length > 0 ? full.faxs.length > 3 ? full.faxs.slice(0, 3).map((o, i) => o.fax ? i < 2 ? o.fax + ' ' : o.fax : '') : full.faxs.length > 0 ? full.faxs.slice(0, 3).map((x, j) => x.fax ? x.fax + ' ' : '') : full.faxs[0].fax ? full.faxs[0].fax : '-' : ''
 
 
                             let moveShow = full.faxs.slice(3).map((x, i) => x.fax ? _i++ == count ? x.fax : x.fax + ' ' : '')
