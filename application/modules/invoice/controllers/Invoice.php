@@ -1,5 +1,8 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 class Invoice extends MY_Controller
 {
 
@@ -231,93 +234,6 @@ class Invoice extends MY_Controller
         return true;
     }
 
-    // public function ramdomBillNo($main_id)
-    // {
-
-    //     $random = $this->runNumber($main_id);
-    //     $num = '8' . substr($main_id, 6) . substr(date('Ymd'), 2) . $random;
-    //     return $num;
-    // }
-
-
-    // public function runNumber($main_id)
-    // {
-    //     $number = '00001';
-    //     $report = $this->model_invoice->getReportId($main_id)->items;
-    //     if (!empty($report)) {
-    //         if ($main_id == $report->cus_main && date('Y') == date('Y', strtotime($report->created_date))) {
-    //             $number = $this->checkNum(substr($report->bill_no, 13));
-    //         }
-    //     }
-
-    //     return $number;
-    // }
-
-    // public function checkNum($no)
-    // {
-    //     $calculate = $this->switchCheck($no);
-    //     $length = strlen($calculate);
-    //     $num = $calculate;
-
-    //     if ($length == 1) {
-    //         $num = '0000' . strval($calculate);
-    //     }
-    //     if ($length == 2) {
-    //         $num = '000' . strval($calculate);
-    //     }
-    //     if ($length == 3) {
-    //         $num = '00' . strval($calculate);
-    //     }
-    //     if ($length == 4) {
-    //         $num = '0' . strval($calculate);
-    //     }
-
-    //     return $num;
-    // }
-
-    // public function switchCheck($no)
-    // {
-
-    //     $num = (int)substr($no, 3) + 1;
-    //     if (substr($no, 0) == '0' && substr($no, 1) == '0') {
-    //         $num = (int)substr($no, 2) + 1;
-    //     }
-
-    //     if (substr($no, 0) == '0' && substr($no, 1) != '0') {
-    //         $num = (int)substr($no, 1) + 1;
-    //     }
-
-    //     if (substr($no, 0) != '0') {
-    //         $num = (int)$no + 1;
-    //     }
-
-    //     return $num;
-    // }
-
-    // public function genType($res)
-    // {
-    //     $sortType = 0;
-    //     if (!empty($res == 'RA')) {
-    //         $sortType  = 1;
-    //     }
-    //     if (!empty($res == 'RD')) {
-    //         $sortType  = 2;
-    //     }
-    //     if (!empty($res == 'DC')) {
-    //         $sortType  = 5;
-    //     }
-    //     if (!empty($res == 'RB')) {
-    //         $sortType  = 4;
-    //     }
-    //     if (!empty($res == 'RC')) {
-    //         $sortType  = 3;
-    //     }
-    //     if (!empty($res == 'RE')) {
-    //         $sortType  = 6;
-    //     }
-    //     return  $sortType;
-    // }
-
     public function genCustomerChild($id)
     {
         $result = ['status' => 500, 'msg' => 'Can not check data !'];
@@ -340,9 +256,33 @@ class Invoice extends MY_Controller
         $this->responseJSON($result);
     }
 
-    // public function email($params)
-    // {
-    //     $params = $this->input->post();
-    //     return $this->genEmail($params);
-    // }
+    public function genExcel($uuid)
+    {
+        require_once  './vendor/autoload.php';
+        use PhpOffice\PhpSpreadsheet\Spreadsheet;
+        use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+        // $pdf = $this->genPDF($uuid, $type);
+        // $inputFileType = 'Pdf';
+        // $inputFileName = 'path/to/your/pdf/file.pdf';
+        // if ($pdf) {
+        // $outputFileType = 'Xlsx';
+        // $outputFileName = 'Report_' . $uuid . '.xlsx';
+        $className = \PhpOffice\PhpSpreadsheet\Writer\Xlsx::class;
+        \PhpOffice\PhpSpreadsheet\IOFactory::registerWriter('Xlsx', $className);
+        // $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load('template.xlsx');
+        // $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Mpdf');
+
+        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader("Xlsx");
+        $spreadsheet = $reader->load("05featuredemo.xlsx");
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
+        $writer->save("05featuredemo.xlsx");
+        // $reader = IOFactory::createReader('Pdf');
+        // $spreadsheet = $reader->load('Pdf');
+
+        // $writer = IOFactory::createWriter($pdf, $outputFileType);
+        // $writer =  \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Pdf');
+        // $writer->save($outputFileName);
+        // }
+    }
 }

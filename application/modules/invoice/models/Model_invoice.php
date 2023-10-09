@@ -377,7 +377,16 @@ class Model_invoice extends MY_Model
     public function getReportUuid($uuid)
     {
         $result = (object)[];
-        $sql =  "SELECT * FROM " . REPORT . " where uuid = '$uuid'";
+        // $sql =  "SELECT MAX(" . REPORT . ".bill_no) as bill_no, MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . REPORT . ".uuid) as uuid,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(" . CUSTOMER . ".is_email) as is_email,MAX(" . CUSTOMER . ".is_fax) as is_fax FROM " . REPORT . "left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no  where uuid = '$uuid' ";
+
+
+        $select =  "MAX(" . REPORT . ".bill_no) as bill_no,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . REPORT . ".cus_main) as cus_main,MAX(" . REPORT . ".start_date) as start_date,MAX(" . REPORT . ".end_date) as end_date,MAX(" . REPORT . ".uuid) as uuid,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax ";
+
+        $join = " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no ";
+
+        $sql =  "SELECT $select FROM " . REPORT . "$join" . " where " . REPORT . ".uuid = '$uuid' ";
+
+
         $stmt = sqlsrv_query($this->conn, $sql);
         if ($stmt == false) {
             $output = (object)[
@@ -393,6 +402,9 @@ class Model_invoice extends MY_Model
                 'msg'  => "success",
             ];
         }
+        // var_dump(sqlsrv_errors());
+        // var_dump($result);
+        // exit;
 
         return $output;
     }

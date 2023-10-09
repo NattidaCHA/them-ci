@@ -504,6 +504,14 @@ class MY_Controller extends CI_Controller
     }
 
 
+    // protected function genExcel($uuid, $type)
+    // {
+    //     require_once  './vendor/autoload.php';
+
+    //     $pdf = $this->genPDF($uuid, $type);
+    // }
+
+
     protected function ramdomBillNo($main_id)
     {
 

@@ -88,7 +88,25 @@
         </form>
     </div>
 </div>
-
+<div class="modal fade modal_excel" id="modal_excel" tabindex="-1" aria-labelledby="excelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex">
+                    <h5 class="modal-title text-muted header_text me-3" id="excelModalLabel">ใบแจ้งเตือน</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="flex-column cs-list invoice_ex">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary close" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <script>
@@ -120,33 +138,50 @@
                         let formData = $('.invoice').serializeArray();
                         $.post('<?php echo $http ?>/invoice/create/' + mainID + '/' + '<?php echo $start ?>' + '/' + '<?php echo $end ?>', formData).done(function(res) {
                             if (res.status == 200) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    text: 'สร้างบิลเรียบร้อย',
-                                    confirmButtonText: 'ตกลง'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        let key = Object.keys(res.data['data'])
-                                        key.map(o => {
-                                            setTimeout(function() {
-                                                window.open('<?php echo WWW; ?><?php echo $http ?>/report/pdf/' + res.data['data'][o].uuid, '_blank')
-                                            }, 500);
+                                // Swal.fire({
+                                //     icon: 'success',
+                                //     text: 'สร้างบิลเรียบร้อย',
+                                //     confirmButtonText: 'ตกลง'
+                                // }).then((result) => {
+                                //     if (result.isConfirmed) {
+                                //         let key = Object.keys(res.data['data'])
+                                //         key.map(o => {
+                                //             setTimeout(function() {
+                                //                 window.open('<?php echo WWW; ?><?php echo $http ?>/report/pdf/' + res.data['data'][o].uuid, '_blank')
+                                //             }, 500);
 
-                                        })
+                                //         })
 
-                                        setTimeout(function() {
-                                            window.location = '<?php echo $http; ?>/report';
-                                        }, 2000);
+                                //         setTimeout(function() {
+                                //             window.location = '<?php echo $http; ?>/report';
+                                //         }, 2000);
 
 
-                                        $.post('<?php echo $http ?>/api/addMainLog/create', {
-                                            page: 'สร้างใบแจ้งเตือน',
-                                            url: CURRENT_URL,
-                                            detail: JSON.stringify(res.data['data']),
-                                        });
+                                //     }
+                                // })
+                                $('.modal_excel').modal('show');
+                                // let 
+                                let key = Object.keys(res.data['data'])
+                                console.log(res.data['data'])
+                                let html = "";
+                                key.map(o => {
+                                    let mail = res.data['data'][o].is_email ? '<i class="bi bi-envelope text-primary"></i>' : ''
+                                    let fax = res.data['data'][o].is_fax ? '<i class="bi bi-printer"></i>' : ''
 
-                                    }
+                                    let pdf = '<a class="me-3 ms-2 text-danger" href="<?php echo $http ?>/report/pdf/' + res.data['data'][o].uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>'
+
+                                    let excel = '<a type="button" class="me-2 _export_ex" href="javascript:void(0)" data-uuid="' + res.data['data'][o].uuid + '" id="excel"><i class="bi bi-file-earmark-pdf"></i></a>'
+
+                                    html += '<div class="d-flex">' + mail + fax + '<span class="ms-2">' + res.data['data'][o].cus_name + ' (' + res.data['data'][o].cus_no + ')</span>' + pdf + '</div>'
+                                    // res.data['data'][o].uuid
                                 })
+                                $('.invoice_ex').html(html)
+
+                                $.post('<?php echo $http ?>/api/addMainLog/create', {
+                                    page: 'สร้างใบแจ้งเตือน',
+                                    url: CURRENT_URL,
+                                    detail: JSON.stringify(res.data['data']),
+                                });
                             } else {
                                 if (res.error) {
                                     Swal.fire("Error", res.error, "error");
@@ -229,6 +264,15 @@
                 }
             });
 
+        $('.modal_excel').on('click', '._export_ex', function(e) {
+            e.preventDefault();
+            let uuid = $(this).attr("data-uuid")
+            $.post('<?php echo $http ?>/genExcel/' + uuid + 'invoice').done(function(res) {
+
+            });
+
+        })
+
 
         function calculate(key) {
             let total = 0
@@ -257,13 +301,13 @@
 
 
         function readyProcess(wait = false) {
-            if (wait) {
-                $('.cf_bill').hide();
-                $('.cf_bill-loading').show();
-            } else {
-                $('.cf_bill').show();
-                $('.cf_bill-loading').hide();
-            }
+            // if (wait) {
+            //     $('.cf_bill').hide();
+            //     $('.cf_bill-loading').show();
+            // } else {
+            //     $('.cf_bill').show();
+            //     $('.cf_bill-loading').hide();
+            // }
         }
 
         function checkDisable() {
