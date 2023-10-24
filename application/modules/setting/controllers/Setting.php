@@ -20,6 +20,7 @@ class Setting extends MY_Controller
         $startDate =  date('Y-m-d');
         $endDate =  date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
         $typeSC =  '0281';
+        $is_contact =  '1';
         $o = $this->model_system->getTypeBusiness()->items;
 
         foreach ($o as $v) {
@@ -37,6 +38,7 @@ class Setting extends MY_Controller
         $this->data['typeSC'] = $typeSC;
         $this->data['startDate'] = $startDate;
         $this->data['endDate'] = $endDate;
+        $this->data['is_contact'] = $is_contact;
         $this->loadAsset(['dataTables', 'datepicker', 'select2', 'parsley']);
         $this->view('setting_form');
     }
@@ -192,6 +194,8 @@ class Setting extends MY_Controller
             } else {
                 $result = $this->model_setting->getInvoice((object)$params)->items;
                 $process = $this->processJob($result, $params['startDate'], $params['endDate']);
+                // var_dump($process);
+                // exit;
                 if (!empty($process)) {
                     if ($process->status == 200) {
                         $output['status'] = $process->status;
@@ -278,7 +282,7 @@ class Setting extends MY_Controller
         return false;
     }
 
-    public function processJob($result, $start, $end)
+    public function processJob($result, $start, $end, $created_by = FALSE)
     {
         if (!empty($result)) {
             foreach ($result as $key => $res) {
@@ -294,7 +298,7 @@ class Setting extends MY_Controller
                     $end,
                     FALSE,
                     date("Y-m-d H:i:s"),
-                    NULL,
+                    !empty($created_by) ? $created_by : NULL,
                     NULL
                 ];
 
@@ -352,7 +356,7 @@ class Setting extends MY_Controller
             $result = $this->model_setting->getInvoice($params)->items;
             echo '<p>Total ' . count(array_keys($result)) . ' รหัสลูกค้า ' . implode(",\r\n", array_keys($result)) . '</p>';
             if (!empty($result)) {
-                $process = $this->processJob($result, $params->startDate, $params->endDate);
+                $process = $this->processJob($result, $params->startDate, $params->endDate, 'System');
                 if (!empty($process)) {
                     if ($process->status == 200) {
                         echo '<pre>Run Job Success</pre>';

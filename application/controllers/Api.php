@@ -9,6 +9,7 @@ class Api extends MY_Controller
         parent::__construct();
         $this->load->model('model_system');
         $this->load->model('model_report');
+        $this->load->model('model_invoice');
     }
 
 

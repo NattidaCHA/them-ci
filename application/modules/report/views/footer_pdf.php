@@ -9,28 +9,11 @@
     }
 
     .pdf {
-        height: 100%;
+        height: 93%;
         margin: 2% 5% 2% 5%;
         border: 2px solid #cdcdcd;
         display: flex;
         flex-direction: column;
-    }
-
-    .header {
-        display: flex;
-        flex-direction: row;
-        padding: 5px 15px 0px 15px;
-    }
-
-    .half-10 {
-        float: left;
-        width: 12%;
-    }
-
-    .half-30 {
-        float: left;
-        width: 25%;
-        /* margin-top: 2px; */
     }
 
 
@@ -550,7 +533,7 @@
     }
 
     .footer {
-        margin-top: 5px;
+        margin-top: 10px;
     }
 
     .boder-noti {
@@ -576,10 +559,7 @@
 
     .box-tran {
         padding: 5px;
-        margin-top: 50px;
-        border-top: 1px solid gray;
         width: 100%;
-        /* height: 20px; */
         font-size: 14px;
     }
 
@@ -590,7 +570,7 @@
     }
 
     .text-contact {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: bold;
         text-align: center;
     }
@@ -694,36 +674,18 @@
                     <p>ผู้นำฝาก…………………………………………</p>
                     <p>โทร………………………………………………</p>
                 </div>
-                <!-- <div class="qr-scan">
-                    <img src="<?php //echo $http; 
+                <div class="qr-scan">
+                    <img src="<?php echo $http;
                                 ?>assets/img/qrcode/qrcode.png" class="logo-qr-scan">
                 </div>
                 <div class="bacode-scan">
-                    <img src="<?php //echo $http; 
+                    <img src="<?php echo $http;
                                 ?>assets/img/qrcode/barcode.jpg" class="logo-bacode-scan">
-                    <p style="font-size: 12px;"><?php //echo $data->report->barcode->code; 
+                    <p style="font-size: 12px;"><?php echo $data->report->barcode->code;
                                                 ?></p>
-                </div> -->
+                </div>
             </div>
-
-            <div class="box-tran">
-                <p><u><strong><?php echo  $data->tem['bank_tran_detail'][0]->tran_header; ?></strong></u></p>
-                <ol>
-                    <li>
-                        <p><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_1; ?></p>
-                        </il>
-                    <li>
-                        <p><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_2; ?></p>
-                        </il>
-                </ol>
-                <?php foreach ($data->tem['bank_tran'] as $tran) { ?>
-                    <p style="margin-left: 20px;"><strong>
-                            <span style="margin-right: 5%;"><?php echo $tran->account_name; ?></span>
-                            <span style="margin-right: 150px;"><?php echo $tran->branch; ?></span>
-                            <span style="margin-right: 150px;"><?php echo $tran->account_no; ?></span>
-                        </strong> </p>
-                <?php } ?>
-            </div>
+            <p class="text-danger mt-05">* หมายเหตุ QR code & Barcode สามารถสแกนได้เฉพาะธนาคารไทยพาณิชย์</p>
             <div class="box-detail-payment">
                 <p><u><strong><?php echo  $data->tem['footer'][0]->payment_title; ?></strong></u></p>
                 <ol>
@@ -753,6 +715,25 @@
                 <div class="text-contact"><?php echo  $data->tem['footer'][0]->detail_5; ?></div>
             </div>
 
+            <div class="box-tran">
+                <p><u><strong><?php echo  $data->tem['bank_tran_detail'][0]->tran_header; ?></strong></u></p>
+                <ol>
+                    <li>
+                        <p><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_1; ?></p>
+                        </il>
+                    <li>
+                        <p><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_2; ?></p>
+                        </il>
+                </ol>
+                <?php foreach ($data->tem['bank_tran'] as $tran) { ?>
+                    <p style="margin-left: 20px;"><strong>
+                            <span style="margin-right: 5%;"><?php echo $tran->account_name; ?></span>
+                            <span style="margin-right: 150px;"><?php echo $tran->branch; ?></span>
+                            <span style="margin-right: 150px;"><?php echo $tran->account_no; ?></span>
+                        </strong> </p>
+                <?php } ?>
+                <p><strong><?php echo  $data->tem['bank_tran_detail'][0]->tran_detail_3; ?></strong></p>
+            </div>
         </div>
     </div>
 </div>

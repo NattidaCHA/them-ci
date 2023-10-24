@@ -437,13 +437,13 @@ class Model_report extends MY_Model
                 // echo '</pre>';
                 // exit;
                 $data->total_items = count($itemLists);
-                $size = count($itemLists) > 40 ? 40 : 40;
+                $size = count($itemLists) > 40 ? 50 : 40;
                 $count = ceil(count($itemLists) / $size);
                 $data->total_page = $count;
                 $data->total = $this->calculateTotallChild($itemLists);
                 //"|010556217035200\n . $info->mcustno .\n. str_replace('N', '8', $bill_info->bill_no) .\n0"
                 //$code =  "|010556217035200\r\n" . $info->mcustno .  "\r\n" . str_replace('N', '8', $bill_info->bill_no) .   "\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));0273022069
-                $code = "|0105562170352\r\n$info->mcustno\r\n$bill_info->bill_no\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
+                $code = "|0273022069\r\n$info->mcustno\r\n$bill_info->bill_no\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
                 $data->qrcode = $this->qrcode($code);
                 $data->barcode->image = $this->barcode($code);
                 $data->barcode->code = $code;
@@ -463,6 +463,64 @@ class Model_report extends MY_Model
             // var_dump($data);
             // echo '</pre>';
             // exit;
+        }
+        return $data;
+    }
+
+    public function excel($bill_id)
+    {
+        $data = (object)[
+            'info' => (object)[],
+            'bill_info' => (object)[],
+            'lists' => [],
+            'total' => (object)[
+                'total_debit' => 0,
+                'total_credit' => 0,
+                'total_summary' => 0
+            ],
+            'total_items' => 0,
+            'total_page' => 0,
+            'payment' => [],
+            'barcode' => (object)[
+                'code' => '',
+                'image' => ''
+            ],
+            'qrcode' => ''
+        ];
+
+        if (!empty($bill_id)) {
+            $bill_info = $this->getReportUuid($bill_id)->items;
+            $itemLists = $this->getListItem($bill_id)->items;
+            $data->payment = $this->getPayment()->items;
+            $info = (object)[];
+
+            if (!empty($bill_info)) {
+                $data->bill_info = $bill_info;
+                $info = $this->getCustomerInfo($bill_info->cus_no)->items;
+                if (!empty($info)) {
+                    $data->info = $info;
+                }
+            }
+
+            if (!empty($itemLists)) {
+                foreach ($itemLists as $val) {
+                    if (!empty($val)) {
+                        $val->type = $this->genType($val->mdoctype)->type;
+                        $val->sortType = $this->genType($val->mdoctype)->sortType;
+                    }
+                }
+
+                $data->total_items = count($itemLists);
+                $size = count($itemLists) > 40 ? 40 : 40;
+                $count = ceil(count($itemLists) / $size);
+                $data->total_page = $count;
+                $data->total = $this->calculateTotallChild($itemLists);
+                $code = "|0273022069\r\n$info->mcustno\r\n$bill_info->bill_no\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
+                $data->qrcode = $this->qrcode($code);
+                $data->barcode->image = $this->barcode($code);
+                $data->barcode->code = $code;
+                $data->lists = $itemLists;
+            }
         }
         return $data;
     }
@@ -606,6 +664,8 @@ class Model_report extends MY_Model
         $border = 2; //กำหนดความหน้าของเส้น Barcode
         $height = 1; //กำหนดความสูงของ Barcode
 
+        // var_dump(FCPATH);
+        // exit;
         return file_put_contents(FCPATH . 'assets/img/qrcode/barcode.jpg', $generator->getBarcode($code, $generator::TYPE_CODE_128, $border, $height));
     }
 
@@ -792,9 +852,6 @@ class Model_report extends MY_Model
     {
         $genCfCall = $this->genCfCallByuuid($report_uuid)->items;
         $genTel = $this->getTelById($cus_no);
-        // var_dump($genCfCall);
-        // exit;
-
         return  (object)['tels' => $genTel, 'cf_call' => $genCfCall];
     }
 

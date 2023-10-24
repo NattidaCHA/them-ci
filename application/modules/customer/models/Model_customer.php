@@ -11,6 +11,7 @@ class Model_customer extends MY_Model
     public function __construct()
     {
         parent::__construct();
+        $this->load->model('invoice/model_invoice');
     }
 
     public function getContact()
@@ -154,9 +155,6 @@ class Model_customer extends MY_Model
         if (!empty($res)) {
             return true;
         }
-
-        var_dump(sqlsrv_errors());
-        exit;
 
         return FALSE;
     }
@@ -510,7 +508,7 @@ class Model_customer extends MY_Model
         return FALSE;
     }
 
-    public function countCustomer($cus_no, $is_email, $is_fax)
+    public function countCustomer($cus_no, $is_contact)
     {
         $result = [];
         $sql =  "SELECT * FROM " . CUSTOMER;
@@ -518,23 +516,30 @@ class Model_customer extends MY_Model
         if (!empty($cus_no) && $cus_no != '1') {
             $sql = $sql . " where cus_no = '$cus_no'";
 
-            if (!empty($is_email)) {
-                $sql = $sql . " AND is_email in ($is_email)";
-            }
+            if (!empty($is_contact) && $is_contact != '1') {
+                $isContact = $this->model_invoice->checkIsContact($is_contact);
+                if ($isContact->is_email != 2) {
+                    $sql = $sql . " AND " . CUSTOMER . ".is_email in ($isContact->is_email)";
+                }
 
-            if (!empty($is_fax)) {
-                $sql = $sql . " AND is_fax in ($is_fax)";
+                if ($isContact->is_fax != 2) {
+                    $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+                }
             }
         } else {
-            if (!empty($is_email)) {
-                $sql = $sql . " where is_email in ($is_email)";
+            if (!empty($is_contact) && $is_contact != '1') {
+                $isContact = $this->model_invoice->checkIsContact($is_contact);
 
-                if (!empty($is_fax)) {
-                    $sql = $sql . " AND is_fax in ($is_fax)";
-                }
-            } else {
-                if (!empty($is_fax)) {
-                    $sql = $sql . " where is_fax in ($is_fax)";
+                if ($isContact->is_email != 2) {
+                    $sql = $sql . " where " . CUSTOMER . ".is_email in ($isContact->is_email)";
+
+                    if ($isContact->is_fax != 2) {
+                        $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+                    }
+                } else {
+                    if ($isContact->is_fax != 2) {
+                        $sql = $sql . " where " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+                    }
                 }
             }
         }
@@ -561,10 +566,10 @@ class Model_customer extends MY_Model
         return $output;
     }
 
-    public function getCustomerTb($cus_no = FALSE, $is_email = FALSE, $is_fax = FALSE, $limit, $page)
+    public function getCustomerTb($cus_no = FALSE, $is_contact = FALSE, $limit, $page)
     {
 
-        $totalRecord = !empty($this->countCustomer($cus_no, $is_email, $is_fax)) ? count($this->countCustomer($cus_no, $is_email, $is_fax)->items) : 0;
+        $totalRecord = !empty($this->countCustomer($cus_no, $is_contact)) ? count($this->countCustomer($cus_no, $is_contact)->items) : 0;
         $result = [];
         $lists = [];
         $offset = max($page - 1, 0) * $limit;
@@ -575,23 +580,30 @@ class Model_customer extends MY_Model
         if (!empty($cus_no) && $cus_no != '1') {
             $sql = $sql . " where cus_no = '$cus_no'";
 
-            if (!empty($is_email)) {
-                $sql = $sql . " AND is_email in ($is_email)";
-            }
+            if (!empty($is_contact) && $is_contact != '1') {
+                $isContact = $this->model_invoice->checkIsContact($is_contact);
+                if ($isContact->is_email != 2) {
+                    $sql = $sql . " AND " . CUSTOMER . ".is_email in ($isContact->is_email)";
+                }
 
-            if (!empty($is_fax)) {
-                $sql = $sql . " AND is_fax in ($is_fax)";
+                if ($isContact->is_fax != 2) {
+                    $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+                }
             }
         } else {
-            if (!empty($is_email)) {
-                $sql = $sql . " where is_email in ($is_email)";
+            if (!empty($is_contact) && $is_contact != '1') {
+                $isContact = $this->model_invoice->checkIsContact($is_contact);
 
-                if (!empty($is_fax)) {
-                    $sql = $sql . " AND is_fax in ($is_fax)";
-                }
-            } else {
-                if (!empty($is_fax)) {
-                    $sql = $sql . " where is_fax in ($is_fax)";
+                if ($isContact->is_email != 2) {
+                    $sql = $sql . " where " . CUSTOMER . ".is_email in ($isContact->is_email)";
+
+                    if ($isContact->is_fax != 2) {
+                        $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+                    }
+                } else {
+                    if ($isContact->is_fax != 2) {
+                        $sql = $sql . " where " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+                    }
                 }
             }
         }

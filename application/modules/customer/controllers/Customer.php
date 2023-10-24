@@ -23,6 +23,7 @@ class Customer extends MY_Controller
         parent::__construct();
         $this->load->model('model_customer');
         $this->load->model('model_system');
+        $this->load->model('invoice/model_invoice');
     }
 
     private function setPagination()
@@ -83,13 +84,11 @@ class Customer extends MY_Controller
             $this->data['days'][$day->id] = $day;
         }
         $cus_no = $this->input->get('customer') ? $this->input->get('customer') : '1';
-        $is_fax = $this->input->get('is_fax') ? $this->input->get('is_fax') : '1';
-        $is_email = $this->input->get('is_email') ? $this->input->get('is_email') : '1';
+        $is_contact = $this->input->get('is_contact') ? $this->input->get('is_contact') : '1';
         $table = $this->model_system->getPageIsShow()->items;
         $this->data['page_header'] = 'ข้อมูลลูกค้า';
         $this->data['cus_no'] = $cus_no;
-        $this->data['is_fax'] = $is_fax;
-        $this->data['is_email'] = $is_email;
+        $this->data['is_contact'] = $is_contact;
         $this->data['table'] = $table['customer'];
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('customer_lists');
@@ -813,7 +812,7 @@ class Customer extends MY_Controller
         return $create;
     }
 
-    public function listCustomer($cus_no = FALSE, $is_email = FALSE, $is_fax = FALSE)
+    public function listCustomer($cus_no = FALSE, $is_contact = FALSE)
     {
         $result = [];
         $total_filter = 0;
@@ -822,30 +821,29 @@ class Customer extends MY_Controller
         $this->setCondition();
         $this->queryCondition['page'] = $this->page;
         $this->queryCondition['limit'] = $this->limit;
+        // if (!empty($is_email) && $is_email != '1') {
+        //     if ($is_email == '2') {
+        //         $is_email = 1;
+        //     } else {
+        //         $is_email = '0,NULL';
+        //     }
+        // } else {
+        //     $is_email = FALSE;
+        // }
 
-        if (!empty($is_email) && $is_email != '1') {
-            if ($is_email == '2') {
-                $is_email = 1;
-            } else {
-                $is_email = '0,NULL';
-            }
-        } else {
-            $is_email = FALSE;
-        }
-
-        if (!empty($is_fax) && $is_fax != '1') {
-            if ($is_fax == '2') {
-                $is_fax = 1;
-            } else {
-                $is_fax = '0,NULL';
-            }
-        } else {
-            $is_fax = FALSE;
-        }
+        // if (!empty($is_fax) && $is_fax != '1') {
+        //     if ($is_fax == '2') {
+        //         $is_fax = 1;
+        //     } else {
+        //         $is_fax = '0,NULL';
+        //     }
+        // } else {
+        //     $is_fax = FALSE;
+        // }
 
         $total = 0;
 
-        if ($apiData = $this->model_customer->getCustomerTb($cus_no, $is_email, $is_fax, $this->limit, $this->page)) {
+        if ($apiData = $this->model_customer->getCustomerTb($cus_no, $is_contact, $this->limit, $this->page)) {
             if (!empty($apiData->lists->error)) {
                 $this->responseJSON(['error' => $apiData->lists->error]);
             } else {

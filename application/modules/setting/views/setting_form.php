@@ -159,28 +159,23 @@
                                 </div>
                                 <div class="box-search-2">
                                     <div class="input-search">
-                                        <label for="type" class="form-label">Fax</label>
-                                        <select class="form-select" id="is_fax" name="is_fax">
-                                            <option value="1" selected>ทั้งหมด</option>
-                                            <option value="2">มี Fax</option>
-                                            <option value="3">ไม่มี Fax</option>
+                                        <label for="type" class="form-label">ช่องทางการติดต่อ</label>
+                                        <select class="form-select" id="is_contact" name="is_contact">
+                                            <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                                            <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
+                                            <option value="3" <?php echo $is_contact == '3' ? 'selected' : ''; ?>>Fax</option>
+                                            <option value="4" <?php echo $is_contact == '4' ? 'selected' : ''; ?>>Email & Fax</option>
+                                            <option value="5" <?php echo $is_contact == '5' ? 'selected' : ''; ?>>No Fax</option>
+                                            <option value="6" <?php echo $is_contact == '6' ? 'selected' : ''; ?>>No Email</option>
+                                            <option value="7" <?php echo $is_contact == '7' ? 'selected' : ''; ?>>No Fax & No Email</option>
+                                            <option value="8" <?php echo $is_contact == '8' ? 'selected' : ''; ?>>Email & No Fax</option>
+                                            <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
                                         </select>
                                     </div>
 
-                                    <div class="input-search">
-                                        <label for="type" class="form-label">อีเมล</label>
-                                        <select class="form-select" id="is_email" name="is_email">
-                                            <option value="1" selected>ทั้งหมด</option>
-                                            <option value="2">มีอีเมล</option>
-                                            <option value="3">ไม่มีอีเมล</option>
-                                        </select>
-                                    </div>
-                                    <!-- <div class="box-text">
-                        <p class="text-form"></p>
-                    </div> -->
                                     <div class="btn-full mb-3 mt-4">
-                                        <button type="button" class="btn btn-primary submit">ค้นหา</button>
-                                        <!-- <button type="submit" class="btn btn-success">Export excel</button> -->
+                                        <button type="button" class="btn btn-primary submit" disabled>ค้นหา</button>
+                                        <button type="button" class="btn btn-success export" disabled>Export excel</button>
                                     </div>
                                 </div>
                             </div>
@@ -262,33 +257,9 @@
         $('.repairPage').on('click', '.submit', function(e) {
             e.preventDefault();
             $('.repairPage .submit').prop("disabled", true);
+            $('.repairPage .export').prop("disabled", true);
             $('#tabs-text-4 .alert').removeClass('d-none').addClass('d-block')
-            let formData = [{
-                name: 'dateSelect',
-                value: $('#dateSelect').val()
-            }, {
-                name: 'startDate',
-                value: $('#startDate').val()
-            }, {
-                name: 'endDate',
-                value: $('#endDate').val()
-            }, {
-                name: 'cus_no',
-                value: $('#customer').val()
-            }, {
-                name: 'type',
-                value: $('#type').val()
-            }, {
-                name: 'is_bill',
-                value: $('#is_bill').val()
-            }, {
-                name: 'is_email',
-                value: $('#is_email').val()
-            }, {
-                name: 'is_fax',
-                value: $('#is_fax').val()
-            }]
-
+            let formData = $('.repairPage').serializeArray();
             $.post("<?php echo $http ?>/setting/repair", formData).done(function(res) {
                 if (res.status === 200) {
                     $('#tabs-text-4 .alert').removeClass('d-block').addClass('d-none')
@@ -298,6 +269,7 @@
                         confirmButtonText: 'ตกลง'
                     })
                     $('.repairPage .submit').prop("disabled", false);
+                    $('.repairPage .export').prop("disabled", false);
 
                     $.post('<?php echo $http ?>/api/addMainLog/update', {
                         page: 'ซ่อมข้อมูล',
@@ -307,6 +279,7 @@
                 } else {
                     $('#tabs-text-4 .alert').removeClass('d-block').addClass('d-none')
                     $('.repairPage .submit').prop("disabled", false);
+                    $('.repairPage .export').prop("disabled", false);
                     if (res.error) {
                         Swal.fire({
                             icon: 'error',
@@ -319,7 +292,25 @@
                 }
             });
 
+        }).on('click', '.export', function(e) {
+            e.preventDefault();
+            let formData = $('.repairPage').serializeArray();
+            let path = formData[0].name + '=' + formData[0].value + '&' + formData[1].name + '=' + formData[1].value + '&' + formData[2].name + '=' + formData[2].value + '&' + formData[3].name + '=' + formData[3].value + '&' + formData[4].name + '=' + formData[4].value + '&' + formData[5].name + '=' + formData[5].value + '&' + formData[6].name + '=' + formData[6].value
+            window.open("<?php echo $http ?>/invoice/genInvoiceListExcel?" + path, '_self');
+
         });
+
+
+        $('.repairPage #dateSelect').on('change', function(e) {
+            let val = $(this).val()
+            if (val) {
+                $('.repairPage .export').prop('disabled', false)
+                $('.repairPage .submit').prop('disabled', false)
+            } else {
+                $('.repairPage .export').prop('disabled', true)
+                $('.repairPage .submit').prop('disabled', true)
+            }
+        })
 
         function process(tab, formData) {
             $.post("<?php echo $http ?>/setting/process/<?php echo $tab; ?>", formData).done(function(res) {

@@ -73,7 +73,7 @@ class Report extends MY_Controller
         $this->view('report_lists');
     }
 
-    public function pdf($uuid)
+    public function pdf($uuid, $o = FALSE)
     {
         return $this->genPDF($uuid, 'report');
     }

@@ -22,7 +22,9 @@ class Model_invoice extends MY_Model
 
         $join = " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno ";
 
-        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate'";
+        // $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate'";
+
+        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'";
 
         if (!empty($val->is_bill)) {
             $result2 = [];
@@ -52,14 +54,15 @@ class Model_invoice extends MY_Model
             $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
         }
 
-        if (!empty($val->is_fax) && $val->is_fax != '1') {
-            $fax = $val->is_fax == '2' ? 1 : 0;
-            $sql = $sql . " AND " . CUST_NOTI . ".m_isfax = $fax";
-        }
+        if (!empty($val->is_contact) && $val->is_contact != '1') {
+            $isContact = $this->checkIsContact($val->is_contact);
+            if ($isContact->is_email != 2) {
+                $sql = $sql . " AND " . CUST_NOTI . ".m_isemail in ($isContact->is_email)";
+            }
 
-        if (!empty($val->is_email) && $val->is_email != '1') {
-            $email = $val->is_email == '2' ? 1 : 0;
-            $sql = $sql . " AND " . CUST_NOTI . ".m_isemail = $email";
+            if ($isContact->is_fax != 2) {
+                $sql = $sql . " AND " . CUST_NOTI . ".m_isfax in ($isContact->is_fax)";
+            }
         }
 
         $sql = $sql . " group by "  . BILLPAY . ".mdoctype,"  . BILLPAY . ".mcustno";
@@ -96,6 +99,47 @@ class Model_invoice extends MY_Model
 
         return $output;
     }
+    public function checkIsContact($isContact)
+    {
+        // 2 => all emaill
+        // 3 => all fax
+        // 4 => Email & Fax
+        // 5 => No Fax
+        // 6 => No Email
+        // 7 => No Fax & No Email
+        // 8 => Email & No Fax
+        // 9 => No Email & Fax
+
+        switch ($isContact) {
+            case '2':
+                return (object) ['is_email' => 1, 'is_fax' => 2];
+                break;
+            case '3':
+                return (object) ['is_email' => 2, 'is_fax' => 1];
+                break;
+            case '4':
+                return (object) ['is_email' => 1, 'is_fax' => 1];
+                break;
+            case '5':
+                return (object) ['is_email' => 2, 'is_fax' => 0];
+                break;
+            case '6':
+                return (object) ['is_email' => 0, 'is_fax' => 2];
+                break;
+            case '7':
+                return (object) ['is_email' => 0, 'is_fax' => 0];
+                break;
+            case '8':
+                return (object) ['is_email' => 1, 'is_fax' => 0];
+                break;
+            case '9':
+                return (object) ['is_email' => 'NULL,0', 'is_fax' => 1];
+                break;
+        }
+
+        return 2;
+    }
+
 
     public function processData($result)
     {
@@ -234,8 +278,11 @@ class Model_invoice extends MY_Model
     public function getBillChild($condition)
     {
         $result = [];
+        //. BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'"
 
-        $sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' AND " . BILLPAY . ".mpostdate >='$condition->start_date' AND " . BILLPAY . ".mduedate <='$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date'";
+        // $sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' AND " . BILLPAY . ".mpostdate >='$condition->start_date' AND " . BILLPAY . ".mduedate <='$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date'";
+
+        $sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date'";
 
         $stmt = sqlsrv_query($this->conn, $sql);
 
@@ -380,7 +427,7 @@ class Model_invoice extends MY_Model
         // $sql =  "SELECT MAX(" . REPORT . ".bill_no) as bill_no, MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . REPORT . ".uuid) as uuid,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(" . CUSTOMER . ".is_email) as is_email,MAX(" . CUSTOMER . ".is_fax) as is_fax FROM " . REPORT . "left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no  where uuid = '$uuid' ";
 
 
-        $select =  "MAX(" . REPORT . ".bill_no) as bill_no,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . REPORT . ".cus_main) as cus_main,MAX(" . REPORT . ".start_date) as start_date,MAX(" . REPORT . ".end_date) as end_date,MAX(" . REPORT . ".uuid) as uuid,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax ";
+        $select =  "MAX(" . REPORT . ".bill_no) as bill_no,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . REPORT . ".cus_main) as cus_main,MAX(" . REPORT . ".start_date) as start_date,MAX(" . REPORT . ".end_date) as end_date,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".uuid) as uuid,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax ";
 
         $join = " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no ";
 

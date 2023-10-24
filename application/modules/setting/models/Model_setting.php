@@ -77,6 +77,7 @@ class Model_setting extends MY_Model
 
     public function getInvoice($val)
     {
+        //. BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date'
 
         $result = [];
         $data = [];
@@ -84,7 +85,10 @@ class Model_setting extends MY_Model
 
         $join = " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno left join " . VW_Customer . " on " . VW_Customer . ".mcustno = " . BILLPAY . ".mcustno";
 
-        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
+        // $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
+
+
+        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
 
         if (!empty($val->is_fax) && $val->is_fax != '1') {
             $fax = $val->is_fax == '2' ? 1 : 0;

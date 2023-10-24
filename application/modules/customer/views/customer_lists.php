@@ -1,19 +1,6 @@
 <div class="container-fluid">
     <div class="bg-white rounded shadow rounded d-flex flex-column px-4 pt-3 pb-3">
         <form id="invoiceForm" method="get" action="<?php echo $http ?>/customer" class="mb-4">
-            <!-- <div class="box-customer-search">
-                <div class="input-search-2">
-                    <label for="customer" class="form-label">ลูกค้า</label>
-                    <div class="input-group mb-3">
-                        <select class="select2 form-select" name="customer" id="customer">
-                            <option value="" selected>เลือก ...</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mb-3 mt-4 me-3">
-                    <button type="submit" class="btn btn-primary btn-search">ค้นหา</button>
-                </div>
-            </div> -->
             <div class="section-filter">
                 <div class="box-search-2">
                     <div class="input-search">
@@ -26,27 +13,23 @@
                     </div>
 
                     <div class="input-search">
-                        <label for="type" class="form-label">Fax</label>
-                        <select class="form-select" id="is_fax" name="is_fax">
-                            <option value="1" <?php echo $is_fax == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
-                            <option value="2" <?php echo $is_fax == '2' ? 'selected' : ''; ?>>มี Fax</option>
-                            <option value="3" <?php echo $is_fax == '3' ? 'selected' : ''; ?>>ไม่มี Fax</option>
+                        <label for="type" class="form-label">ช่องทางการติดต่อ</label>
+                        <select class="form-select" id="is_contact" name="is_contact">
+                            <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                            <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
+                            <option value="3" <?php echo $is_contact == '3' ? 'selected' : ''; ?>>Fax</option>
+                            <option value="4" <?php echo $is_contact == '4' ? 'selected' : ''; ?>>Email & Fax</option>
+                            <option value="5" <?php echo $is_contact == '5' ? 'selected' : ''; ?>>No Fax</option>
+                            <option value="6" <?php echo $is_contact == '6' ? 'selected' : ''; ?>>No Email</option>
+                            <option value="7" <?php echo $is_contact == '7' ? 'selected' : ''; ?>>No Fax & No Email</option>
+                            <option value="8" <?php echo $is_contact == '8' ? 'selected' : ''; ?>>Email & No Fax</option>
+                            <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
                         </select>
                     </div>
-                    <div class="input-search">
-                        <label for="type" class="form-label">อีเมล</label>
-                        <select class="form-select" id="is_email" name="is_email">
-                            <option value="1" <?php echo $is_email == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
-                            <option value="2" <?php echo $is_email == '2' ? 'selected' : ''; ?>>มีอีเมล</option>
-                            <option value="3" <?php echo $is_email == '3' ? 'selected' : ''; ?>>ไม่มีอีเมล</option>
-                        </select>
-                    </div>
-                    <div class="mb-3 mt-4 me-3">
+                    <div class="mb-3 mt-4 me-3 btn-cus">
                         <button type="submit" class="btn btn-primary btn-search">ค้นหา</button>
+                        <a type="button" class="btn btn-success" href="<?php echo $http ?>/customer/process/create">+ สร้างข้อมูลลูกค้า</a>
                     </div>
-                </div>
-                <div class="d-flex justify-content-end mb-3 mt-4 me-3">
-                    <a type="button" class="btn btn-success" href="<?php echo $http ?>/customer/process/create">+ สร้างข้อมูลลูกค้า</a>
                 </div>
             </div>
         </form>
@@ -123,7 +106,7 @@
                     [0, "asc"]
                 ],
                 "ajax": {
-                    url: '<?php echo $http ?>/customer/listCustomer/<?php echo $cus_no; ?>/<?php echo $is_email; ?>/<?php echo $is_fax; ?>',
+                    url: '<?php echo $http ?>/customer/listCustomer/<?php echo $cus_no; ?>/<?php echo $is_contact; ?>',
                     dataFilter: function(data) {
                         let json = jQuery.parseJSON(data);
                         if (json.error) {

@@ -8,7 +8,8 @@
                         <select class="form-select" id="dateSelect" name="dateSelect" required>
                             <option value="">เลือก ...</option>
                             <?php foreach ($selectDays as $day) { ?>
-                                <option value="<?php echo $day->mday; ?>" <?php echo $dateSelect == $day->mday ? 'selected' : '' ?>><?php echo $days[$day->mday]->name ?></option>
+                                <option value="<?php echo $day->mday; ?>" <?php echo $dateSelect == $day->mday ? 'selected' : '' ?>>
+                                    <?php echo $days[$day->mday]->name ?></option>
                             <?php  } ?>
                         </select>
                     </div>
@@ -54,7 +55,8 @@
                         <select class="form-select" id="type" name="type">
                             <option value="" selected>เลือก ...</option>
                             <?php foreach ($types as $type) { ?>
-                                <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : ''; ?>><?php echo $type->msaleorg_des ?></option>
+                                <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : ''; ?>>
+                                    <?php echo $type->msaleorg_des ?></option>
                             <?php }; ?>
                         </select>
                     </div>
@@ -65,39 +67,40 @@
                         <label for="type" class="form-label">ทำบิล</label>
                         <select class="form-select" id="is_bill" name="is_bill">
                             <option value="1" <?php echo $is_bill == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
-                            <option value="2" <?php echo $is_bill == '2' ? 'selected' : ''; ?>>ทำใบแจ้งเตือนแล้ว</option>
-                            <option value="3" <?php echo $is_bill == '3' ? 'selected' : ''; ?>>ยังไม่ได้ทำใบแจ้งเตือน</option>
+                            <option value="2" <?php echo $is_bill == '2' ? 'selected' : ''; ?>>ทำใบแจ้งเตือนแล้ว
+                            </option>
+                            <option value="3" <?php echo $is_bill == '3' ? 'selected' : ''; ?>>ยังไม่ได้ทำใบแจ้งเตือน
+                            </option>
                         </select>
                     </div>
                 </div>
                 <div class="box-search-2">
                     <div class="input-search">
-                        <label for="type" class="form-label">Fax</label>
-                        <select class="form-select" id="is_fax" name="is_fax">
-                            <option value="1" <?php echo $is_fax == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
-                            <option value="2" <?php echo $is_fax == '2' ? 'selected' : ''; ?>>มี Fax</option>
-                            <option value="3" <?php echo $is_fax == '3' ? 'selected' : ''; ?>>ไม่มี Fax</option>
+                        <label for="type" class="form-label">ช่องทางการติดต่อ</label>
+                        <select class="form-select" id="is_contact" name="is_contact">
+                            <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                            <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
+                            <option value="3" <?php echo $is_contact == '3' ? 'selected' : ''; ?>>Fax</option>
+                            <option value="4" <?php echo $is_contact == '4' ? 'selected' : ''; ?>>Email & Fax</option>
+                            <option value="5" <?php echo $is_contact == '5' ? 'selected' : ''; ?>>No Fax</option>
+                            <option value="6" <?php echo $is_contact == '6' ? 'selected' : ''; ?>>No Email</option>
+                            <option value="7" <?php echo $is_contact == '7' ? 'selected' : ''; ?>>No Fax & No Email</option>
+                            <option value="8" <?php echo $is_contact == '8' ? 'selected' : ''; ?>>Email & No Fax</option>
+                            <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
                         </select>
                     </div>
 
-                    <div class="input-search">
-                        <label for="type" class="form-label">อีเมล</label>
-                        <select class="form-select" id="is_email" name="is_email">
-                            <option value="1" <?php echo $is_email == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
-                            <option value="2" <?php echo $is_email == '2' ? 'selected' : ''; ?>>มีอีเมล</option>
-                            <option value="3" <?php echo $is_email == '3' ? 'selected' : ''; ?>>ไม่มีอีเมล</option>
-                        </select>
-                    </div>
                     <!-- <div class="box-text">
                         <p class="text-form"></p>
                     </div> -->
                     <div class="btn-full mb-3 mt-4">
                         <button type="submit" class="btn btn-primary me-2">ค้นหา</button>
-                        <!-- <button type="submit" class="btn btn-success">Export excel</button> -->
+                        <button type="button" class="btn btn-success export" <?php echo !empty($dateSelect) ? '' : 'disabled' ?>>Export excel</button>
                     </div>
                 </div>
             </div>
         </form>
+
 
         <div class="table-responsive">
             <table id="paymentList" class="table table-centered table-striped w-100">
@@ -118,14 +121,21 @@
                     <?php if (!empty($lists)) {
                         foreach ($lists as $invoice) { ?>
                             <tr>
-                                <?php if (in_array(1, $keyTable)) { ?><td><?php echo $types[$invoice->msaleorg]->msaleorg_des; ?></td><?php }; ?>
-                                <?php if (in_array(2, $keyTable)) { ?><td><?php echo !empty($invoice->cus_name) ? $invoice->cus_name . ' (' . $invoice->cus_no . ')' : '-'; ?>
+                                <?php if (in_array(1, $keyTable)) { ?><td>
+                                        <?php echo $types[$invoice->msaleorg]->msaleorg_des; ?></td><?php }; ?>
+                                <?php if (in_array(2, $keyTable)) { ?><td>
+                                        <?php echo !empty($invoice->cus_name) ? $invoice->cus_name . ' (' . $invoice->cus_no . ')' : '-'; ?>
                                     </td><?php }; ?>
-                                <?php if (in_array(3, $keyTable)) { ?><td><?php echo number_format($invoice->balance, 2); ?></td><?php }; ?>
-                                <?php if (in_array(4, $keyTable)) { ?><td><?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(5, $keyTable)) { ?><td><?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(6, $keyTable)) { ?><td><?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(7, $keyTable)) { ?><td><?php echo !empty($invoice->RD) ? number_format($invoice->RD, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(3, $keyTable)) { ?><td><?php echo number_format($invoice->balance, 2); ?>
+                                    </td><?php }; ?>
+                                <?php if (in_array(4, $keyTable)) { ?><td>
+                                        <?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(5, $keyTable)) { ?><td>
+                                        <?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(6, $keyTable)) { ?><td>
+                                        <?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
+                                <?php if (in_array(7, $keyTable)) { ?><td>
+                                        <?php echo !empty($invoice->RD) ? number_format($invoice->RD, 2) : 0; ?></td><?php }; ?>
                                 <?php if (in_array(8, $keyTable)) { ?><td class="text-center">
                                         <a class="btn btn-sm btn-gray-700 modalCustomer" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" data-cus_no="<?php echo $invoice->cus_no ?>" data-cus_name="<?php echo $invoice->cus_name ?>">
                                             รายละเอียด
@@ -236,15 +246,19 @@
                 let end = $('#endDate').val()
                 let send = $('#dateSelect').val()
                 $('.header_text').text(name + ' (' + id + ')');
-                $('.customer').html('<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>')
-                $('.btn-detail').attr("href", '<?php echo WWW; ?><?php echo $http; ?>/invoice/detail/' + id + '?start=' + start + '&end=' + end + '&send=' + send)
+                $('.customer').html(
+                    '<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>'
+                )
+                $('.btn-detail').attr("href", '<?php echo WWW; ?><?php echo $http; ?>/invoice/detail/' + id +
+                    '?start=' + start + '&end=' + end + '&send=' + send)
 
                 $.get('<?php echo $http; ?>/invoice/genCustomerChild/' + id).done(function(res) {
                     if (res.status == 200) {
                         let text = "";
                         if (res.data.length > 0) {
                             res.data.map(o => {
-                                text += '<p class="text-dark">' + o.cus_name + '(' + o.cus_no + ')' + '</p>';
+                                text += '<p class="text-dark">' + o.cus_name + '(' + o.cus_no +
+                                    ')' + '</p>';
                             })
 
                             $('.customer').html(text)
@@ -257,6 +271,23 @@
 
         $('.dataTables_filter label').hide();
 
+        $('#dateSelect').on('change', function(e) {
+            let val = $(this).val()
+            if (val) {
+                $('.export').prop('disabled', false)
+            } else {
+                $('.export').prop('disabled', true)
+            }
+        })
+
+        $('#invoiceForm').on('click', '.export', function(e) {
+            e.preventDefault();
+            let formData = $('#invoiceForm').serializeArray();
+            let path = formData[0].name + '=' + formData[0].value + '&' + formData[1].name + '=' + formData[1].value + '&' + formData[2].name + '=' + formData[2].value + '&' + formData[3].name + '=' + formData[3].value + '&' + formData[4].name + '=' + formData[4].value + '&' + formData[5].name + '=' + formData[5].value + '&' + formData[6].name + '=' + formData[6].value
+            window.open("<?php echo $http ?>/invoice/genInvoiceListExcel?" + path, '_self');
+
+        })
+
         function formatRepo(repo) {
             if (repo.loading) {
                 return repo.text;
@@ -267,7 +298,8 @@
 
         function formatRepoSelection(repo) {
             if (repo.id) {
-                let show = search.includes('<?php echo $this->CURUSER->cus_no; ?>') ? repo.cus_name + '(' + repo.cus_no + ')' : repo.text;
+                let show = search.includes('<?php echo $this->CURUSER->cus_no; ?>') ? repo.cus_name + '(' + repo
+                    .cus_no + ')' : repo.text;
                 return $('<span>' + show + '</span>');
             }
             return repo.text;

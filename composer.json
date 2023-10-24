@@ -3,7 +3,6 @@
         "mpdf/mpdf": "*",
         "picqer/php-barcode-generator": "^2.3",
         "smhg/sepa-qr": "^3.1",
-        "phpmailer/phpmailer": "^6.8",
-        "phpoffice/phpspreadsheet": "^1.29"
+        "phpmailer/phpmailer": "^6.8"
     }
 }

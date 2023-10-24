@@ -30047,7 +30047,15 @@ article .h6 {
 }
 
 .btn-full {
-	width: 33%;
+	width: 70%;
+
+	@media (max-width: 610px) {
+		width: 100%;
+	}
+}
+
+.btn-cus {
+	width: 30%;
 
 	@media (max-width: 610px) {
 		width: 100%;

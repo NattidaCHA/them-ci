@@ -27,9 +27,6 @@ class MY_Controller extends CI_Controller
         $this->load->model('invoice/model_invoice');
 
 
-        // require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/setting.php');
-
-
         // var_dump($pdo->db->DATABASE);
         // exit;
         // var_dump(self::getSiteCookie());
@@ -331,7 +328,7 @@ class MY_Controller extends CI_Controller
 
     protected function connect()
     {
-        require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/setting.php');
+        require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/db.php');
         $config = [];
         $config = ["Database" => $pdo->db->DATABASE, "UID" => $pdo->db->UID, "PWD" => $pdo->db->PWD, "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
 
@@ -371,12 +368,9 @@ class MY_Controller extends CI_Controller
 
         $tem = $this->model_system->getTemPDF()->items;
 
-        // var_dump($tem);
-        // exit;
-
         foreach ($result->lists as $key => $res) {
             $result->lists = $res;
-            $size = count($result->lists) > 1 ? 40 : 40;
+            $size = count($result->lists) > 1 ? 50 : 40;
             if ($key == 1) {
                 $data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size, 'tem' => $tem];
                 $html = $this->load->view('report/report_pdf', $data, TRUE);
@@ -388,9 +382,6 @@ class MY_Controller extends CI_Controller
             }
         }
 
-        // var_dump($data['data']->tem['header']);
-        // exit;
-
         $title = 'Report_' . $result->bill_info->bill_no;
         $name = 'Report_' . $result->bill_info->bill_no;
         $mpdf->SetTitle($title);
@@ -401,18 +392,20 @@ class MY_Controller extends CI_Controller
             return $mpdf->Output($name, 'S');
         }
 
+        if ($type == 'excel') {
+            return $mpdf->Output($name . '.pdf', 'F');
+        }
+
         return $mpdf->Output($name . '.pdf', 'I');
     }
 
 
     protected function genEmail($params, $page, $checkMain = FALSE)
     {
-        require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/email.php');
         require_once  './vendor/autoload.php';
+        require($_SERVER['DOCUMENT_ROOT'] . $this->http . '/pdo/email.php');
 
         $mail = new PHPMailer(true);
-        // $from_email = $email->username;
-        // $from_email = "nattidac@scg.com";
         if (!empty($params)) {
             $cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
             $emails =  $this->model_report->genEmail($params['cus_no'], $cusType->is_email);
@@ -423,6 +416,7 @@ class MY_Controller extends CI_Controller
 
             $reportChild = [];
             $content = $this->genPDF($params['uuid'], 'email');
+
             $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date'])), 'uuid' => $params['uuid'], 'http' => $this->http];
             if ($cusType->type == 'main') {
                 $childs = $this->model_report->checkChildSendto($params['cus_no'], $params['cus_main'])->items;
@@ -441,76 +435,71 @@ class MY_Controller extends CI_Controller
                 return (object)['status' => 200, 'data' => $params, 'email' => $emails];
             }
 
-            if (!empty($emails[$params['cus_no']]) || !empty($emails[$params['cus_main']])) {
-                try {
-                    $mail->SMTPDebug = SMTP::DEBUG_SERVER;
-                    $mail->isSMTP();
-                    $mail->Host       = $pdo->email->host;
-                    // $mail->Host       = 'soms.scg.com';
-                    $mail->SMTPAuth   = true;
-                    $mail->Username   = $pdo->email->username;
-                    $mail->Password   = $pdo->email->password;
-                    // $mail->Password   = 'Year@2023';
-                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                    $mail->Port       = $pdo->email->port;
-                    // $mail->Port       = 25;
-                    // $mail->SMTPSecure = 'ssl';
-                    $mail->SMTPSecure = $pdo->email->SMTPSecure;
-                    $mail->Mailer = "smtp";
-                    $mail->IsSMTP();
-                    $mail->Debugoutput = 'error_log';
-                    $mail->CharSet = 'utf-8';
-                    $mail->SMTPOptions = array(
-                        'ssl' => array(
-                            'verify_peer' => false,
-                            'verify_peer_name' => false,
-                            'allow_self_signed' => true
-                        )
-                    );
+            if (!empty($cusType->is_email)) {
+                if (!empty($emails[$params['cus_no']]) || !empty($emails[$params['cus_main']])) {
+                    try {
+                        $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+                        $mail->isSMTP();
+                        $mail->Host       = $pdo->email->host;
+                        // $mail->Host       = 'soms.scg.com';
+                        $mail->SMTPAuth   = true;
+                        $mail->Username   = $pdo->email->username;
+                        $mail->Password   = $pdo->email->password;
+                        // $mail->Password   = 'Year@2023';
+                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                        $mail->Port       = $pdo->email->port;
+                        // $mail->Port       = 25;
+                        // $mail->SMTPSecure = 'ssl';
+                        $mail->SMTPSecure = $pdo->email->SMTPSecure;
+                        $mail->Mailer = "smtp";
+                        $mail->IsSMTP();
+                        $mail->Debugoutput = 'error_log';
+                        $mail->CharSet = 'utf-8';
+                        $mail->SMTPOptions = array(
+                            'ssl' => array(
+                                'verify_peer' => false,
+                                'verify_peer_name' => false,
+                                'allow_self_signed' => true
+                            )
+                        );
 
-                    $mesg = $this->load->view('report/email_tem', $data, TRUE);
-                    $mail->setFrom($pdo->email->username, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
+                        $mesg = $this->load->view('report/email_tem', $data, TRUE);
+                        $mail->setFrom($pdo->email->username, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
 
-                    // foreach ($emails as $res) {
-                    //     $mail->addAddress($res->email);
-                    //'npibs_pipess01@scg.com', 'phrueksp@scg.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com',
-                    // }
-                    foreach (['nattida.ncha@gmail.com', 'nattidac@scg.com'] as $res) {
-                        $mail->addAddress($res);
-                    }
-
-                    $mail->isHTML(true);
-                    $mail->Subject = 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date']));
-                    $mail->Body    = $mesg;
-                    $mail->addStringAttachment($content, 'Report_' . $params['bill_no'] . '.pdf', 'base64', 'application/pdf');
-                    if ($cusType->type == 'main') {
-                        foreach ($reportChild as $res) {
-                            $contentChild = $this->genPDF($res->uuid, 'email');
-                            $mail->addStringAttachment($contentChild, 'Report_' . $res->bill_no . '.pdf', 'base64', 'application/pdf');
+                        // foreach ($emails as $res) {
+                        //     $mail->addAddress($res->email);
+                        //'npibs_pipess01@scg.com', 'phrueksp@scg.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com',, 'npibs_pipess01@scg.com'
+                        // }
+                        foreach (['nattida.ncha@gmail.com', 'nattidac@scg.com'] as $res) {
+                            $mail->addAddress($res);
                         }
+
+                        $mail->isHTML(true);
+                        $mail->Subject = 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date']));
+                        $mail->Body    = $mesg;
+                        $mail->addStringAttachment($content, 'Report_' . $params['bill_no'] . '.pdf', 'base64', 'application/pdf');
+                        if ($cusType->type == 'main') {
+                            foreach ($reportChild as $res) {
+                                $contentChild = $this->genPDF($res->uuid, 'email');
+                                $mail->addStringAttachment($contentChild, 'Report_' . $res->bill_no . '.pdf', 'base64', 'application/pdf');
+                            }
+                        }
+                        $mail->send();
+                        $this->model_report->updateEmail($params['uuid']);
+                        return (object)['status' => 200, 'data' => $params, 'email' => $emails];
+                    } catch (Exception $e) {
+                        return (object)['status' => 500, 'msg' =>  $mail->ErrorInfo, 'error' => $mail->ErrorInfo];
                     }
-                    $mail->send();
-                    $this->model_report->updateEmail($params['uuid']);
-                    return (object)['status' => 200, 'data' => $params, 'email' => $emails];
-                } catch (Exception $e) {
-                    return (object)['status' => 500, 'msg' =>  $mail->ErrorInfo, 'error' => $mail->ErrorInfo];
+                } else {
+                    return (object)['status' => 204, 'data' => false, 'msg' => 'ไม่พบอีเมลของรหัสลูกค้า ' . $cusType->cus_no];
                 }
             } else {
-                return (object)['status' => 204, 'data' => false, 'msg' => 'ไม่พบอีเมลของรหัสลูกค้า ' . $cusType->cus_no];
+                return (object)['status' => 200, 'data' => 'ไม่ต้องส่งใบแจ้งเตือนผ่านอีเมล'];
             }
         }
 
         return (object)['status' => 500, 'msg' => 'API Error', 'error' => 'API Error'];
     }
-
-
-    // protected function genExcel($uuid, $type)
-    // {
-    //     require_once  './vendor/autoload.php';
-
-    //     $pdf = $this->genPDF($uuid, $type);
-    // }
-
 
     protected function ramdomBillNo($main_id)
     {

@@ -9,9 +9,9 @@
     }
 
     .pdf {
-        height: 100%;
+        height: 90%;
         margin: 2% 5% 2% 5%;
-        border: 2px solid #cdcdcd;
+        /* border: 2px solid #cdcdcd; */
         display: flex;
         flex-direction: column;
     }
@@ -236,7 +236,7 @@
 
     .table-list {
         width: 100%;
-        height: 77%;
+        height: 70%;
     }
 
     .full-table-2 {
@@ -575,7 +575,7 @@
     }
 
     .page-brack {
-        height: 100%;
+        height: 90%;
     }
 </style>
 

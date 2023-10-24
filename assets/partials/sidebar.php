@@ -39,7 +39,7 @@
 
     <div class="displayname">
         <div class="name-role">
-            <span>Nattida&nbsp;Chatavitayakul</span>
+            <span>NPI&nbsp;</span>
         </div>
     </div>
 </nav>

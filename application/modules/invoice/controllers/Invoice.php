@@ -1,7 +1,11 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+// use PhpOffice\PhpSpreadsheet\Spreadsheet;
+// use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+// use PhpOffice\PhpSpreadsheet\IOFactory;
+// use Spatie\PdfToText\Pdf;
+// use PhpOffice\PhpSpreadsheet\Writer as Writer;
+// use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class Invoice extends MY_Controller
 {
@@ -11,6 +15,7 @@ class Invoice extends MY_Controller
         parent::__construct();
         $this->load->model('model_invoice');
         $this->load->model('model_system');
+        $this->load->model('report/model_report');
     }
 
 
@@ -28,8 +33,7 @@ class Invoice extends MY_Controller
         $cus_no = NULL;
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
         $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
-        $is_fax = $this->input->get('is_fax') ? $this->input->get('is_fax') : '1';
-        $is_email = $this->input->get('is_fax') ? $this->input->get('is_email') : '1';
+        $is_contact = $this->input->get('is_contact') ? $this->input->get('is_contact') : '1';
 
         foreach ($table['invoice'] as $v) {
             array_push($keyTable, $v->sort);
@@ -54,13 +58,10 @@ class Invoice extends MY_Controller
             'cus_no' => $cus_no,
             'type' => $typeSC,
             'is_bill' => $is_bill,
-            'is_fax' => $is_fax,
-            'is_email' => $is_email
+            'is_contact' => $is_contact
         ];
 
         $o = $this->model_system->getTypeBusiness()->items;
-        // var_dump($o);
-        // // exit;
 
         foreach ($o as $v) {
             $this->data['types'][$v->msaleorg] = $v;
@@ -74,7 +75,6 @@ class Invoice extends MY_Controller
 
         $this->data['lists'] = $result;
         $this->data['selectDays'] = $this->model_system->getDateSelect()->items;
-        // $this->data['customers'] = $this->model_system->getCustomer()->items;
         $this->data['typeSC'] = $typeSC;
         $this->data['dateSelect'] = $dateSelect;
         $this->data['startDate'] = $startDate;
@@ -84,8 +84,7 @@ class Invoice extends MY_Controller
         $this->data['table'] = $table['invoice'];
         $this->data['keyTable'] = $keyTable;
         $this->data['is_bill'] = $is_bill;
-        $this->data['is_fax'] = $is_fax;
-        $this->data['is_email'] = $is_email;
+        $this->data['is_contact'] = $is_contact;
         $this->data['page_header'] = 'การแจ้งเตือน';
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('search_invoice');
@@ -182,8 +181,8 @@ class Invoice extends MY_Controller
             }
 
             $checkMain = !empty($reportMain[$cus_main]) ? true : false;
-            foreach ($reportMain as $key => $repor) {
-                $email = $this->genEmail((array)$repor, 'invoice', $checkMain);
+            foreach ($reportMain as $key => $report) {
+                $email = $this->genEmail((array)$report, 'invoice', $checkMain);
                 if ($email->status == 204) {
                     $output['status'] = 204;
                     $output['data'] = (object)['data' => false, 'msg' => 'No email'];
@@ -256,33 +255,52 @@ class Invoice extends MY_Controller
         $this->responseJSON($result);
     }
 
+
+    public function genInvoiceListExcel()
+    {
+        $table = $this->model_system->getPageIsShow()->items;
+        $params = $this->input->get();
+        $keyTable = [];
+        $types = [];
+        foreach ($table['invoice'] as $v) {
+            array_push($keyTable, $v->sort);
+        }
+
+        $o = $this->model_system->getTypeBusiness()->items;
+        foreach ($o as $v) {
+            $types[$v->msaleorg] = $v;
+        }
+
+        $condition = [
+            'dateSelect' =>  !empty($params['dateSelect']) ? $params['dateSelect'] : '',
+            'startDate' => !empty($params['startDate']) ? $params['startDate'] : date('Y-m-d'),
+            'endDate' => !empty($params['endDate']) ? $params['endDate'] :  date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d')))),
+            'cus_no' => !empty($params['cus_no']) ? $params['cus_no'] : '',
+            'type' => !empty($params['type']) ? $params['type'] : '0281',
+            'is_bill' => !empty($params['is_bill']) ? $params['is_bill'] : '3',
+            'is_contact' => !empty($params['is_contact']) ? $params['is_contact'] : '1'
+        ];
+
+
+        if (!empty($condition["dateSelect"])) {
+            $result = !empty($this->model_invoice->getInvoice($condition)->items) ? $this->model_invoice->getInvoice($condition)->items  : [];
+            header('Content-Type: text/csv; charset=utf-8');
+            header("Content-Type: application/vnd.ms-excel");
+            header('Content-Disposition: attachment; filename="invoice.xls"');
+            $data['result'] = (object)['data' => $result, 'header' => $table['invoice'], 'keyTable' => $keyTable, 'types' => $types];
+            $this->load->view('export_invoice', $data);
+        }
+    }
     public function genExcel($uuid)
     {
-        require_once  './vendor/autoload.php';
-        use PhpOffice\PhpSpreadsheet\Spreadsheet;
-        use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-
-        // $pdf = $this->genPDF($uuid, $type);
-        // $inputFileType = 'Pdf';
-        // $inputFileName = 'path/to/your/pdf/file.pdf';
-        // if ($pdf) {
-        // $outputFileType = 'Xlsx';
-        // $outputFileName = 'Report_' . $uuid . '.xlsx';
-        $className = \PhpOffice\PhpSpreadsheet\Writer\Xlsx::class;
-        \PhpOffice\PhpSpreadsheet\IOFactory::registerWriter('Xlsx', $className);
-        // $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load('template.xlsx');
-        // $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Mpdf');
-
-        $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader("Xlsx");
-        $spreadsheet = $reader->load("05featuredemo.xlsx");
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, "Xlsx");
-        $writer->save("05featuredemo.xlsx");
-        // $reader = IOFactory::createReader('Pdf');
-        // $spreadsheet = $reader->load('Pdf');
-
-        // $writer = IOFactory::createWriter($pdf, $outputFileType);
-        // $writer =  \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Pdf');
-        // $writer->save($outputFileName);
-        // }
+        $result = $this->model_report->excel($uuid);
+        $tem = $this->model_system->getTemPDF()->items;
+        $size = count($result->lists);
+        $data['data'] = (object)['index' => 1, 'report' => $result, 'size' => $size, 'tem' => $tem];
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment; filename="Report_' . $result->bill_info->bill_no . '.xls"');
+        $this->load->view('export_excel', $data);
     }
+
 }
