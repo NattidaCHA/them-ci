@@ -84,6 +84,7 @@ defined('EXIT_DATABASE')       or define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      or define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
+
 //vw_billpay_txt02
 defined('REPORT')      or define('REPORT', 'tran_report_notification');
 defined('CUSTOMER')      or define('CUSTOMER', 'master_customer');
@@ -101,8 +102,14 @@ defined('REPORT_DETAIL')      or define('REPORT_DETAIL', 'tran_report_notificati
 defined('PAYMENT')      or define('PAYMENT', 'master_template_report');
 defined('BILLPAY')      or define('BILLPAY', 'vw_billpay_txt02');
 defined('LOG')      or define('LOG', 'log_notification');
+defined('DEPARTMENT')      or define('DEPARTMENT', 'master_department');
+defined('LOG_IN')      or define('LOG_IN', 'log_log_in');
 
-//https://npismo.scg.com/
+defined('CLIENT_ID') or define('CLIENT_ID', '9f716aa3b7ffb2c939483195444512d8d3b6a5ea');
+defined('CLIENT_SECRET') or define('CLIENT_SECRET', 'b34eac00d585e57c2bbc6528114908f53ab7f41b');
+defined('OPEN_JOB_NOTIFY') OR define('OPEN_JOB_NOTIFY', TRUE);
+defined('JOB_NOTIFY_TOKEN') OR define('JOB_NOTIFY_TOKEN', 'g0sJ9baxAKBiajHFzjAp4hjEoIjEv9z7tl0XkyNNyv8'); 
+
 if (ENVIRONMENT == 'production') {
     defined('SERVERNAME') or define('SERVERNAME', '10.51.249.165');
     defined('DATABASE') or define('DATABASE', 'NpiNotification');
@@ -110,6 +117,7 @@ if (ENVIRONMENT == 'production') {
     defined('PWD') or define('PWD', 'Noti22@PRD');
     defined('HTTP')      or define('HTTP', 'invoicenotification/');
     defined('WWW') or define('WWW', 'https://npismo.scg.com');
+    defined('API') or define('API', 'https://npismo.scg.com/api/');
 } else {
     if (ENVIRONMENT == 'testing') {
         defined('HTTP')      or define('HTTP', 'invoicenotification/');
@@ -121,4 +129,5 @@ if (ENVIRONMENT == 'production') {
     defined('PWD') or define('PWD', 'NpiNoti01@2022');
     defined('HTTP')      or define('HTTP', '');
     defined('WWW') or define('WWW', 'http://notification.com');
+    defined('API') or define('API', 'https://npismodev.scg.com/api/');
 }

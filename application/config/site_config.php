@@ -567,3 +567,47 @@ $config['pdf_tem'] = [
         'tran_detail_3' => 'หากโอนชำระแล้วรบกวน Fax ใบทำารายการมาที่ เบอร์ Fax.02-5861132 หรือ 02-5861198'
     ],
 ];
+
+
+$config['department'] = [
+    (object) [
+        'department_id' => 1,
+        'department_code' => 'CS',
+        'department_nameLC' => 'CS',
+        'department_nameEN' => 'CS',
+        'department_status' => 'A',
+        'menu' => 'report'
+    ],
+    (object) [
+        'department_id' => 2,
+        'department_code' => 'SR',
+        'department_nameLC' => 'SR',
+        'department_nameEN' => 'SR',
+        'department_status' => 'A',
+        'menu' => 'report'
+    ],
+    (object) [
+        'department_id' => 3,
+        'department_code' => 'SYSTEM',
+        'department_nameLC' => 'System Admin',
+        'department_nameEN' => 'System Admin',
+        'department_status' => 'A',
+        'menu' => 'all'
+    ],
+    (object) [
+        'department_id' => 4,
+        'department_code' => 'MKT',
+        'department_nameLC' => 'MKT',
+        'department_nameEN' => 'MKT',
+        'department_status' => 'A',
+        'menu' => 'no'
+    ],
+    (object) [
+        'department_id' => 5,
+        'department_code' => 'CRT',
+        'department_nameLC' => 'Credit Mgt.',
+        'department_nameEN' => 'Credit Mgt.',
+        'department_status' => 'A',
+        'menu' => 'all'
+    ],
+];

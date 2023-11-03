@@ -1,27 +1,37 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
 
-class MY_Model extends CI_Model {
+class MY_Model extends CI_Model
+{
 
     public $timeOut = 15;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
 
-    private function _prefixDoc($type) {
+    private function _prefixDoc($type)
+    {
         $prefix = '';
-        switch($type) {
-            case 'sponsor': $prefix = 'MD'; break;
-            case 'youtube': $prefix = 'YT'; break;
-            case 'wht': $prefix = 'WHT'; break;
+        switch ($type) {
+            case 'sponsor':
+                $prefix = 'MD';
+                break;
+            case 'youtube':
+                $prefix = 'YT';
+                break;
+            case 'wht':
+                $prefix = 'WHT';
+                break;
         }
 
         return $prefix;
     }
 
 
-    public function getRunningNo($type, $year, $month = FALSE, $length = 5, $yearLength = 2) {
+    public function getRunningNo($type, $year, $month = FALSE, $length = 5, $yearLength = 2)
+    {
         $no = NULL;
         if (!empty($month)) {
             $month = str_pad($month, 2, '0', STR_PAD_LEFT);
@@ -30,7 +40,7 @@ class MY_Model extends CI_Model {
         $sql = $this->db->where('type', $type)->where('year_data', $year)->get('_running');
         $result = $sql->row();
 
-        $runningYear = ($yearLength === 2) ? substr($year,2,2) : substr($year,0,4);
+        $runningYear = ($yearLength === 2) ? substr($year, 2, 2) : substr($year, 0, 4);
         $runningPrefix = self::_prefixDoc($type);
 
         if (!empty($result)) {
@@ -50,8 +60,9 @@ class MY_Model extends CI_Model {
     }
 
 
-    protected function restAPI($url, $param = NULL, $method = 'POST', $json = TRUE) {
-        $data_pack = $this->curlRemote($url, $param, $method, $json);
+    protected function restAPI($url, $param = NULL, $method = 'POST', $json = TRUE, $auth)
+    {
+        $data_pack = $this->curlRemote($url, $param, $method, $json, $auth);
         $data_decode = json_decode($data_pack);
 
         if (json_last_error() == JSON_ERROR_NONE && !empty($data_decode)) {
@@ -62,7 +73,8 @@ class MY_Model extends CI_Model {
     }
 
 
-    private function curlRemote($url, $param = NULL, $method = 'POST', $json = FALSE) {
+    private function curlRemote($url, $param = NULL, $method = 'POST', $json = FALSE, $auth)
+    {
         $refer = site_url('');
         $method = strtoupper($method);
         $curl = curl_init($url);
@@ -74,14 +86,12 @@ class MY_Model extends CI_Model {
         $contentLength = 0;
         if (!empty($param)) {
             if ($json === TRUE) {
-                $json_string = json_encode($param);
-                $contentLength = strlen($json_string);
                 curl_setopt(
                     $curl,
                     CURLOPT_HTTPHEADER,
-                    ['Content-Type: application/json', 'Content-Length: ' . $contentLength]
+                    ['Content-Type: application/x-www-form-urlencoded', 'Authorization: ' . $auth]
                 );
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $json_string);
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $param);
             } else {
                 curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($param));
             }
@@ -113,6 +123,21 @@ class MY_Model extends CI_Model {
         return $data;
     }
 
+    // protected function formatReturn($apiResult)
+    // {
+    //     $data = FALSE;
+    //     if ($apiResult !== FALSE) {
+    //         if (($apiResult->response->result === TRUE || $apiResult->response->result == 'true') && !empty($apiResult->data)) {
+    //             $data = $apiResult->data;
+    //         } else if ($apiResult->response->code == 204 || ($apiResult->response->code == 200 && empty($apiResult->data))) {
+    //             $emptyObj =  (object) ['code' => 204, 'message' => 'Empty data or not found in condition'];
+    //             $data = (object) ['empty' => $emptyObj];
+    //         } else if (!empty($apiResult->error)) {
+    //             $apiResult->error->remark = ((!empty($apiResult->response->remark)) ? $apiResult->response->remark : '');
+    //             $data = (object) ['error' => $apiResult->error];
+    //         }
+    //     }
 
-
+    //     return $data;
+    // }
 } // End of class

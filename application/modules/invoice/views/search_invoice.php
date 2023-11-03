@@ -35,13 +35,13 @@
                     <div class="input-search">
                         <label for="customer" class="form-label">ลูกค้า</label>
                         <div class="input-group mb-3">
-                            <select class="select2 form-select" name="customer" id="customer" <?php echo in_array($this->CURUSER->cus_no, $search) ? '' : 'disabled' ?>>
-                                <?php echo in_array($this->CURUSER->cus_no, $search) ? '<option value="">เลือก ...</option>' : ''; ?>
+                            <select class="select2 form-select" name="customer" id="customer" <?php echo $this->CURUSER->user[0]->user_type == 'Emp' ? '' : 'disabled' ?>>
+                                <?php echo $this->CURUSER->user[0]->user_type == 'Emp' ? '<option value="">เลือก ...</option>' : ''; ?>
 
-                                <?php if (!in_array($this->CURUSER->cus_no, $search)) {
+                                <?php if ($this->CURUSER->user[0]->user_type == 'Cus') {
                                 ?>
-                                    <option value="<?php echo $this->CURUSER->cus_no;
-                                                    ?>" selected><?php echo $this->CURUSER->cus_name . ' (' . $this->CURUSER->cus_no . ')'
+                                    <option value="<?php echo $this->CURUSER->user_cus->cus_code;
+                                                    ?>" selected><?php echo $this->CURUSER->user_cus->cus_nameLC . ' (' . $this->CURUSER->user_cus->cus_code . ')'
                                                                     ?></option>
                                 <?php }
                                 ?>
@@ -75,24 +75,23 @@
                     </div>
                 </div>
                 <div class="box-search-2">
-                    <div class="input-search">
-                        <label for="type" class="form-label">ช่องทางการติดต่อ</label>
-                        <select class="form-select" id="is_contact" name="is_contact">
-                            <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
-                            <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
-                            <option value="3" <?php echo $is_contact == '3' ? 'selected' : ''; ?>>Fax</option>
-                            <option value="4" <?php echo $is_contact == '4' ? 'selected' : ''; ?>>Email & Fax</option>
-                            <option value="5" <?php echo $is_contact == '5' ? 'selected' : ''; ?>>No Fax</option>
-                            <option value="6" <?php echo $is_contact == '6' ? 'selected' : ''; ?>>No Email</option>
-                            <option value="7" <?php echo $is_contact == '7' ? 'selected' : ''; ?>>No Fax & No Email</option>
-                            <option value="8" <?php echo $is_contact == '8' ? 'selected' : ''; ?>>Email & No Fax</option>
-                            <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
-                        </select>
-                    </div>
+                    <?php if ($this->CURUSER->user[0]->user_type == 'Emp') { ?>
+                        <div class="input-search">
+                            <label for="type" class="form-label">ช่องทางการติดต่อ</label>
+                            <select class="form-select" id="is_contact" name="is_contact">
+                                <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                                <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
+                                <option value="3" <?php echo $is_contact == '3' ? 'selected' : ''; ?>>Fax</option>
+                                <option value="4" <?php echo $is_contact == '4' ? 'selected' : ''; ?>>Email & Fax</option>
+                                <option value="5" <?php echo $is_contact == '5' ? 'selected' : ''; ?>>No Fax</option>
+                                <option value="6" <?php echo $is_contact == '6' ? 'selected' : ''; ?>>No Email</option>
+                                <option value="7" <?php echo $is_contact == '7' ? 'selected' : ''; ?>>No Fax & No Email</option>
+                                <option value="8" <?php echo $is_contact == '8' ? 'selected' : ''; ?>>Email & No Fax</option>
+                                <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
+                            </select>
+                        </div>
+                    <?php }; ?>
 
-                    <!-- <div class="box-text">
-                        <p class="text-form"></p>
-                    </div> -->
                     <div class="btn-full mb-3 mt-4">
                         <button type="submit" class="btn btn-primary me-2">ค้นหา</button>
                         <button type="button" class="btn btn-success export" <?php echo !empty($dateSelect) ? '' : 'disabled' ?>>Export excel</button>
@@ -298,7 +297,8 @@
 
         function formatRepoSelection(repo) {
             if (repo.id) {
-                let show = search.includes('<?php echo $this->CURUSER->cus_no; ?>') ? repo.cus_name + '(' + repo
+                console.log('<?php echo $this->CURUSER->user[0]->user_type; ?>')
+                let show = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? repo.cus_name + '(' + repo
                     .cus_no + ')' : repo.text;
                 return $('<span>' + show + '</span>');
             }

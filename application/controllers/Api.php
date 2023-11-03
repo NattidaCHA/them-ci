@@ -17,8 +17,8 @@ class Api extends MY_Controller
     {
         $page = $this->input->post('page', TRUE);
         $detail = $this->input->post('detail', TRUE);
-        $created_by = NULL;
-        $updated_by = NULL;
+        $created_by = $this->CURUSER->user[0]->userdisplay_th;
+        $updated_by = $this->CURUSER->user[0]->userdisplay_th;
         $url = $this->input->post('url');
 
         $output = ['status' => 500, 'msg' => 'Something wrong !'];
@@ -87,8 +87,7 @@ class Api extends MY_Controller
     public function searchCustomerMain()
     {
         $output = $this->apiDefaultOutput();
-        $search = $this->config->item('fullSearch');
-        $keyword = !in_array($this->CURUSER->cus_no, $search) ? $this->CURUSER->cus_no : $this->input->get('q');
+        $keyword = $this->CURUSER->user[0]->user_type == 'Cus' ? $this->CURUSER->user_cus->cus_code : $this->input->get('q');
         $keyword = trim($keyword);
         $result = [];
 

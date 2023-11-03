@@ -27,23 +27,22 @@ class Report extends MY_Controller
 
     public function index()
     {
-        $search = $this->config->item('fullSearch');
         $created_date = !empty($this->input->post('created_date')) ? $this->input->post('created_date') : '';
         $bill_no = !empty($this->input->post('bill_no')) ? $this->input->post('bill_no') : '';
-        // $bill_no = NULL;
-        $searchLists = !in_array($this->CURUSER->cus_no, $search) ? $this->model_system->findeCustomersearch($this->CURUSER->cus_no) : $this->model_system->getCustomerAll()->items;
+        $first_date = date('Y-m-d', strtotime('-3 months'));
+        $searchLists = $this->CURUSER->user[0]->user_type == 'Cus' ? $this->model_system->findeCustomersearch($this->CURUSER->user_cus->cus_code) : $this->model_system->getCustomerAll()->items;
         $cus_no = NULL;
         $table = $this->model_system->getPageIsShow()->items;
 
-        if (in_array($this->CURUSER->cus_no, $search)) {
+        if ($this->CURUSER->user[0]->user_type == 'Emp') {
             if (!empty($this->input->post('customer'))) {
                 $cus_no = implode(',', $this->input->post('customer'));
             }
         } else {
             $sendto = [];
-            array_push($sendto, $this->CURUSER->cus_no);
-            if ($this->CURUSER->type == 'main') {
-                $isCheck = $this->model_system->checkSendtoMain($this->CURUSER->cus_no)->items;
+            array_push($sendto, $this->CURUSER->user_cus->cus_code);
+            if ($this->CURUSER->user_cus->cus_type == 'A') {
+                $isCheck = $this->model_system->checkSendtoMain($this->CURUSER->user_cus->cus_code)->items;
                 foreach ($isCheck as $val) {
                     if (!in_array($val->cus_no, $sendto)) {
                         array_push($sendto, $val->cus_no);
@@ -65,10 +64,10 @@ class Report extends MY_Controller
         $this->data['created_date'] = $created_date;
         $this->data['bill_no'] = $bill_no;
         $this->data['cus_no'] = $cus_no;
-        $this->data['fullSearch'] = $search;
         $this->data['page_header'] = 'รายงาน';
         $this->data['table'] = $table['report'];
         $this->data['info'] = $this->CURUSER;
+        $this->data['first_date'] = $first_date;
         $this->loadAsset(['dataTables', 'datepicker', 'select2', 'parsley']);
         $this->view('report_lists');
     }

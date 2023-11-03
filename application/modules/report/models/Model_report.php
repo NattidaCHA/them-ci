@@ -18,10 +18,12 @@ class Model_report extends MY_Model
     public function getBillNo($cus_no = FALSE)
     {
         $result = [];
-        $sql =  "SELECT * FROM " . REPORT;
+        $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
+        $last_date = date('Y-m-d H:i:s');
+        $sql =  "SELECT * FROM " . REPORT . " where created_date between '$first_date' and '$last_date'";
 
         if (!empty($cus_no)) {
-            $sql = $sql . " where cus_no in ($cus_no)";
+            $sql = $sql . " AND cus_no in ($cus_no)";
         }
 
         $sql = $sql . ' order by bill_no asc';
@@ -152,11 +154,17 @@ class Model_report extends MY_Model
     public function countBill($params)
     {
         $result = [];
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno";
+        $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
+        $last_date = date('Y-m-d H:i:s');
+
+        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno  where " . REPORT . " .created_date between '$first_date' and '$last_date'";
 
         if (!empty($params->cus_no)) {
             $in_cusNo = [];
-            array_push($in_cusNo, $this->CURUSER->cus_no);
+            if ($this->CURUSER->user[0]->user_type == 'Cus') {
+                array_push($in_cusNo, $this->CURUSER->user_cus->cus_code);
+            }
+
 
             foreach ($params->cus_no as $cus_no) {
                 if (!empty($cus_no) && $cus_no != 'all') {
@@ -173,26 +181,18 @@ class Model_report extends MY_Model
             }
 
             if (!empty($in_cusNo)) {
-                $sql = $sql . " where " . REPORT . ".cus_no in (" . implode(',', $in_cusNo) . ")";
+                $sql = $sql . " AND " . REPORT . ".cus_no in (" . implode(',', $in_cusNo) . ")";
             }
         }
 
-        if (!empty($params->bill_no) && !empty($params->cus_no)) {
-            if (!empty($params->cus_no)) {
-                $sql = $sql . " AND " . REPORT . ".bill_no = '$params->bill_no'";
-            } else {
-                $sql = $sql . " where " . REPORT . ".bill_no = '$params->bill_no'";
-            }
+        if (!empty($params->bill_no)) {
+            $sql = $sql . " AND " . REPORT . ".bill_no = '$params->bill_no'";
         }
 
         if (!empty($params->created_date)) {
             $startDate = $params->created_date . ' 00:00:00';
             $endDate = $params->created_date . ' 23:59:59';
-            if ((!empty($params->bill_no) || !empty($params->cus_no))) {
-                $sql = $sql . " AND " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
-            } else {
-                $sql = $sql . " where " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
-            }
+            $sql = $sql . " AND " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
         }
 
         $sql = $sql . "  group by " . REPORT . ".uuid," . REPORT . ".bill_no order by created_date desc";
@@ -230,12 +230,16 @@ class Model_report extends MY_Model
         $totalRecord = !empty($this->countBill($conn)->items) ? $this->countBill($conn)->items : 0;
 
         $result = [];
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no ";
+        $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
+        $last_date = date('Y-m-d H:i:s');
+        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(" . REPORT_DETAIL . ".mduedate) as mduedate,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no left join " . REPORT_DETAIL . " on " . REPORT . ".bill_no = " . REPORT_DETAIL . ".bill_no where " . REPORT . " .created_date between '$first_date' and '$last_date'";
 
 
         if (!empty($conn->cus_no)) {
             $in_cusNo = [];
-            array_push($in_cusNo, $this->CURUSER->cus_no);
+            if ($this->CURUSER->user[0]->user_type == 'Cus') {
+                array_push($in_cusNo, $this->CURUSER->user_cus->cus_code);
+            }
 
             foreach ($conn->cus_no as $cus_no) {
                 if (!empty($cus_no) && $cus_no != 'all') {
@@ -252,30 +256,24 @@ class Model_report extends MY_Model
             }
 
             if (!empty($in_cusNo)) {
-                $sql = $sql . " where " . REPORT . ".cus_no in (" . implode(',', $in_cusNo) . ")";
+                $sql = $sql . " AND " . REPORT . ".cus_no in (" . implode(',', $in_cusNo) . ")";
             }
         }
 
         if (!empty($conn->bill_no)) {
-            if (!empty($conn->cus_no)) {
-                $sql = $sql . " AND " . REPORT . ".bill_no = '$conn->bill_no'";
-            } else {
-                $sql = $sql . " where " . REPORT . ".bill_no = '$conn->bill_no'";
-            }
+            $sql = $sql . " AND " . REPORT . ".bill_no = '$conn->bill_no'";
         }
 
         if (!empty($conn->created_date)) {
             $startDate = $conn->created_date . ' 00:00:00';
             $endDate = $conn->created_date . ' 23:59:59';
-            if ((!empty($conn->bill_no) || !empty($conn->cus_no))) {
-                $sql = $sql . " AND " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
-            } else {
-                $sql = $sql . " where " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
-            }
+            $sql = $sql . " AND " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
         }
 
         $sql = $sql . "  group by " . REPORT . ".uuid," . REPORT . ".bill_no order by created_date desc offset $offset rows fetch next $conn->limit rows only";
 
+        // var_dump($sql);
+        // exit;
 
         $stmt = sqlsrv_query($this->conn, $sql);
         if ($stmt == false) {

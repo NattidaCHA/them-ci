@@ -486,4 +486,30 @@ class Model_system extends MY_Model
 
         return $output;
     }
+
+    public function getDepartment()
+    {
+        $result = [];
+        $sql =  "SELECT * FROM " . DEPARTMENT;
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result[$row['menu']][] = $row['department_id'];
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
+    }
 }

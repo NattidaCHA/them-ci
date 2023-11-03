@@ -12,10 +12,13 @@ class MY_Controller extends CI_Controller
     public $layout = 'global';
     public $partials = array('header', 'sidebar', 'topbar', 'footer');
     public $data = array();
-    public $CURUSER = NULL;
     public $conn = NULL;
     public $http = ((ENVIRONMENT == 'development') ? '' : '/invoicenotification');
+    public $url = ((ENVIRONMENT == 'production') ? 'https://npismo.scg.com' : 'https://npismodev.scg.com');
     public $tableAllowLog = ('uuid, page,action,detail,created_date,created_by,updated_date,updated_by,url');
+    public $tableAllowLogin = ('uuid, userid,cus_id,username,userdisplay_th,user_type,dep_id,dep_code,user_status,roleid,rolename,roletype,created_date');
+    public $CURUSER = NULL;
+    public $role = array();
 
 
     public function __construct()
@@ -25,68 +28,100 @@ class MY_Controller extends CI_Controller
         $this->load->model('model_system');
         $this->load->model('report/model_report');
         $this->load->model('invoice/model_invoice');
+        $this->load->model('access/model_access');
 
 
-        // var_dump($pdo->db->DATABASE);
+        $memberLogon = self::getSiteCookie();
+        if (!empty($memberLogon)) {
+            if ($memberLogon->expires_in < date('Y-m-d H:i:s')) {
+                self::clearSiteCookie();
+                redirect($this->url);
+            } else {
+                $this->connect();
+                if (empty($role)) {
+                    $this->role = $this->model_system->getDepartment()->items;
+                }
+
+                if (empty($this->CURUSER)) {
+                    $logon = $this->model_access->getUser($memberLogon->userid, $memberLogon->access_token);
+
+                    if (empty($logon->error)) {
+                        $this->CURUSER = $logon;
+                        $this->CURUSER->user_cus = $this->findObjectUser($this->CURUSER->customer, $this->CURUSER->user[0]->cus_id);
+                        $this->CURUSER->session_expire = $memberLogon->expires_in;
+
+                        if (checkPermission('system', $this->CURUSER->user[0]->dep_id, $this->role)) {
+                            echo '<script type="text/javascript">';
+                            echo 'alert("ท่านไม่สามารถเข้าใช้ระบบได้");';
+                            echo "window.location.href = '" . $this->url . "';";
+                            echo '</script>';
+                            self::clearSiteCookie();
+                            setcookie('userid', '', time() - 28800, $this->http . '/');
+                        }
+                    } else {
+                        echo '<script type="text/javascript">';
+                        echo 'alert("ข้อมูลผู้ใช้งานไม่ถูกต้อง กรุณาตรวจสอบใหม่อีกครั้ง");';
+                        echo "window.location.href = '" . $this->url . "';";
+                        echo '</script>';
+                        self::clearSiteCookie();
+                        setcookie('userid', '', time() - 28800, $this->http . '/');
+                    }
+                }
+            }
+        } else if ($this->router->fetch_class() == 'access' && $this->input->method() == 'get') {
+            $this->connect();
+        }
+
+        if ($this->router->fetch_class() != 'access' && empty($this->CURUSER)) {
+            if (!empty($_COOKIE['userid'])) {
+                $this->connect();
+                if (empty($role)) {
+                    $this->role = $this->model_system->getDepartment()->items;
+                }
+                $genToken = $this->model_access->genToken();
+                if (!empty($genToken)) {
+                    $this->setSiteCookie($genToken, rawurldecode($_COOKIE['userid']));
+                    $member = $this->model_access->getUser(rawurldecode($_COOKIE['userid']), $genToken->access_token);
+
+                    if (empty($member->error)) {
+                        $this->CURUSER = $member;
+                        $this->CURUSER->user_cus = $this->findObjectUser($this->CURUSER->customer, $this->CURUSER->user[0]->cus_id);
+                        $this->CURUSER->session_expire = date('Y-m-d H:i:s', strtotime("+" . $genToken->expires_in . " sec"));
+                        if (checkPermission('system', $this->CURUSER->user[0]->dep_id, $this->role)) {
+                            echo '<script type="text/javascript">';
+                            echo 'alert("ท่านไม่สามารถเข้าใช้ระบบได้");';
+                            echo "window.location.href = '" . $this->url . "';";
+                            echo '</script>';
+                            self::clearSiteCookie();
+                            setcookie('userid', '', time() - 28800, $this->http . '/');
+                        }
+                    } else {
+                        echo '<script type="text/javascript">';
+                        echo 'alert("ข้อมูลผู้ใช้งานไม่ถูกต้อง กรุณาตรวจสอบใหม่อีกครั้ง");';
+                        echo "window.location.href = '" . $this->url . "';";
+                        echo '</script>';
+                        self::clearSiteCookie();
+                        setcookie('userid', '', time() - 28800, $this->http . '/');
+                    }
+                } else {
+                    redirect($this->url);
+                }
+            } else {
+                redirect($this->url);
+            }
+        }
+
+        // var_dump($this->CURUSER);
         // exit;
-        // var_dump(self::getSiteCookie());
-        // $memberLogon = self::getSiteCookie();
-        // if (!empty($memberLogon)) {
-        //     if ($memberLogon->expire < date('Y-m-d H:i:s')) {
-        //         self::clearSiteCookie();
-        //     } else {
-        //         $this->load->database();
-        //         $this->load->model('member/model_member');
-        //         if ($logon = $this->model_member->getUser($memberLogon->member_id)) {
-        //             if ($logon->status == 1) {
-        //                 $this->CURUSER = $this->model_member->getMember($logon->member_id);
-        //                 $this->CURUSER->session_expire = $memberLogon->expire;
-        //             } else {
-        //                 self::clearSiteCookie();
-        //             }
-        //         } else {
-        //             $this->CURUSER = NULL;
-        //         }
-        //     }
-        // } else if ($this->router->fetch_class() == 'access' && $this->input->method() == 'post') {
-        //     $this->load->database();
-        // }
-
-        // if ($this->router->fetch_class() != 'access' && empty($this->CURUSER)) {
-        //     $lastPath = str_replace(site_url(), '', current_url());
-        //     if ($this->input->is_ajax_request()) {
-        //         $this->responseJSON([
-        //             'status' => 401,
-        //             'error' => 'Not Authorized',
-        //             'msg' => 'เซสชั่นระบบของท่านหมดอายุ  กรุณาเข้าสู่ระบบใหม่อีกครั้ง'
-        //         ]);
-        //     }
-        //     redirect('access?back_url=' . rawurlencode($lastPath));
-        // }
-        // $this->load->database();
-
-        // var_dump(ENVIRONMENT);
-
-        $this->connect();
-        // $this->load->database();
-
-        //getDateSelec
-        // var_dump($this->conn);
-        //  var_dump($this->model_system->checkSendtoChild('0002000080')->items);
-        $this->CURUSER = $this->model_system->findCustomerById('0000000281')->items;
-        // var_dump($this->CURUSER);
-
-        // var_dump($this->CURUSER);
-        // $this->CURUSER->cus_name = 'บจ.ป.กวิน';0002000082
-        //0002000080
-        //0000000281
         // Default Site Config
         $this->data = [
             'site_name' => $this->config->item('site_name'),
             'site_thumb' => $this->config->item('site_thumb'),
             'site_author' => $this->config->item('site_author'),
             'theme' => $this->theme,
-            'http' => $this->http
+            'http' => $this->http,
+            'CURUSER' => $this->CURUSER,
+            'role' => $this->role
         ];
     }
 
@@ -268,42 +303,40 @@ class MY_Controller extends CI_Controller
         return FALSE;
     }
 
-    protected function setSiteCookie($member)
+    protected function addSystemLog_Login($params)
     {
-        if (is_array($member)) {
-            $member = (object) $member;
+
+        $sql = "INSERT INTO " . LOG_IN . ' (' . $this->tableAllowLogin . ") VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
         }
-        $member_data = [
-            'id' => $member->member_id,
-            'display' => $member->display_name,
-            'email' => $member->email
-        ];
-        $expire = strtotime(date('Y-m-d ' . COOKIE_EXPIRE));
-        setcookie('edmuid', _encodeData($member->email, PRIVATE_KEY), $expire, '/');
-        setcookie('edmus', _encodeData(json_encode($member_data), PRIVATE_KEY), $expire, '/');
-        setcookie('edmck', _encodeData(time(), PRIVATE_KEY), $expire, '/');
+
+        return FALSE;
+    }
+
+    protected function setSiteCookie($genToken, $userid)
+    {
+        setcookie('access_token', $genToken->access_token, time() + $genToken->expires_in,  '/');
+        setcookie('userid', $userid, time() + $genToken->expires_in, $this->http . '/');
+        setcookie('refresh_token', $genToken->refresh_token, time() + $genToken->expires_in, '/');
+        setcookie('app_id', $genToken->app_id, time() + $genToken->expires_in, '/');
+        setcookie('expires_in', $genToken->expires_in, time() + $genToken->expires_in, '/');
+        setcookie('token_type', $genToken->token_type, time() + $genToken->expires_in,  '/');
     }
 
 
     protected function getSiteCookie()
     {
         $result = NULL;
-        if (!empty($_COOKIE['edmuid']) && !empty($_COOKIE['edmus']) && !empty($_COOKIE['edmck'])) {
-            $email = _decodeData($_COOKIE['edmuid'], PRIVATE_KEY);
-            $member = json_decode(_decodeData($_COOKIE['edmus'], PRIVATE_KEY));
-            $added = _decodeData($_COOKIE['edmck'], PRIVATE_KEY);
-            if (json_last_error() === JSON_ERROR_NONE && !empty($member)) {
-                if ($email != $member->email) {
-                    self::clearSiteCookie();
-                    return $result;
-                }
-                $result = new stdClass();
-                $result->member_id = $member->id;
-                $result->display_name = $member->display;
-                $result->email = $member->email;
-                $result->added = date('Y-m-d H:i:s', ((int) $added));
-                $result->expire = date('Y-m-d ' . COOKIE_EXPIRE, strtotime($result->added));
-            }
+        if (!empty($_COOKIE['access_token']) && !empty($_COOKIE['refresh_token']) && !empty($_COOKIE['app_id']) && !empty($_COOKIE['expires_in'])) {
+            $result = new stdClass();
+            $result->access_token = $_COOKIE['access_token'];
+            $result->userid = $_COOKIE['userid'];
+            $result->refresh_token = $_COOKIE['access_token'];
+            $result->app_id = $_COOKIE['app_id'];
+            $result->expires_in = date('Y-m-d H:i:s', strtotime("+" . $_COOKIE['expires_in'] . " sec"));
+            $result->token_type = $_COOKIE['token_type'];
         }
         return $result;
     }
@@ -311,24 +344,41 @@ class MY_Controller extends CI_Controller
 
     protected function clearSiteCookie()
     {
-        setcookie('edmuid', '', time() - 3600, '/');
-        setcookie('edmus', '', time() - 3600, '/');
-        setcookie('edmck', '', time() - 3600, '/');
+        setcookie('access_token', '', time() - 28800, $this->http . '/');
+        setcookie('refresh_token', '', time() - 28800, $this->http . '/');
+        setcookie('app_id', '', time() - 28800, $this->http . '/');
+        setcookie('expires_in', '', time() - 28800, $this->http . '/');
+        setcookie('token_type', '', time() - 28800, $this->http . '/');
     }
 
 
-    protected function checkPermission($check_slug, $level = 'view', $redirect = FALSE)
-    {
-        $result = checkPermission($this->CURUSER->permission, $check_slug, $level);
-        if ($redirect && !$result) {
-            redirect('/dashboard?permission=' . rawurlencode('/' . str_replace(base_url(), '', current_url())));
-        }
-        return $result;
-    }
+    // protected function checkPermission($page)
+    // {
+    //     $dep_id = 5;
+    //     $result = false;
+    //     switch ($page) {
+    //         case 'การแจ้งเตือน':
+    //             if (in_array($dep_id, $role['all'])) {
+    //                 $result = true;
+    //             }
+    //             break;
+    //         case 'รายงาน':
+    //             if (in_array($dep_id, $role['all']) || in_array($dep_id,  $role['report'])) {
+    //                 $result = true;
+    //             }
+    //             break;
+    //         case 'ตั้งค่า':
+    //             if (in_array($dep_id, $role['all'])) {
+    //                 $result = true;
+    //             }
+    //             break;
+    //     }
+    //     return $result;
+    // }
 
     protected function connect()
     {
-        require_once(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/db.php');
+        require(realpath($_SERVER["DOCUMENT_ROOT"]) . $this->http . '/pdo/db.php');
         $config = [];
         $config = ["Database" => $pdo->db->DATABASE, "UID" => $pdo->db->UID, "PWD" => $pdo->db->PWD, "ReturnDatesAsStrings" => true, "CharacterSet" => "UTF-8"];
 
@@ -417,7 +467,7 @@ class MY_Controller extends CI_Controller
             $reportChild = [];
             $content = $this->genPDF($params['uuid'], 'email');
 
-            $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['end_date'])), 'uuid' => $params['uuid'], 'http' => $this->http];
+            $data['data'] = (object)['end_date' => date('d/m/Y', strtotime($params['mduedate'])), 'uuid' => $params['uuid'], 'http' => $this->http];
             if ($cusType->type == 'main') {
                 $childs = $this->model_report->checkChildSendto($params['cus_no'], $params['cus_main'])->items;
                 foreach ($childs as $child) {
@@ -438,22 +488,18 @@ class MY_Controller extends CI_Controller
             if (!empty($cusType->is_email)) {
                 if (!empty($emails[$params['cus_no']]) || !empty($emails[$params['cus_main']])) {
                     try {
-                        $mail->SMTPDebug = SMTP::DEBUG_SERVER;
                         $mail->isSMTP();
-                        $mail->Host       = $pdo->email->host;
-                        // $mail->Host       = 'soms.scg.com';
-                        $mail->SMTPAuth   = true;
-                        $mail->Username   = $pdo->email->username;
-                        $mail->Password   = $pdo->email->password;
-                        // $mail->Password   = 'Year@2023';
-                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                        $mail->Port       = $pdo->email->port;
-                        // $mail->Port       = 25;
-                        // $mail->SMTPSecure = 'ssl';
-                        $mail->SMTPSecure = $pdo->email->SMTPSecure;
                         $mail->Mailer = "smtp";
-                        $mail->IsSMTP();
+                        $mail->Host       =  '10.101.97.25'; //$pdo->email->host; //'10.101.97.25';
+                        $mail->SMTPAuth   = false;
+                        // $mail->Username   = $pdo->email->username;
+                        // $mail->Password   = $pdo->email->password;
+                        $mail->Port       = $pdo->email->port;
+                        // $mail->SMTPSecure = $pdo->email->SMTPSecure;
+                        // $mail->SMTPSecure = 'ssl';
+                        // $mail->SMTPSecure = $pdo->email->SMTPSecure;SMTP::DEBUG_SERVER
                         $mail->Debugoutput = 'error_log';
+                        $mail->SMTPDebug = 0;
                         $mail->CharSet = 'utf-8';
                         $mail->SMTPOptions = array(
                             'ssl' => array(
@@ -464,18 +510,20 @@ class MY_Controller extends CI_Controller
                         );
 
                         $mesg = $this->load->view('report/email_tem', $data, TRUE);
-                        $mail->setFrom($pdo->email->username, 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
+                        $mail->setFrom($pdo->email->username, '(ทดสอบระบบ) เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า');
 
+                        //'phrueksp@scg.com', 'nan_zen0003@hotmail.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com'
                         // foreach ($emails as $res) {
-                        //     $mail->addAddress($res->email);
+                        //     $mail->addAddress($res->email);SMTP::DEBUG_SERVER
                         //'npibs_pipess01@scg.com', 'phrueksp@scg.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com',, 'npibs_pipess01@scg.com'
-                        // }
-                        foreach (['nattida.ncha@gmail.com', 'nattidac@scg.com'] as $res) {
+                        // }, 'nattidac@scg.com'$pdo->email->username$pdo->email->username
+                        //, 'phrueksp@scg.com', 'nan_zen0003@hotmail.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com'
+                        foreach (['nattida.ncha@gmail.com', 'phrueksp@scg.com', 'nan_zen0003@hotmail.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com'] as $res) {
                             $mail->addAddress($res);
                         }
 
                         $mail->isHTML(true);
-                        $mail->Subject = 'เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['end_date']));
+                        $mail->Subject = '(ทดสอบระบบ) เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ ' . date('d/m/Y', strtotime($params['mduedate']));
                         $mail->Body    = $mesg;
                         $mail->addStringAttachment($content, 'Report_' . $params['bill_no'] . '.pdf', 'base64', 'application/pdf');
                         if ($cusType->type == 'main') {
@@ -485,16 +533,18 @@ class MY_Controller extends CI_Controller
                             }
                         }
                         $mail->send();
+                        // var_dump($mail->send());
                         $this->model_report->updateEmail($params['uuid']);
                         return (object)['status' => 200, 'data' => $params, 'email' => $emails];
                     } catch (Exception $e) {
+                        // var_dump($mail->ErrorInfo);
                         return (object)['status' => 500, 'msg' =>  $mail->ErrorInfo, 'error' => $mail->ErrorInfo];
                     }
                 } else {
                     return (object)['status' => 204, 'data' => false, 'msg' => 'ไม่พบอีเมลของรหัสลูกค้า ' . $cusType->cus_no];
                 }
             } else {
-                return (object)['status' => 200, 'data' => 'ไม่ต้องส่งใบแจ้งเตือนผ่านอีเมล'];
+                return (object)['status' => 204, 'data' => $cusType->cus_no, 'msg' => 'ส่ง Fax'];
             }
         }
 
@@ -587,4 +637,37 @@ class MY_Controller extends CI_Controller
         }
         return  $sortType;
     }
+
+    function findObjectUser($customer, $cus_id)
+    {
+
+        foreach ($customer as $element) {
+            if ($cus_id == $element->cus_id) {
+                return $element;
+            }
+        }
+
+        return false;
+    }
+
+
+    // protected function checkPermission($page, $dep_id) 
+    // {
+    //     $dep_id = 5;
+    //     // $role = $this->config->item('day');master_department
+    //     $role =  $this->model_system->getDepartment();
+    //     $result = false;
+    //     switch ($page) {
+    //         case 'การแจ้งเตือน':
+    //             $result = in_array($dep_id, [3, 5]);
+    //             break;
+    //         case 'รายงาน':
+    //             $result = in_array($dep_id, [1, 2, 3, 5]);
+    //             break;
+    //         case 'ตั้งค่า':
+    //             $result = in_array($dep_id, [3, 5]);
+    //             break;
+    //     }
+    //     return $result;
+    // }
 } // End of class

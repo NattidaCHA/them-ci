@@ -1,12 +1,4 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
-
-// use PhpOffice\PhpSpreadsheet\Spreadsheet;
-// use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-// use PhpOffice\PhpSpreadsheet\IOFactory;
-// use Spatie\PdfToText\Pdf;
-// use PhpOffice\PhpSpreadsheet\Writer as Writer;
-// use Symfony\Component\HttpFoundation\StreamedResponse;
-
 class Invoice extends MY_Controller
 {
 
@@ -22,7 +14,6 @@ class Invoice extends MY_Controller
     public function index()
     {
         $days = $this->config->item('day');
-        $search = $this->config->item('fullSearch');
         $result = [];
         $table = $this->model_system->getPageIsShow()->items;
         $keyTable = [];
@@ -34,22 +25,23 @@ class Invoice extends MY_Controller
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
         $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
         $is_contact = $this->input->get('is_contact') ? $this->input->get('is_contact') : '1';
-
+        
         foreach ($table['invoice'] as $v) {
             array_push($keyTable, $v->sort);
         }
 
-        if (!in_array($this->CURUSER->cus_no, $search)) {
+        if ($this->CURUSER->user[0]->user_type == 'Cus') {
             if (!empty($this->input->get('customer'))) {
                 $cus_no = $this->input->get('customer');
             } else {
-                $cus_no = $this->CURUSER->cus_no;
+                $cus_no = $this->CURUSER->user_cus->cus_code;
             }
         } else {
             if (!empty($this->input->get('customer'))) {
                 $cus_no = $this->input->get('customer');
             }
         }
+
 
         $condition = [
             'dateSelect' => $dateSelect,
@@ -80,7 +72,6 @@ class Invoice extends MY_Controller
         $this->data['startDate'] = $startDate;
         $this->data['endDate'] = $endDate;
         $this->data['cus_no'] = $cus_no;
-        $this->data['search'] = $search;
         $this->data['table'] = $table['invoice'];
         $this->data['keyTable'] = $keyTable;
         $this->data['is_bill'] = $is_bill;
@@ -155,7 +146,7 @@ class Invoice extends MY_Controller
                     $end,
                     FALSE,
                     date("Y-m-d H:i:s"),
-                    NULL,
+                    $this->CURUSER->user[0]->userdisplay_th,
                     NULL
                 ];
 
@@ -302,5 +293,4 @@ class Invoice extends MY_Controller
         header('Content-Disposition: attachment; filename="Report_' . $result->bill_info->bill_no . '.xls"');
         $this->load->view('export_excel', $data);
     }
-
 }

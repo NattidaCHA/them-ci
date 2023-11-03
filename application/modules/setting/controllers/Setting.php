@@ -173,7 +173,7 @@ class Setting extends MY_Controller
                     unset($output['error']);
                 } else {
                     $result = $this->model_setting->getInvoice((object)$params)->items;
-                    $process = $this->processJob($result, $params['startDate'], $params['endDate']);
+                    $process = $this->processJob($result, $params['startDate'], $params['endDate'], $this->CURUSER->user[0]->userdisplay_th);
                     if (!empty($process)) {
                         if ($process->status == 200) {
                             $output['status'] = $process->status;
@@ -193,9 +193,7 @@ class Setting extends MY_Controller
                 }
             } else {
                 $result = $this->model_setting->getInvoice((object)$params)->items;
-                $process = $this->processJob($result, $params['startDate'], $params['endDate']);
-                // var_dump($process);
-                // exit;
+                $process = $this->processJob($result, $params['startDate'], $params['endDate'], $this->CURUSER->user[0]->userdisplay_th);
                 if (!empty($process)) {
                     if ($process->status == 200) {
                         $output['status'] = $process->status;
@@ -337,6 +335,8 @@ class Setting extends MY_Controller
 
     public function cronJob()
     {
+        ini_set('memory_limit', '512M');
+
         $dateSelect = $this->model_system->getDateSelect()->items;
         $defaultSelectDate = [];
         foreach ($dateSelect as $date) {
@@ -344,34 +344,122 @@ class Setting extends MY_Controller
         }
 
         $params = (object)[
-            'dateSelect' => date('l'), //date('l') Thursday,
+            'dateSelect' => date('l'), //date('l') Thursday,'Thursday'
             'startDate' => date('Y-m-d'), //date('Y-m-d'),
             'endDate' => date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d')))), //date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d')))),
             'type' => '0281'
         ];
 
+        //        if (in_array(date('l'), $defaultSelectDate) && !empty($params)) {
         if (in_array(date('l'), $defaultSelectDate) && !empty($params)) {
             echo '<pre>Start Job Success </pre>';
             echo '<pre>วันที่ต้องการแจ้ง ' . $params->dateSelect . ' ตั้งแต่ ' . $params->startDate  . '-' . $params->endDate . '</pre>';
             $result = $this->model_setting->getInvoice($params)->items;
             echo '<p>Total ' . count(array_keys($result)) . ' รหัสลูกค้า ' . implode(",\r\n", array_keys($result)) . '</p>';
+
+            $success = [];
+            $noSuccess = [];
+            $noSendEmail = [];
+            $fax = [];
+
             if (!empty($result)) {
-                $process = $this->processJob($result, $params->startDate, $params->endDate, 'System');
-                if (!empty($process)) {
-                    if ($process->status == 200) {
-                        echo '<pre>Run Job Success</pre>';
-                        echo implode(',', array_keys($process->data->data));
-                        return;
-                    } else if ($process->status == 204) {
-                        $noEmail = [];
-                        array_push($noEmail, str_replace('ไม่พบอีเมลของรหัสลูกค้า ', '', $process->msg));
-                        echo '<p>รหัสลูกค้าที่ไม่พบอีเมล ' . implode(',', $noEmail) . '</p>';
-                    } else {
-                        echo '<pre>Job Not Success</pre>';
-                        return;
+                foreach ($result as $key => $lists) {
+                    $process = $this->runJob($lists, $params->startDate, $params->endDate, 'System');
+                    if (!empty($process)) {
+                        if ($process->status == 200) {
+                            array_push($success, $key);
+                        } else if ($process->status == 204) {
+                            if (strpos($process->msg, 'Fax') > 0) {
+                                array_push($fax, $key);
+                            } else {
+                                array_push($noSendEmail, $key);
+                            }
+                        } else {
+                            array_push($noSuccess, $key);
+                        }
                     }
                 }
+
+                echo '<p>สร้างใบแจ้งเตือนและส่งอีเมลเรียบร้อย ' . implode(",\r\n", $success) . '</p>';
+                echo '<p>ส่งผ่าน Fax ' . implode(",\r\n", $fax) . '</p>';
+                echo '<p>ไม่พบอีเมลของรหัสลูกค้า ' . implode(",\r\n", $noSendEmail) . '</p>';
+                echo '<p>มีปัญหา ' . implode(",\r\n", $noSuccess) . '</p>';
+
+                jobNotifyMessage("\r\n🔃 Start Job Success \nวันที่ต้องการแจ้ง : " . $params->dateSelect . "\nตั้งแต่ : " . $params->startDate . " - " . $params->endDate . "\nTotal : " . count(array_keys($result)) . " \nสร้างใบแจ้งเตือนและส่งอีเมลเรียบร้อย : " . count($success) . " จำนวน \nส่งผ่าน Fax : " . count($fax) . " จำนวน \nรหัสลูกค้า : " . implode(",", $fax) . "\nไม่พบอีเมลของรหัสลูกค้า : " . count($noSendEmail) . " จำนวน \nรหัสลูกค้า : "  . implode(",", $noSendEmail) . " \nมีปัญหา : " . count($noSuccess) . " จำนวน \nรหัสลูกค้า : " .  implode(",", $noSuccess));
             }
         }
+    }
+
+    public function createDepartment()
+    {
+        $list = $this->config->item('department');
+
+        foreach ($list as $department) {
+            // var_dump($department->department_id);
+            $params = [
+                genRandomString(16),
+                $department->department_id,
+                $department->department_code,
+                $department->department_nameLC,
+                $department->department_nameEN,
+                $department->department_status,
+                $department->menu
+            ];
+            $this->model_setting->createDepartment($params);
+        }
+    }
+
+
+    public function runJob($result, $start, $end, $created_by = FALSE)
+    {
+        if (!empty($result)) {
+            $uuid = genRandomString(16);
+            $data = [
+                $result[0]->msendto,
+                $result[0]->mcustno,
+                $this->ramdomBillNo($result[0]->msendto),
+                FALSE,
+                date("Y-m-d H:i:s"),
+                $uuid,
+                $start,
+                $end,
+                FALSE,
+                date("Y-m-d H:i:s"),
+                !empty($created_by) ? $created_by : NULL,
+                NULL
+            ];
+
+            $this->model_invoice->createInvoice($data);
+            $report = $this->model_invoice->getReportUuid($uuid)->items;
+            $reportMain[$result[0]->msendto] = $report;
+
+            $genData = [];
+
+            if (!empty($report)) {
+                $genData = $this->genInvoiceDetail($report, $result);
+                if (empty($genData)) {
+                    return (object)['status' => 500, 'msg' => 'ไม่สามารถสร้างใบแจ้งเตือนได้', 'error' => 'ไม่สามารถสร้างใบแจ้งเตือนได้'];
+                }
+            } else {
+                return (object)['status' => 500, 'msg' => 'ไม่สามารถสร้างใบแจ้งเตือนได้', 'error' => 'ไม่สามารถสร้างใบแจ้งเตือนได้'];
+            }
+            // }
+
+            $checkMain = !empty($this->findObjectSendTo($result)) ? true : false;
+            foreach ($reportMain as $key => $report) {
+                $email = $this->genEmail((array)$report, 'invoice', $checkMain);
+                if ($email->status == 204) {
+                    return (object)['status' => 204, 'data' => $email->data, 'msg' => $email->msg];
+                } else if ($email->status == 500) {
+                    return (object)['status' => 500, 'msg' => $email->msg, 'error' => $email->msg];
+                }
+            }
+
+            return (object)['status' => 200, 'data' => (object)['data' => $reportMain]];
+        } else {
+            return (object)['status' => 500, 'msg' => 'ไม่พบข้อมูลค่าใช้จ่าย', 'error' => 'ไม่พบข้อมูลค่าใช้จ่าย'];
+        }
+
+        // sleep(500);
     }
 }

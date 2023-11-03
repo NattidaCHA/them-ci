@@ -10,38 +10,43 @@
     <div class="container-fluid navbar-blackground-lg">
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="<?php echo $http ?>/invoice">การแจ้งเตือน</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="<?php echo $http ?>/report">รายงาน</a>
-                </li>
-                <!-- <li class="nav-item">
-                        <a class="nav-link" href="<?php echo $http ?>/customer">ลูกค้า</a>
-                    </li> -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-bs-toggle="dropdown" aria-expanded="false">
-                        ตั้งค่า <i class="bi bi-chevron-down mt-4"></i>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="<?php echo $http . '/customer' ?>">ข้อมูลลูกค้า</a></li>
-                        <li><a class="dropdown-item" href="<?php echo $http . '/setting?tab=invoice' ?>">แก้ไขคอลัมน์และซ่อมข้อมูล</a></li>
-                    </ul>
-                </li>
+                <?php if (checkPermission('การแจ้งเตือน', $this->CURUSER->user[0]->dep_id, $this->role) || $this->CURUSER->user[0]->user_type == 'Cus') { ?>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="<?php echo $http ?>/invoice">การแจ้งเตือน</a>
+                    </li>
+                <?php }; ?>
+                <?php if (checkPermission('รายงาน', $this->CURUSER->user[0]->dep_id, $this->role) || $this->CURUSER->user[0]->user_type == 'Cus') { ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo $http ?>/report">รายงาน</a>
+                    </li>
+                <?php }; ?>
+                <?php if ($this->CURUSER->user[0]->user_type == 'Emp' && checkPermission('ตั้งค่า', $this->CURUSER->user[0]->dep_id, $this->role)) { ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-bs-toggle="dropdown" aria-expanded="false">
+                            ตั้งค่า <i class="bi bi-chevron-down mt-4"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo $http . '/customer' ?>">ข้อมูลลูกค้า</a></li>
+                            <li><a class="dropdown-item" href="<?php echo $http . '/setting?tab=invoice' ?>">แก้ไขคอลัมน์และซ่อมข้อมูล</a></li>
+                        </ul>
+                    </li>
+                <?php }; ?>
             </ul>
             <div class="d-block">
-                <a href="<?php echo WWW; ?>" class="d-inline-flex align-items-center text-white">
+                <a href="<?php echo $http ?>/access/logout" class="d-inline-flex align-items-center text-white smo">
                     Back to smo
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="displayname">
-        <div class="name-role">
-            <span>NPI&nbsp;</span>
+    <?php if (!empty($this->CURUSER->user[0]->username)) { ?>
+        <div class="displayname">
+            <div class="name-role">
+                <span><?php echo str_replace(' ', '&nbsp;', $this->CURUSER->user[0]->username); ?></span>
+            </div>
         </div>
-    </div>
+    <?php } ?>
 </nav>
 
 <nav id="sidebarMenu" class="sidebar bg-gray-800 text-white collapse d-lg-none" data-simplebar>
@@ -49,7 +54,9 @@
         <div class="user-card d-flex align-items-center justify-content-between pb-4">
             <div class="d-flex align-items-center justify-content-start">
                 <div class="d-block">
-                    <span class="mt-1 sidebar-text">Notification system</span>
+                    <?php if (!empty($this->CURUSER->user[0]->username)) { ?>
+                        <span class="mt-1 sidebar-text"><?php echo $this->CURUSER->user[0]->username; ?></span>
+                    <?php } ?>
                     <!-- <h2 class="h5 mb-3">fff</h2>
                     <a href="<?php //echo $http 
                                 ?>/logout" class="btn btn-danger btn-sm d-inline-flex align-items-center">
@@ -65,7 +72,7 @@
                 </a>
             </div>
         </div>
-        <ul class="nav flex-column pt-3 pt-md-0">
+        <ul class="nav flex-column pt-3 pt-md-0 bar">
             <li class="nav-item py-3">
                 <span class="sidebar-icon">
                     <img src="<?php echo $http
@@ -73,32 +80,38 @@
                 </span>
                 <span class="mt-1 ms-1 sidebar-text">Notification system</span>
             </li>
-            <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo $http ?>/invoice" class="nav-link">
-                    <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">การแจ้งเตือน</span>
-                </a>
-            </li>
-            <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo $http ?>/report" class="nav-link">
-                    <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">รายงาน</span>
-                </a>
-            </li>
-            <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo $http ?>/customer" class="nav-link">
-                    <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">ข้อมูลลูกค้า</span>
-                </a>
-            </li>
-            <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo $http . '/setting?tab=invoice' ?>" class="nav-link">
-                    <span class="sidebar-icon"></span>
-                    <span class="sidebar-text">แก้ไขคอลัมน์และซ่อมข้อมูล</span>
-                </a>
-            </li>
-            <li class="nav-item" id="_menu-dashboard">
-                <a href="<?php echo WWW; ?>" class="nav-link">
+            <?php if (checkPermission('การแจ้งเตือน', $this->CURUSER->user[0]->dep_id, $this->role) || $this->CURUSER->user[0]->user_type == 'Cus') { ?>
+                <li class="nav-item">
+                    <a href="<?php echo $http ?>/invoice" class="nav-link">
+                        <span class="sidebar-icon"></span>
+                        <span class="sidebar-text">การแจ้งเตือน</span>
+                    </a>
+                </li>
+            <?php } ?>
+            <?php if (checkPermission('รายงาน', $this->CURUSER->user[0]->dep_id, $this->role) || $this->CURUSER->user[0]->user_type == 'Cus') { ?>
+                <li class="nav-item">
+                    <a href="<?php echo $http ?>/report" class="nav-link">
+                        <span class="sidebar-icon"></span>
+                        <span class="sidebar-text">รายงาน</span>
+                    </a>
+                </li>
+            <?php } ?>
+            <?php if ($this->CURUSER->user[0]->user_type == 'Emp' && checkPermission('ตั้งค่า', $this->CURUSER->user[0]->dep_id, $this->role)) { ?>
+                <li class="nav-item">
+                    <a href="<?php echo $http ?>/customer" class="nav-link">
+                        <span class="sidebar-icon"></span>
+                        <span class="sidebar-text">ข้อมูลลูกค้า</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="<?php echo $http . '/setting?tab=invoice' ?>" class="nav-link">
+                        <span class="sidebar-icon"></span>
+                        <span class="sidebar-text">แก้ไขคอลัมน์และซ่อมข้อมูล</span>
+                    </a>
+                </li>
+            <?php }; ?>
+            <li class="nav-item">
+                <a href="<?php echo $http ?>/access/logout" class="nav-link smo">
                     <span class="sidebar-icon"></span>
                     <span class="sidebar-text">Back to smo</span>
                 </a>
@@ -106,17 +119,3 @@
         </ul>
     </div>
 </nav>
-
-<!-- <script>
-    $(function() {
-        $(".dropdown").hover(function() {
-            var isHovered = $(this).is(":hover");
-            console.log(isHovered)
-            if (isHovered) {
-                $(this).children("ul").stop().slideDown(300);
-            } else {
-                $(this).children("ul").stop().slideUp(300);
-            }
-        });
-    });
-</script> -->

@@ -26,13 +26,15 @@ class Model_invoice extends MY_Model
 
         $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'";
 
+        //$sql2 = "SELECT cus_main FROM " . REPORT . " where start_date >= '$val->startDate' AND  end_date <='$val->endDate' group by cus_main";
         if (!empty($val->is_bill)) {
             $result2 = [];
-            $sql2 = "SELECT cus_main FROM " . REPORT . " where start_date >= '$val->startDate' AND  end_date <='$val->endDate' group by cus_main";
+            $sql2 = "SELECT cus_no FROM " . REPORT . " where start_date = '$val->startDate' AND  end_date = '$val->endDate' group by cus_no";
+
             $stmt2 = sqlsrv_query($this->conn, $sql2);
 
             while ($row2 = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
-                array_push($result2, $row2["cus_main"]);
+                array_push($result2, $row2["cus_no"]);
             }
 
 

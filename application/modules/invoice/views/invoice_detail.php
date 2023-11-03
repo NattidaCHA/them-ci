@@ -150,9 +150,9 @@
 
 
 
-                                    // setTimeout(function() {
-                                    //     window.location = '<?php echo $http; ?>/report';
-                                    // }, 2500);
+                                    setTimeout(function() {
+                                        window.location = '<?php echo $http; ?>/report';
+                                    }, 2500);
                                 })
 
                                 $.post('<?php echo $http ?>/api/addMainLog/create', {
@@ -241,12 +241,6 @@
                     })
                 }
             });
-
-        $('.modal_excel').on('click', '.btn-close,._close_ex', function(e) {
-            e.preventDefault();
-            window.location = '<?php echo $http; ?>/report';
-
-        })
 
 
         function openPDF(res) {

@@ -3,75 +3,56 @@
 class Access extends MY_Controller
 {
 
-
     public function __construct()
     {
         parent::__construct();
+        $this->load->model('model_access');
     }
 
-    // password_hash('secret|test1234', PASSWORD_BCRYPT);
 
-
-    public function process($id)
+    public function process($userid = FALSE)
     {
-        // $key = $this->
-        echo $id;
-        // if (!empty($this->CURUSER)) {
-        //     redirect('dashboard');
-        // }
-        // $invalid_token = FALSE;
-        // $backUrl = $this->input->get('back_url', TRUE);
-        // $check_token = (!empty($_COOKIE['_csrftoken'])) ? $_COOKIE['_csrftoken'] : '';
-        // $remember = ((!empty($_COOKIE['rememail'])) ? htmlspecialchars($_COOKIE['rememail']) : '');
-        // $token = md5(microtime());
-        // setcookie('_csrftoken', $token, time()+86400, '/access');
 
-        // if ($this->input->method() == 'post') {
-        //     $this->data['error'] = 'email หรือ password ไม่ถูกต้อง !';
-        //     $params = $this->input->post(NULL, TRUE);
+        if (empty($userid)) {
+            redirect($this->url);
+        }
 
-        //     if ($params['token'] === $check_token && !empty($check_token)) {
-        //         if (!empty($params['email']) && !empty($params['password'])) {
-        //             $email = trim($params['email']);
-        //             $remember = (!empty($email)) ? $email : $remember;
-        //             $this->load->model('member/model_member');
-        //             if ($member = $this->model_member->getUser($email, 'email')) {
-        //                 if (empty($member->status)) {
-        //                     $this->data['error'] = 'ไม่สามารถเข้าใช้งานระบบได้ !';
-        //                 } else {
-        //                     if ($verify = password_verify($member->secret.'|'.$params['password'], $member->passhash)) {
-        //                         // Set cookie
-        //                         $this->setSiteCookie($member);
-        //                         // Set remember user
-        //                         if (!empty($params['remember'])) {
-        //                             setcookie('rememail', $email, time()+(86400*90), '/access');
-        //                         }
+        $genToken = $this->model_access->genToken();
+        if (!empty($genToken)) {
+            $this->setSiteCookie($genToken, $userid);
+            $member = $this->model_access->getUser($userid, $genToken->access_token);
+            if (empty($member->error)) {
+                $this->CURUSER = $member;
+                $this->CURUSER->user_cus = $this->findObjectUser($this->CURUSER->customer, $this->CURUSER->user[0]->cus_id);
+                $this->CURUSER->session_expire = date('Y-m-d H:i:s', strtotime("+" . $genToken->expires_in . " sec"));
 
-        //                         $this->CURUSER = $this->model_member->getMember($member->member_id);
-        //                         $this->model_member->updateUser($member->member_id, ['last_login' => date('Y-m-d H:i:s'), 'last_ip' => get_ip()], FALSE);
-        //                         $this->addSystemLog('update', site_url('access'), 'Login');
-        //                         redirect(((!empty($params['redirect_url']))) ? $params['redirect_url'] : 'dashboard');
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     } else {
-        //         $this->data['error'] = 'รูปแบบการเข้าใช้งานไม่ถูกต้อง ! กรุณาลองใหม่อีกครั้ง';
-        //     }
-        // }
-
-        // $this->data['back_url'] = rawurldecode($backUrl);
-        // $this->data['login_token'] = $token;
-        // $this->data['remember'] = $remember;
-        // $this->layout = 'blank';
-        // $this->view('login');
+                $this->addSystemLog_Login([
+                    genRandomString(16), $member->user[0]->userid, $member->user[0]->cus_id, $member->user[0]->username, $member->user[0]->userdisplay_th, $member->user[0]->user_type, $member->user[0]->dep_id, $member->user[0]->dep_code, $member->user[0]->user_status,
+                    $member->user[0]->roleid, $member->user[0]->rolename, $member->user[0]->roletype, date('Y-m-d H:i:s')
+                ]);
+                redirect('invoice');
+            } else {
+                echo '<script type="text/javascript">';
+                echo 'alert("ข้อมูลผู้ใช้งานไม่ถูกต้อง กรุณาตรวจสอบใหม่อีกครั้ง");';
+                echo "window.location.href = '" . $this->url . "';";
+                echo '</script>';
+                self::clearSiteCookie();
+                setcookie('userid', '', time() - 28800, $this->http . '/');
+            }
+        } else {
+            redirect($this->url);
+        }
     }
 
 
-    // public function logout() {
-    //     $this->clearSiteCookie();
-    //     redirect('access');
-    // }
+
+
+    public function logout()
+    {
+        $this->clearSiteCookie();
+        setcookie('userid', '', time() - 28800, $this->http . '/');
+        redirect($this->url . '/signin/relogin/' . $_COOKIE['access_token']);
+    }
 
 
     // public function info() {

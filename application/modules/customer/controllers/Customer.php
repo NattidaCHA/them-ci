@@ -1,7 +1,5 @@
 <?php
 
-use Mpdf\Tag\Em;
-
 (defined('BASEPATH')) or exit('No direct script access allowed');
 
 class Customer extends MY_Controller
@@ -278,7 +276,7 @@ class Customer extends MY_Controller
                 $findCus = $this->model_customer->findChild($params['cus_no'])->items;
                 if (empty($checkCustomer)) {
                     $customer = [
-                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], NULL, NULL, $findCus->is_email, $findCus->is_fax
+                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], $this->CURUSER->user[0]->userdisplay_th, NULL, $findCus->is_email, $findCus->is_fax
                     ];
 
                     $create = $this->model_customer->createCustomer($customer);
@@ -358,7 +356,7 @@ class Customer extends MY_Controller
                 $customer = [
                     $params['send_date'],
                     date("Y-m-d H:i:s"),
-                    NULL
+                    $this->CURUSER->user[0]->userdisplay_th
                 ];
 
                 $this->model_customer->updateInfo($params['id'], $customer);
@@ -737,8 +735,8 @@ class Customer extends MY_Controller
             $type,
             'System',
             NULL,
-            $info->is_email,
-            $info->is_fax,
+            !empty($info->is_email) ? 1 : 0,
+            !empty($info->is_fax) ? 1 : 0,
         ];
         $create = $this->model_customer->createCustomer($customer);
         // var_dump($info);
@@ -821,26 +819,6 @@ class Customer extends MY_Controller
         $this->setCondition();
         $this->queryCondition['page'] = $this->page;
         $this->queryCondition['limit'] = $this->limit;
-        // if (!empty($is_email) && $is_email != '1') {
-        //     if ($is_email == '2') {
-        //         $is_email = 1;
-        //     } else {
-        //         $is_email = '0,NULL';
-        //     }
-        // } else {
-        //     $is_email = FALSE;
-        // }
-
-        // if (!empty($is_fax) && $is_fax != '1') {
-        //     if ($is_fax == '2') {
-        //         $is_fax = 1;
-        //     } else {
-        //         $is_fax = '0,NULL';
-        //     }
-        // } else {
-        //     $is_fax = FALSE;
-        // }
-
         $total = 0;
 
         if ($apiData = $this->model_customer->getCustomerTb($cus_no, $is_contact, $this->limit, $this->page)) {

@@ -1,4 +1,4 @@
-<?php (defined('BASEPATH')) OR exit('No direct script access allowed');
+<?php (defined('BASEPATH')) or exit('No direct script access allowed');
 
 /**
  * js_asset()
@@ -71,7 +71,8 @@ function img_asset($filename, $dir = 'assets/img')
 
 /* ######################################################################### */
 
-function slugifyID($str, $replace_sign = '_') {
+function slugifyID($str, $replace_sign = '_')
+{
     $str = trim($str);
 
     // Replace high ascii characters
@@ -90,7 +91,8 @@ function slugifyID($str, $replace_sign = '_') {
 }
 
 
-function slugify($str, $replace_sign = '-') {
+function slugify($str, $replace_sign = '-')
+{
     // Convert to lowercase and remove whitespace
     $str = strtolower(trim($str));
 
@@ -114,7 +116,8 @@ function slugify($str, $replace_sign = '-') {
 }
 
 
-function _month($m, $full = false, $lang = 'th') {
+function _month($m, $full = false, $lang = 'th')
+{
     $m = (int) $m;
     if ($full) {
         $month_name = array(
@@ -131,7 +134,8 @@ function _month($m, $full = false, $lang = 'th') {
 }
 
 
-function checkISODate($dateStr) {
+function checkISODate($dateStr)
+{
     if (preg_match('/^([\+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24\:?00)([\.,]\d+(?!:))?)?(\17[0-5]\d([\.,]\d+)?)?([zZ]|([\+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/', $dateStr) > 0) {
         return TRUE;
     } else {
@@ -139,26 +143,30 @@ function checkISODate($dateStr) {
     }
 }
 
-function getMongoDate($dateObject) {
+function getMongoDate($dateObject)
+{
     $timestamp = $dateObject->{'$date'}->{'$numberLong'} / 1000;
     return date("Y-m-d H:i:s", $timestamp);
 }
 
 
-function ISOtoGMT($iso_date, $full = FALSE) {
+function ISOtoGMT($iso_date, $full = FALSE)
+{
     if ($full === TRUE) {
-        return date('Y-m-d H:i:s', date("U",strtotime($iso_date)));
+        return date('Y-m-d H:i:s', date("U", strtotime($iso_date)));
     }
-    return date('Y-m-d H:i', date("U",strtotime($iso_date)));
+    return date('Y-m-d H:i', date("U", strtotime($iso_date)));
 }
 
 
-function ISOtoGMTDate($iso_date) {
+function ISOtoGMTDate($iso_date)
+{
     return mb_substr(ISOtoGMT($iso_date), 0, 10);
 }
 
 
-function show_date($str_date = 0, $showTime = TRUE, $full = TRUE, $split_text = ' ') {
+function show_date($str_date = 0, $showTime = TRUE, $full = TRUE, $split_text = ' ')
+{
     if (is_null($str_date) || strpos($str_date, '0000') === 0) {
         return '-';
     }
@@ -170,24 +178,26 @@ function show_date($str_date = 0, $showTime = TRUE, $full = TRUE, $split_text = 
 
     list($date, $time) = explode(" ", $str_date);
     list($y, $m, $d) = explode("-", $date);
-    $text = $d.' '._month($m, $full).' '.(($full) ? $y : substr($y,2,2));
-    return $text.(($showTime===TRUE) ? $split_text.substr($time,0,5).' น.' : '');
+    $text = $d . ' ' . _month($m, $full) . ' ' . (($full) ? $y : substr($y, 2, 2));
+    return $text . (($showTime === TRUE) ? $split_text . substr($time, 0, 5) . ' น.' : '');
 }
 
 
 
-function arrayUnique($array_data, $sensitivity = TRUE) {
+function arrayUnique($array_data, $sensitivity = TRUE)
+{
     $array_data = array_filter($array_data);
     $array_data = array_map('trim', $array_data);
     if ($sensitivity === TRUE) {
         return array_unique($array_data);
     } else {
-        return array_intersect_key($array_data,array_unique(array_map('strtolower', $array_data)));
+        return array_intersect_key($array_data, array_unique(array_map('strtolower', $array_data)));
     }
 }
 
 
-function forceDouble($string = '', $ignore_null = TRUE) {
+function forceDouble($string = '', $ignore_null = TRUE)
+{
     $string = (string) $string;
     $string = trim($string);
     if ($ignore_null === TRUE && $string == '') {
@@ -197,11 +207,12 @@ function forceDouble($string = '', $ignore_null = TRUE) {
     if (empty($string)) {
         return 0;
     }
-    return (double) $string;
+    return (float) $string;
 }
 
 
-function forceNumber($string = '', $ignore_null = TRUE) {
+function forceNumber($string = '', $ignore_null = TRUE)
+{
     $string = (string) $string;
     $string = trim($string);
     if ($ignore_null === TRUE && $string == '') {
@@ -212,7 +223,8 @@ function forceNumber($string = '', $ignore_null = TRUE) {
 }
 
 
-function title_tag($text, $cut = FALSE) {
+function title_tag($text, $cut = FALSE)
+{
     $text = str_replace(array('"', "'"), array('', ""), trim($text));
     $text = htmlspecialchars($text);
     if ($cut !== FALSE) {
@@ -223,7 +235,8 @@ function title_tag($text, $cut = FALSE) {
 }
 
 
-function check_empty_value($value) {
+function check_empty_value($value)
+{
     if (is_array($value)) {
         return TRUE;
     } else if (strlen($value) > 0) {
@@ -238,7 +251,8 @@ function check_empty_value($value) {
  *  @array $arr : source array of object
  *  @array $arr_sort : 3 desc / 4 asc / ex. ['name' => 4]
  */
-function sortByArrayObj(&$arr, $arr_sort = []) {
+function sortByArrayObj(&$arr, $arr_sort = [])
+{
     $args = [];
     if (!empty($arr)) {
         if (is_object($arr[0])) {
@@ -263,7 +277,8 @@ function sortByArrayObj(&$arr, $arr_sort = []) {
 }
 
 
-function textNumber($number, $precision = 1) {
+function textNumber($number, $precision = 1)
+{
     if (check_empty_value($number) === FALSE) {
         return 'N/A';
     }
@@ -279,18 +294,19 @@ function textNumber($number, $precision = 1) {
 }
 
 
-function get_ip() {
+function get_ip()
+{
     if (getenv('HTTP_CLIENT_IP')) {
         $ip_address = getenv('HTTP_CLIENT_IP');
     } else if (getenv('HTTP_X_FORWARDED_FOR')) {
         $ip_address = getenv('HTTP_X_FORWARDED_FOR');
-    } else if(getenv('HTTP_X_FORWARDED')) {
+    } else if (getenv('HTTP_X_FORWARDED')) {
         $ip_address = getenv('HTTP_X_FORWARDED');
-    } else if(getenv('HTTP_FORWARDED_FOR')) {
+    } else if (getenv('HTTP_FORWARDED_FOR')) {
         $ip_address = getenv('HTTP_FORWARDED_FOR');
-    } else if(getenv('HTTP_FORWARDED')) {
+    } else if (getenv('HTTP_FORWARDED')) {
         $ip_address = getenv('HTTP_FORWARDED');
-    } else if(getenv('REMOTE_ADDR')) {
+    } else if (getenv('REMOTE_ADDR')) {
         $ip_address = getenv('REMOTE_ADDR');
     } else {
         $ip_address = 'UNKNOWN';
@@ -299,7 +315,8 @@ function get_ip() {
 }
 
 
-function genRandomString($length = 8, $notSpecial = FALSE) {
+function genRandomString($length = 8, $notSpecial = FALSE)
+{
     $characters = ($notSpecial) ? '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' : '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
@@ -327,7 +344,8 @@ function replaceSpecialText($text, $convert = FALSE)
 }
 
 
-function _encodeData($data, $password) {
+function _encodeData($data, $password)
+{
     if (is_array($data)) {
         $data = json_encode($data);
     }
@@ -352,37 +370,67 @@ function _decodeData($data, $password)
 }
 
 
-function checkPermission($MY_PERMISSION, $check_slug, $level = 'view') {
-    if (!empty($MY_PERMISSION->level) && $MY_PERMISSION->level == 9) {
-        return TRUE;
-    }
+// function checkPermission($MY_PERMISSION, $check_slug, $level = 'view') {
+//     if (!empty($MY_PERMISSION->level) && $MY_PERMISSION->level == 9) {
+//         return TRUE;
+//     }
 
-    $result = FALSE;
-    $check_slug = (is_array($check_slug)) ? $check_slug : [$check_slug];
+//     $result = FALSE;
+//     $check_slug = (is_array($check_slug)) ? $check_slug : [$check_slug];
 
-    foreach ($check_slug as $check) {
-        if (!empty($MY_PERMISSION)) {
-            if (isset($MY_PERMISSION->{$check})) {
-                $permission = $MY_PERMISSION->{$check};
-                switch ($level) {
-                    case 'delete': $result = (strpos($permission, '1', 0) === 0);
-                        break;
-                    case 'add': $result = (strpos($permission, '1', 1) === 1);
-                        break;
-                    case 'edit': $result = (strpos($permission, '1', 2) === 2);
-                        break;
-                    case 'view': $result = TRUE;
-                        break;
-                }
+//     foreach ($check_slug as $check) {
+//         if (!empty($MY_PERMISSION)) {
+//             if (isset($MY_PERMISSION->{$check})) {
+//                 $permission = $MY_PERMISSION->{$check};
+//                 switch ($level) {
+//                     case 'delete': $result = (strpos($permission, '1', 0) === 0);
+//                         break;
+//                     case 'add': $result = (strpos($permission, '1', 1) === 1);
+//                         break;
+//                     case 'edit': $result = (strpos($permission, '1', 2) === 2);
+//                         break;
+//                     case 'view': $result = TRUE;
+//                         break;
+//                 }
+//             }
+//             if ($result) { break; }
+//         }
+//     }
+
+//     return $result;
+// }
+
+
+function checkPermission($page, $dep_id, $role)
+{
+    $result = false;
+    switch ($page) {
+        case 'การแจ้งเตือน':
+            if (in_array($dep_id, $role['all'])) {
+                $result = true;
             }
-            if ($result) { break; }
-        }
+            break;
+        case 'รายงาน':
+            if (in_array($dep_id, $role['all']) || in_array($dep_id,  $role['report'])) {
+                $result = true;
+            }
+            break;
+        case 'ตั้งค่า':
+            if (in_array($dep_id, $role['all'])) {
+                $result = true;
+            }
+            break;
+        case 'system':
+            if (in_array($dep_id, $role['no'])) {
+                $result = true;
+            }
+            break;
     }
-
     return $result;
 }
 
-function checkMakeDir($dir) {
+function checkMakeDir($dir)
+{
     $dir = trim($dir, '/');
     if (!is_dir(PATH_UPLOAD . $dir) && !file_exists(PATH_UPLOAD . $dir)) {
         mkdir(PATH_UPLOAD . $dir, 0755, TRUE);
@@ -391,10 +439,11 @@ function checkMakeDir($dir) {
     return PATH_UPLOAD . $dir . '/';
 }
 
-function getYoutubeSlugURL($url) {
+function getYoutubeSlugURL($url)
+{
     preg_match('%(?:youtube\.com/([^\s\/\?]+)/([^\s\/\?]+))%i', $url, $result);
     if (!empty($result[1]) && !empty($result[2])) {
-        return (object) [ 'id' => rawurldecode($result[2]), 'type' => $result[1] ];
+        return (object) ['id' => rawurldecode($result[2]), 'type' => $result[1]];
     }
 
     return FALSE;
@@ -403,8 +452,8 @@ function getYoutubeSlugURL($url) {
 
 function thaiBath($amount_number)
 {
-    $amount_number = number_format($amount_number, 2, ".","");
-    $pt = strpos($amount_number , ".");
+    $amount_number = number_format($amount_number, 2, ".", "");
+    $pt = strpos($amount_number, ".");
     $fraction = "";
     if ($pt === false) {
         $number = $amount_number;
@@ -414,7 +463,7 @@ function thaiBath($amount_number)
     }
 
     $ret = "";
-    $baht = ReadNumber ($number);
+    $baht = ReadNumber($number);
     if ($baht != "")
         $ret .= $baht . "บาท";
 
@@ -427,26 +476,23 @@ function thaiBath($amount_number)
 }
 
 
-function ReadNumber($number) {
+function ReadNumber($number)
+{
     $position_call = array("แสน", "หมื่น", "พัน", "ร้อย", "สิบ", "");
     $number_call = array("", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า");
     $number = $number + 0;
     $ret = "";
     if ($number == 0) return $ret;
-    if ($number > 1000000)
-    {
+    if ($number > 1000000) {
         $ret .= ReadNumber(intval($number / 1000000)) . "ล้าน";
         $number = intval(fmod($number, 1000000));
     }
 
     $divider = 100000;
     $pos = 0;
-    while($number > 0)
-    {
+    while ($number > 0) {
         $d = intval($number / $divider);
-        $ret .= (($divider == 10) && ($d == 2)) ? "ยี่" :
-            ((($divider == 10) && ($d == 1)) ? "" :
-                ((($divider == 1) && ($d == 1) && ($ret != "")) ? "เอ็ด" : $number_call[$d]));
+        $ret .= (($divider == 10) && ($d == 2)) ? "ยี่" : ((($divider == 10) && ($d == 1)) ? "" : ((($divider == 1) && ($d == 1) && ($ret != "")) ? "เอ็ด" : $number_call[$d]));
         $ret .= ($d ? $position_call[$pos] : "");
         $number = $number % $divider;
         $divider = $divider / 10;
@@ -456,10 +502,56 @@ function ReadNumber($number) {
 }
 
 
-function formatTaxNo($tax_no) {
+function formatTaxNo($tax_no)
+{
     $taxStr = trim(str_replace([' ', '-'], ['', ''], $tax_no));
 
-    $format = $taxStr[0] .'-'. substr($taxStr, 1, 4) .'-'. substr($taxStr, 5, 5) .'-'. substr($taxStr, 10, 2) .'-'. $taxStr[12];
+    $format = $taxStr[0] . '-' . substr($taxStr, 1, 4) . '-' . substr($taxStr, 5, 5) . '-' . substr($taxStr, 10, 2) . '-' . $taxStr[12];
 
     return $format;
+}
+
+
+function jobNotifyMessage($message, $token = '')
+{
+    $response = (object) ['status' => 500, 'message' => 'Cannot request to Line Notify'];
+
+    if (OPEN_JOB_NOTIFY) {
+        $token = (empty($token)) ? JOB_NOTIFY_TOKEN : $token;
+        if (ENVIRONMENT != 'production') {
+            $token = JOB_NOTIFY_TOKEN;
+        }
+        $headers = array(
+            'Content-Type: application/x-www-form-urlencoded',
+            'Authorization: Bearer ' . $token
+        );
+        $message = strip_tags($message);
+        $data = array(
+            'message' => trim($message)
+        );
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://notify-api.line.me/api/notify');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $data_pack = curl_exec($ch);
+        curl_close($ch);
+
+        if (!empty($data_pack)) {
+            $data_decode = json_decode($data_pack);
+
+            if (json_last_error() == JSON_ERROR_NONE && !empty($data_decode)) {
+                return $data_decode;
+            }
+        }
+    } else {
+        $response->message = 'Close notify now !';
+    }
+
+
+    return $response;
 }

@@ -4,6 +4,7 @@ class Model_setting extends MY_Model
 {
     private $tableAllowFieldsSetting = ('uuid,page_name, colunm, sort, page_sort, is_show');
     private $tableAllowFieldsTemPDF = ('uuid,page, company, address, tel, tel2,tax, account_no, account_name, image_name, bank_name, branch,comp_code, due_detail, cal, contact, type, payment_title, detail_1_1,detail_1_2, detail_2, detail_2_1, detail_2_2, detail_2_3, detail_2_4,detail_2_5, detail_2_6, detail_2_7, detail_2_8, detail_3,detail_4, detail_5, sort,tran_header,tran_detail_1,tran_detail_2,tran_detail_3');
+    private $tableAllowFieldsDepartment = ('uuid,department_id, department_code, department_nameLC, department_nameEN, department_status,menu');
 
     public function __construct()
     {
@@ -199,5 +200,16 @@ class Model_setting extends MY_Model
         }
 
         return (object)['key' => $key, 'report' => $result];
+    }
+
+    public function createDepartment($params)
+    {
+        $sql = "INSERT INTO " . DEPARTMENT . ' (' . $this->tableAllowFieldsDepartment . ") VALUES (?, ?, ?, ?, ?, ?,?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return true;
+        }
+
+        return FALSE;
     }
 }

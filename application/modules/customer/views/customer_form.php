@@ -198,7 +198,7 @@
             readyProcess(true)
             if (formCreateClient.validate() === true && checkValidate == false) {
                 let formData = $('#customerForm').serializeArray();
-                console.log(formData)
+
                 let cusNo = formData[2].value
                 if (type == 'update' && uncheckChild.length > 0) {
                     uncheckChild.map(o => formData.push({
@@ -222,6 +222,12 @@
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 window.location = '<?php echo $http ?>/customer/process/update?customer=' + cusNo;
+
+                                $.post('<?php echo $http ?>/api/addMainLog/<?php echo $action; ?>', {
+                                    page: '<?php echo $action == 'create' ? 'สร้าง' : 'อัปเดต' ?>ข้อมูลลูกค้า',
+                                    url: CURRENT_URL,
+                                    detail: JSON.stringify(res.data),
+                                });
                             }
                         })
                     } else {
@@ -261,7 +267,7 @@
 
         $('#nav-email').on('click', '.delete', function(e) {
             Swal.fire({
-                title: 'คุณต้องการลบข้อมูลการติดต่อใช่หรือไม่?',
+                title: 'คุณต้องการลบอีเมลใช่หรือไม่?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -277,7 +283,7 @@
                             if (res.status === 200) {
                                 Swal.fire({
                                     icon: 'success',
-                                    text: 'ลบข้อมูลติดต่อเรียบร้อยแล้ว',
+                                    text: 'ลบอีเมลเรียบร้อยแล้ว',
                                     confirmButtonText: 'ตกลง'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
@@ -286,6 +292,12 @@
                                         } else {
                                             $('#nav-email').html('<p class="text-center noData-email mt-3">ไม่มีข้อมูลติดต่อ</p>')
                                         }
+
+                                        $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                            page: 'ลบอีเมล',
+                                            url: CURRENT_URL,
+                                            detail: res.data,
+                                        });
                                     }
                                 })
                             } else {
@@ -340,6 +352,13 @@
                                         } else {
                                             $('#nav-tel').html('<p class="text-center noData-tel mt-3">ไม่มีข้อมูลติดต่อ</p>')
                                         }
+
+
+                                        $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                            page: 'ลบเบอร์โทร',
+                                            url: CURRENT_URL,
+                                            detail: res.data,
+                                        });
                                     }
                                 })
                             } else {
@@ -367,7 +386,7 @@
         });
         $('#nav-fax').on('click', '.delete', function(e) {
             Swal.fire({
-                title: 'คุณต้องการลบข้อมูลการติดต่อใช่หรือไม่?',
+                title: 'คุณต้องการลบข้อมูล Fax ใช่หรือไม่?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -383,7 +402,7 @@
                             if (res.status === 200) {
                                 Swal.fire({
                                     icon: 'success',
-                                    text: 'ลบข้อมูลติดต่อเรียบร้อยแล้ว',
+                                    text: 'ลบข้อมูล Fax เรียบร้อยแล้ว',
                                     confirmButtonText: 'ตกลง'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
@@ -392,6 +411,12 @@
                                         } else {
                                             $('#nav-fax').html('<p class="text-center noData-fax mt-3">ไม่มีข้อมูลติดต่อ</p>')
                                         }
+
+                                        $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                            page: 'ลบ Fax',
+                                            url: CURRENT_URL,
+                                            detail: res.data,
+                                        });
                                     }
                                 })
                             } else {

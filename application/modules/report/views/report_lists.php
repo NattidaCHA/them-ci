@@ -46,7 +46,7 @@
                 <thead class="thead-light">
                     <tr>
                         <?php foreach ($table as $res) { ?>
-                            <?php if (!in_array($info->cus_no, $fullSearch) && !in_array($res->sort, [5, 6, 7, 8])) { ?>
+                            <?php if ($this->CURUSER->user[0]->user_type == 'Cus' && !in_array($res->sort, [5, 6, 7, 8])) { ?>
                                 <th width="<?php if (in_array($res->sort, [2, 3, 4])) {
                                                 echo '20%';
                                             } else if (in_array($res->sort, [1, 9])) {
@@ -54,7 +54,7 @@
                                             }; ?>" class="no-search no-sort <?php echo $res->sort == 9 ? 'text-center' : '' ?>">
                                     <?php echo $res->colunm; ?>
                                 </th>
-                            <?php } else  if (in_array($info->cus_no, $fullSearch)) { ?>
+                            <?php } else  if ($this->CURUSER->user[0]->user_type == 'Emp') { ?>
                                 <th width="<?php if (in_array($res->sort, [2, 3, 4, 9, 6])) {
                                                 echo '10%';
                                             } else if (in_array($res->sort, [1, 7])) {
@@ -157,7 +157,6 @@
         let formUpdate = $('.updateAction').parsley();
         var table = <?php echo !empty($table) ? json_encode($table) : '[]'; ?>;
         var info = <?php echo !empty($info) ? json_encode($info) : '{}'; ?>;
-        var search = <?php echo !empty($fullSearch) ? json_encode($fullSearch) : '[]'; ?>;
         var columns = [];
 
         if (table) {
@@ -168,6 +167,7 @@
             todayHighlight: true,
             format: 'yyyy-mm-dd',
             autoclose: true,
+            startDate: moment('<?php echo $first_date; ?>').format('YYYY-MM-DD'),
         });
 
         $('#customer').select2({
@@ -202,7 +202,6 @@
             let label = me.parents().find('.select2-results__options')
             let all = label.find('.select2-results__option--highlighted').attr("data-select2-id").search('-all')
             let check = label.find('.select2-results__option--highlighted').attr("aria-selected")
-            console.log(label.find('.select2-results__option--highlighted').attr("data-select2-id"))
             if (all > 0) {
                 $("#customer > option").prop('selected', true).end()
             }
@@ -368,6 +367,7 @@
                 let cus_main = $(this).attr("data-cus_main")
                 let endDate = $(this).attr("data-end_date")
                 let bill_no = $(this).attr("data-bill_no")
+                let mduedate = $(this).attr("data-mduedate")
                 let created_date = $(this).attr("data-created_date")
                 let formData = [{
                         name: 'cus_no',
@@ -393,9 +393,14 @@
                         name: 'created_date',
                         value: created_date
                     },
+                    {
+                        name: 'mduedate',
+                        value: mduedate
+                    }
                 ]
                 $.post('<?php echo $http ?>/report/email', formData).done(function(res) {
                     if (res.status == 200) {
+
                         $.post('<?php echo $http ?>/api/addMainLog/update', {
                             page: 'ส่งอีเมล',
                             url: CURRENT_URL,
@@ -448,6 +453,7 @@
                     }
                 });
             });
+
         $('.dataTables_filter label').hide();
 
         $('.updateAction').on('click', '.submit-action', function(e) {
@@ -568,7 +574,7 @@
                         }
                     })
                 }
-                if (o.sort == 5 && search.includes(info.cus_no)) {
+                if (o.sort == 5 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'is_call',
                         render: function(data, type, full) {
@@ -577,7 +583,7 @@
                     })
                 }
 
-                if (o.sort == 6 && search.includes(info.cus_no)) {
+                if (o.sort == 6 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'contact',
                         render: function(data, type, full) {
@@ -593,7 +599,7 @@
                         }
                     })
                 }
-                if (o.sort == 7 && search.includes(info.cus_no)) {
+                if (o.sort == 7 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'cf_call',
                         render: function(data, type, full) {
@@ -611,7 +617,7 @@
                         }
                     })
                 }
-                if (o.sort == 8 && search.includes(info.cus_no)) {
+                if (o.sort == 8 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'is_email',
                         render: function(data, type, full) {
@@ -623,14 +629,16 @@
                     columns.push({
                         data: 'uuid',
                         render: function(data, type, full) {
-                            let action = search.includes(info.cus_no) ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '" data-is_receive_bill="' + full.info.is_receive_bill + '"><i class="bi bi-pencil"></i></a>' : ''
-                            let mail = search.includes(info.cus_no) && full.info.m_is_email ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' "><i class="bi bi-envelope"></i></a>' : ''
+                            let action = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '" data-is_receive_bill="' + full.info.is_receive_bill + '"><i class="bi bi-pencil"></i></a>' : ''
+                            let mail = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' && full.info.m_is_email ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' " data-mduedate="' + full.info.mduedate + ' "><i class="bi bi-envelope"></i></a>' : ''
 
-                            let fax = full.info.is_fax ? '<a class="btn btn-sm btn-success modelFax" type="button" data-bs-toggle="modal" data-bs-target="#modal_fax"  id="fax" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-bill_no="' + full.info.bill_no + '"><i class="bi bi-printer"></i></a>' : ''
+                            let fax = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' && full.info.is_fax ? '<a class="btn btn-sm btn-success modelFax" type="button" data-bs-toggle="modal" data-bs-target="#modal_fax"  id="fax" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-bill_no="' + full.info.bill_no + '"><i class="bi bi-printer"></i></a>' : ''
+
+                            let excel = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? '<a  href="<?php echo $http ?>/invoice/genExcel/' + full.info.uuid + '" target="_self" class="btn btn-sm btn-gray-300" type="button"  id="excel" data-uuid="' + full.info.uuid + '"><i class="bi bi-file-earmark-excel text-gray-900"></i></a>' : ''
 
                             return '<div class="tb-15 d-flex justify-content-center">' +
                                 action +
-                                '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + fax + '</div>'
+                                '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + fax + excel + '</div>'
                         }
                     })
                 }
