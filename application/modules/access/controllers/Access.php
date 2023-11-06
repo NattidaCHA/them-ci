@@ -30,7 +30,17 @@ class Access extends MY_Controller
                     genRandomString(16), $member->user[0]->userid, $member->user[0]->cus_id, $member->user[0]->username, $member->user[0]->userdisplay_th, $member->user[0]->user_type, $member->user[0]->dep_id, $member->user[0]->dep_code, $member->user[0]->user_status,
                     $member->user[0]->roleid, $member->user[0]->rolename, $member->user[0]->roletype, date('Y-m-d H:i:s')
                 ]);
-                redirect('invoice');
+
+                if (checkPermission('การแจ้งเตือน', $this->CURUSER->user[0]->dep_id, $this->role)) {
+                    redirect('invoice');
+                }
+
+                if (checkPermission('รายงาน', $this->CURUSER->user[0]->dep_id, $this->role)) {
+                    redirect('report');
+                }
+
+                // redirect('invoice');
+
             } else {
                 echo '<script type="text/javascript">';
                 echo 'alert("ข้อมูลผู้ใช้งานไม่ถูกต้อง กรุณาตรวจสอบใหม่อีกครั้ง");';

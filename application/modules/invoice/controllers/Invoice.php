@@ -152,6 +152,7 @@ class Invoice extends MY_Controller
 
                 $this->model_invoice->createInvoice($data);
                 $report = $this->model_invoice->getReportUuid($uuid)->items;
+                $report->mduedate = $params['mduedate'];
                 $reportMain[$key] = $report;
 
                 $genData = [];
@@ -171,6 +172,8 @@ class Invoice extends MY_Controller
                 }
             }
 
+            // var_dump($report);
+            // exit;
             $checkMain = !empty($reportMain[$cus_main]) ? true : false;
             foreach ($reportMain as $key => $report) {
                 $email = $this->genEmail((array)$report, 'invoice', $checkMain);

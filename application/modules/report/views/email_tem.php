@@ -33,10 +33,12 @@
 
 <div class="content">
     <p class="text-header">เรียน ผู้แทนจำหน่าย</p>
+
     <div class="detail">
         <p>เอกสารใบแจ้งเตือนครบกำหนดชำระค่าสินค้า Due วันที่ <?php echo $data->end_date; ?> ตามไฟล์แนบ</p>
         <p>หรือ <strong>Click</strong> เพื่อดูรายละเอียดเพิ่มเติมผ่านระบบ Smart Ordering (SMO)</p>
-        <p>กรุณา <strong>Click URL:</strong> <a href="<?php echo WWW . $data->http . '/report/pdf/' . $data->uuid; ?>"><strong><?php echo WWW . $data->http . '/report/pdf/' . $data->uuid; ?></strong></a></p>
+        <p>กรุณา <strong>Click URL:</strong> <a href="<?php echo WWW . $data->http . '/report/pdf/' . $data->uuid; ?>"><strong><?php echo WWW . $data->http . '/report/pdf/' . $data->uuid; ?></strong></a>
+        </p>
     </div>
     <p>ขอแสดงความนับถือ,</p>
     <p>Smart Ordering</p>

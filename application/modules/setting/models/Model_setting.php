@@ -107,11 +107,11 @@ class Model_setting extends MY_Model
 
         if (!empty($val->is_bill)) {
             $result2 = [];
-            $sql2 = "SELECT cus_main FROM " . REPORT . " where start_date >= '$val->startDate' AND  end_date <='$val->endDate' group by cus_main";
+            $sql2 = "SELECT cus_no FROM " . REPORT . " where start_date = '$val->startDate' AND  end_date ='$val->endDate' group by cus_no";
             $stmt2 = sqlsrv_query($this->conn, $sql2);
 
             while ($row2 = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
-                array_push($result2, $row2["cus_main"]);
+                array_push($result2, $row2["cus_no"]);
             }
 
             if ($val->is_bill == '3' && !empty($result2)) {

@@ -30,6 +30,7 @@
                                                     <div class="d-flex">
                                                         <div class="checkbox">
                                                             <div class="form-check">
+
                                                                 <input class="form-check-input select_invoice check-<?php echo $key; ?>" type="checkbox" name="cf_invoice[]" id="cf_invoice" autocomplete="off" value="<?php echo $bill->macctdoc . '|' . $key; ?>" <?php echo in_array($bill->mdoctype, ['RA', 'RD']) ? 'checked' : '-'; ?>>
                                                             </div>
                                                         </div>
@@ -79,7 +80,7 @@
                 <?php }; ?>
             </div>
             <div class="d-flex justify-content-end mt-3">
-                <button type="button" class="btn btn-primary cf_bill" data-cus_no="<?php echo $key; ?>" disabled>ยืนยันบิล</button>
+                <button type="button" class="btn btn-primary cf_bill" data-cus_no="<?php echo $key; ?>" data-mduedate="<?php echo $child->bills[0]->mduedate; ?>" disabled>ยืนยันบิล</button>
                 <button class="btn btn-primary cf_bill-loading" type="button" disabled style="display: none;">
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     โหลด...
@@ -106,7 +107,7 @@
                 e.preventDefault();
                 let mainID = '<?php echo $main_id; ?>';
                 let id = $(this).attr("data-cus_no");
-
+                let mduedate = $(this).attr("data-mduedate");
                 Swal.fire({
                     title: 'คุณต้องการทำบิลใช่หรือไม่?',
                     icon: 'warning',
@@ -119,6 +120,11 @@
                     if (result.isConfirmed) {
                         readyProcess(true)
                         let formData = $('.invoice').serializeArray();
+                        formData.push({
+                            name: 'mduedate',
+                            value: mduedate
+                        })
+
                         $.post('<?php echo $http ?>/invoice/create/' + mainID + '/' + '<?php echo $start ?>' + '/' + '<?php echo $end ?>', formData).done(function(res) {
                             if (res.status == 200) {
                                 let key = Object.keys(res.data['data'])

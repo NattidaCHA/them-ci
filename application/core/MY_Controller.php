@@ -49,6 +49,8 @@ class MY_Controller extends CI_Controller
                         $this->CURUSER = $logon;
                         $this->CURUSER->user_cus = $this->findObjectUser($this->CURUSER->customer, $this->CURUSER->user[0]->cus_id);
                         $this->CURUSER->session_expire = $memberLogon->expires_in;
+                        // $this->CURUSER->user[0]->dep_id = 3;
+                        // $this->CURUSER->user[0]->dep_id = 3;
 
                         if (checkPermission('system', $this->CURUSER->user[0]->dep_id, $this->role)) {
                             echo '<script type="text/javascript">';
@@ -70,6 +72,9 @@ class MY_Controller extends CI_Controller
             }
         } else if ($this->router->fetch_class() == 'access' && $this->input->method() == 'get') {
             $this->connect();
+            if (empty($role)) {
+                $this->role = $this->model_system->getDepartment()->items;
+            }
         }
 
         if ($this->router->fetch_class() != 'access' && empty($this->CURUSER)) {
