@@ -194,6 +194,7 @@ class Model_system extends MY_Model
         } else {
             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                 $res = (object)$row;
+                // $result[$res->cus_no] = $res;
                 array_push($result, $res);
             }
 

@@ -25,7 +25,7 @@ class Invoice extends MY_Controller
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
         $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
         $is_contact = $this->input->get('is_contact') ? $this->input->get('is_contact') : '1';
-        
+
         foreach ($table['invoice'] as $v) {
             array_push($keyTable, $v->sort);
         }
@@ -99,6 +99,11 @@ class Invoice extends MY_Controller
             $result = $this->model_invoice->getDetailCustomer($condition);
         }
 
+        // echo '<pre>';
+        // var_dump($result);
+        // exit;
+
+        // echo '</pre>';
         $this->data['main_id'] = $id;
         $this->data['lists'] = $result;
         $this->data['start'] = $start;
