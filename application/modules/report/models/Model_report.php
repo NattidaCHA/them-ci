@@ -68,7 +68,7 @@ class Model_report extends MY_Model
         return  $lists;
     }
 
-    public function genEmail($cus_no, $is_email)
+    public function genEmail($cus_no)
     {
         $result = [];
         $isCheck = [];
@@ -107,12 +107,6 @@ class Model_report extends MY_Model
         $lists = [];
 
         $isCheckFax = $this->model_system->findCustomerById($cus_no)->items;
-        // foreach ($isCheck as $val) {
-        //     $result = $this->model_customer->tel($val->cus_main)->items;
-        //     foreach ($result as $val) {
-        //         array_push($lists, $val);
-        //     }
-        // }
         if (!empty($isCheckFax)) {
             $result = $this->model_customer->fax($cus_no)->items;
             foreach ($result as $val) {
@@ -153,7 +147,9 @@ class Model_report extends MY_Model
     {
         $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
         $last_date = date('Y-m-d H:i:s');
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(" . REPORT_DETAIL . ".mduedate) as mduedate,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no left join " . REPORT_DETAIL . " on " . REPORT . ".bill_no = " . REPORT_DETAIL . ".bill_no where " . REPORT . " .created_date between '$first_date' and '$last_date'";
+        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no  where " . REPORT . " .created_date between '$first_date' and '$last_date'";
+        // left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno
+        //left join " . REPORT_DETAIL . " on " . REPORT . ".bill_no = " . REPORT_DETAIL . ".bill_no
 
         if (!empty($params->cus_no)) {
             $index = (string)array_search('all', $params->cus_no);
@@ -533,11 +529,6 @@ class Model_report extends MY_Model
 
     public function getPayment()
     {
-        // $sql = $this->db->get('payment');
-        // $result = $sql->result();
-        // $sql->free_result();
-        // return $result;
-
         $result = [];
         $sql =  "SELECT * FROM " . PAYMENT;
         $stmt = sqlsrv_query($this->conn, $sql);
@@ -717,15 +708,6 @@ class Model_report extends MY_Model
 
         return FALSE;
     }
-
-    // public function getCustomerByNo($cus_no)
-    // {
-    //     $result = (object)[];
-    //     $sql = $this->db->where('cus_no', $cus_no)->get('customer_notification');
-    //     $result = $sql->row();
-    //     $sql->free_result();
-    //     return $result;
-    // }
 
     public function getCfCallByuuid($report_uuid)
     {

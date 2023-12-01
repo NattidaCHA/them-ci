@@ -31,7 +31,7 @@
                 <?php if (in_array(5, $result->keyTable)) { ?><td>
                         <?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
                 <?php if (in_array(6, $result->keyTable)) { ?><td>
-                        <?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
+                        <?php echo !empty($invoice->RB) ? number_format($invoice->RB, 2) : 0; ?></td><?php }; ?>
                 <?php if (in_array(7, $result->keyTable)) { ?><td>
                         <?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
                 <?php if (in_array(8, $result->keyTable)) { ?><td>

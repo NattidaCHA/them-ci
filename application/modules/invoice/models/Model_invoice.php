@@ -26,8 +26,6 @@ class Model_invoice extends MY_Model
 
         $join = " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno ";
 
-        // $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate'";
-
         $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'";
 
         if (!empty($val->is_bill)) {
@@ -119,11 +117,6 @@ class Model_invoice extends MY_Model
             }
 
 
-            // echo '<pre>';
-            // var_dump($data);
-            // // exit;
-
-            // echo '</pre>';
             $output = (object)[
                 'status' => 200,
                 'items'  => $this->processData($data),
