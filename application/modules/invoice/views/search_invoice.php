@@ -4,7 +4,7 @@
             <div class="section-filter">
                 <div class="box-search">
                     <div class="input-search">
-                        <label for="dateSelect" class="form-label">วันที่ต้องการแจ้ง <span class="text-danger">*</span></label>
+                        <label for="dateSelect" class="form-label">รอบการแจ้ง <span class="text-danger">*</span></label>
                         <select class="form-select" id="dateSelect" name="dateSelect" required>
                             <option value="">เลือก ...</option>
                             <?php foreach ($selectDays as $day) { ?>
@@ -46,6 +46,13 @@
                                 <?php }
                                 ?>
 
+                                <?php if (!empty($_customer) && $this->CURUSER->user[0]->user_type == 'Emp') {
+                                ?>
+                                    <option value="<?php echo $_customer->cus_no; ?>" selected><?php echo $_customer->cus_name . ' (' . $_customer->cus_no . ')'
+                                                                                                ?></option>
+                                <?php }
+                                ?>
+
                             </select>
                         </div>
                     </div>
@@ -53,7 +60,7 @@
                     <div class="input-search">
                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                         <select class="form-select" id="type" name="type">
-                            <option value="" selected>เลือก ...</option>
+                            <option value="1" selected>ทั้งหมด</option>
                             <?php foreach ($types as $type) { ?>
                                 <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : ''; ?>>
                                     <?php echo $type->msaleorg_des ?></option>
@@ -77,7 +84,7 @@
                 <div class="box-search-2">
                     <?php if ($this->CURUSER->user[0]->user_type == 'Emp') { ?>
                         <div class="input-search">
-                            <label for="type" class="form-label">ช่องทางการติดต่อ</label>
+                            <label for="is_contact" class="form-label">ช่องทางการติดต่อ</label>
                             <select class="form-select" id="is_contact" name="is_contact">
                                 <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
                                 <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
@@ -96,6 +103,7 @@
                         <button type="submit" class="btn btn-primary me-2">ค้นหา</button>
                         <button type="button" class="btn btn-success export" <?php echo !empty($dateSelect) ? '' : 'disabled' ?>>Export excel</button>
                     </div>
+
                 </div>
             </div>
         </form>
@@ -106,11 +114,14 @@
                 <thead class="thead-light">
                     <tr>
                         <?php foreach ($table as $res) { ?>
-                            <th width="<?php if (in_array($res->sort, [2])) {
-                                            echo '30%';
-                                        } else if (in_array($res->sort, [1, 3, 4, 5, 6, 7, 8])) {
+                            <th width="<?php if (in_array($res->sort, [3])) {
+                                            echo '15%';
+                                        } else if (in_array($res->sort, [1, 2, 4, 5, 6, 7, 8, 10])) {
                                             echo '10%';
-                                        }; ?>" class="no-search no-sort <?php echo $res->sort == 8 ? 'text-center' : '' ?>">
+                                        } else if (in_array($res->sort, [9])) {
+                                            echo '5%';
+                                        };
+                                        ?>" class="align-middle no-search no-sort <?php echo in_array($res->sort, [9, 10]) ? 'text-center' : '' ?> <?php echo in_array($res->sort, [4, 5, 6, 7, 8]) ? 'text-end' : '' ?>">
                                 <?php echo $res->colunm; ?>
                             </th>
                         <?php } ?>
@@ -123,19 +134,26 @@
                                 <?php if (in_array(1, $keyTable)) { ?><td>
                                         <?php echo $types[$invoice->msaleorg]->msaleorg_des; ?></td><?php }; ?>
                                 <?php if (in_array(2, $keyTable)) { ?><td>
-                                        <?php echo !empty($invoice->cus_name) ? $invoice->cus_name . ' (' . $invoice->cus_no . ')' : '-'; ?>
+                                        <?php echo !empty($invoice->cus_no) ? $invoice->cus_no : '-'; ?>
                                     </td><?php }; ?>
-                                <?php if (in_array(3, $keyTable)) { ?><td><?php echo number_format($invoice->balance, 2); ?>
+                                <?php if (in_array(3, $keyTable)) { ?><td>
+                                        <?php echo !empty($invoice->cus_name) ? $invoice->cus_name : '-'; ?>
                                     </td><?php }; ?>
-                                <?php if (in_array(4, $keyTable)) { ?><td>
+                                <?php if (in_array(4, $keyTable)) { ?><td class="text-end"><?php echo !empty($invoice->balance) ? number_format($invoice->balance, 2) : '0'; ?>
+                                    </td><?php }; ?>
+                                <?php if (in_array(5, $keyTable)) { ?><td class="text-end">
                                         <?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(5, $keyTable)) { ?><td>
+                                <?php if (in_array(6, $keyTable)) { ?><td class="text-end">
                                         <?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(6, $keyTable)) { ?><td>
+                                <?php if (in_array(7, $keyTable)) { ?><td class="text-end">
                                         <?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(7, $keyTable)) { ?><td>
+                                <?php if (in_array(8, $keyTable)) { ?><td class="text-end">
                                         <?php echo !empty($invoice->RD) ? number_format($invoice->RD, 2) : 0; ?></td><?php }; ?>
-                                <?php if (in_array(8, $keyTable)) { ?><td class="text-center">
+                                <?php if (in_array(9, $keyTable)) { ?>
+                                    <td class="text-center">
+                                        <?php echo in_array($invoice->cus_no, $checkBill) ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>' ?>
+                                    </td><?php }; ?>
+                                <?php if (in_array(10, $keyTable)) { ?><td class="text-center">
                                         <a class="btn btn-sm btn-gray-700 modalCustomer" type="button" data-bs-toggle="modal" data-bs-target="#exampleModal" data-cus_no="<?php echo $invoice->cus_no ?>" data-cus_name="<?php echo $invoice->cus_name ?>">
                                             รายละเอียด
                                         </a>
@@ -147,6 +165,12 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="d-flex mt-3 ms-4">
+            <p class="text-danger me-2">หมายเหตุ*</p>
+            <p><i class="bi bi-check-circle text-success me-1"></i> : ทำใบแจ้งเตือนแล้ว</p>
+            <p><i class="bi bi-x-circle text-danger ms-1"></i> : ยังไม่ได้ทำใบแจ้งเตือน</p>
+        </div>
     </div>
 </div>
 
@@ -157,7 +181,7 @@
             <div class="modal-header">
                 <div class="d-flex">
                     <h5 class="modal-title text-dark header_text me-3" id="exampleModalLabel"></h5>
-                    <a type="button" class="btn btn-primary btn-detail btn-sm">รายละเอียด</a>
+                    <a type="button" class="btn btn-primary btn-detail btn-sm" href="javascript:void(0);" target="_blank">รายละเอียด</a>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -221,9 +245,7 @@
                 "scrollX": false,
                 "lengthChange": false,
                 "pageLength": 20,
-                "order": [
-                    [0, "asc"]
-                ],
+                "order": [],
                 "columnDefs": [{
                         "targets": 'no-sort',
                         "orderable": false
@@ -244,12 +266,13 @@
                 let start = $('#startDate').val()
                 let end = $('#endDate').val()
                 let send = $('#dateSelect').val()
+                let type = $('#type').val()
                 $('.header_text').text(name + ' (' + id + ')');
                 $('.customer').html(
                     '<div class="d-flex justify-content-center"><div class="spinner-border text-primary text-center mt-4 mb-3" role="status"><span class="visually-hidden">Loading...</span></div></div>'
                 )
                 $('.btn-detail').attr("href", '<?php echo WWW; ?><?php echo $http; ?>/invoice/detail/' + id +
-                    '?start=' + start + '&end=' + end + '&send=' + send)
+                    '?start=' + start + '&end=' + end + '&send=' + send + '&type=' + type)
 
                 $.get('<?php echo $http; ?>/invoice/genCustomerChild/' + id).done(function(res) {
                     if (res.status == 200) {
@@ -297,8 +320,7 @@
 
         function formatRepoSelection(repo) {
             if (repo.id) {
-                console.log('<?php echo $this->CURUSER->user[0]->user_type; ?>')
-                let show = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? repo.cus_name + '(' + repo
+                let show = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' && repo.text == '' ? repo.cus_name + '(' + repo
                     .cus_no + ')' : repo.text;
                 return $('<span>' + show + '</span>');
             }

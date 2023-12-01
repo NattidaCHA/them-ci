@@ -25,18 +25,21 @@ class Access extends MY_Controller
                 $this->CURUSER = $member;
                 $this->CURUSER->user_cus = $this->findObjectUser($this->CURUSER->customer, $this->CURUSER->user[0]->cus_id);
                 $this->CURUSER->session_expire = date('Y-m-d H:i:s', strtotime("+" . $genToken->expires_in . " sec"));
-
                 $this->addSystemLog_Login([
                     genRandomString(16), $member->user[0]->userid, $member->user[0]->cus_id, $member->user[0]->username, $member->user[0]->userdisplay_th, $member->user[0]->user_type, $member->user[0]->dep_id, $member->user[0]->dep_code, $member->user[0]->user_status,
                     $member->user[0]->roleid, $member->user[0]->rolename, $member->user[0]->roletype, date('Y-m-d H:i:s')
                 ]);
 
-                if (checkPermission('การแจ้งเตือน', $this->CURUSER->user[0]->dep_id, $this->role)) {
-                    redirect('invoice');
-                }
+                if ($this->CURUSER->user[0]->user_type == 'Emp') {
+                    if (checkPermission('การแจ้งเตือน', $this->CURUSER->user[0]->dep_id, $this->role)) {
+                        redirect('invoice');
+                    }
 
-                if (checkPermission('รายงาน', $this->CURUSER->user[0]->dep_id, $this->role)) {
-                    redirect('report');
+                    if (checkPermission('รายงาน', $this->CURUSER->user[0]->dep_id, $this->role)) {
+                        redirect('report');
+                    }
+                } else {
+                    redirect('invoice');
                 }
 
                 // redirect('invoice');

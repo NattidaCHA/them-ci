@@ -286,19 +286,19 @@
                                     text: 'ลบอีเมลเรียบร้อยแล้ว',
                                     confirmButtonText: 'ตกลง'
                                 }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        if ($('.contact-email').length > 1) {
-                                            remove.remove();
-                                        } else {
-                                            $('#nav-email').html('<p class="text-center noData-email mt-3">ไม่มีข้อมูลติดต่อ</p>')
-                                        }
-
-                                        $.post('<?php echo $http ?>/api/addMainLog/update', {
-                                            page: 'ลบอีเมล',
-                                            url: CURRENT_URL,
-                                            detail: res.data,
-                                        });
+                                    // if (result.isConfirmed) {
+                                    if ($('.contact-email').length > 1) {
+                                        remove.remove();
+                                    } else {
+                                        $('#nav-email').html('<p class="text-center noData-email mt-3">ไม่มีข้อมูลติดต่อ</p>')
                                     }
+
+                                    $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                        page: 'ลบอีเมล',
+                                        url: CURRENT_URL,
+                                        detail: res.data,
+                                    });
+                                    // }
                                 })
                             } else {
                                 if (res.error) {
@@ -346,20 +346,20 @@
                                     text: 'ลบข้อมูลติดต่อเรียบร้อยแล้ว',
                                     confirmButtonText: 'ตกลง'
                                 }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        if ($('.contact-tel').length > 1) {
-                                            remove.remove();
-                                        } else {
-                                            $('#nav-tel').html('<p class="text-center noData-tel mt-3">ไม่มีข้อมูลติดต่อ</p>')
-                                        }
-
-
-                                        $.post('<?php echo $http ?>/api/addMainLog/update', {
-                                            page: 'ลบเบอร์โทร',
-                                            url: CURRENT_URL,
-                                            detail: res.data,
-                                        });
+                                    // if (result.isConfirmed) {
+                                    if ($('.contact-tel').length > 1) {
+                                        remove.remove();
+                                    } else {
+                                        $('#nav-tel').html('<p class="text-center noData-tel mt-3">ไม่มีข้อมูลติดต่อ</p>')
                                     }
+
+
+                                    $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                        page: 'ลบเบอร์โทร',
+                                        url: CURRENT_URL,
+                                        detail: res.data,
+                                    });
+                                    // }
                                 })
                             } else {
                                 if (res.error) {
@@ -405,19 +405,19 @@
                                     text: 'ลบข้อมูล Fax เรียบร้อยแล้ว',
                                     confirmButtonText: 'ตกลง'
                                 }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        if ($('.contact-fax').length > 1) {
-                                            remove.remove();
-                                        } else {
-                                            $('#nav-fax').html('<p class="text-center noData-fax mt-3">ไม่มีข้อมูลติดต่อ</p>')
-                                        }
-
-                                        $.post('<?php echo $http ?>/api/addMainLog/update', {
-                                            page: 'ลบ Fax',
-                                            url: CURRENT_URL,
-                                            detail: res.data,
-                                        });
+                                    // if (result.isConfirmed) {
+                                    if ($('.contact-fax').length > 1) {
+                                        remove.remove();
+                                    } else {
+                                        $('#nav-fax').html('<p class="text-center noData-fax mt-3">ไม่มีข้อมูลติดต่อ</p>')
                                     }
+
+                                    $.post('<?php echo $http ?>/api/addMainLog/update', {
+                                        page: 'ลบ Fax',
+                                        url: CURRENT_URL,
+                                        detail: res.data,
+                                    });
+                                    // }
                                 })
                             } else {
                                 if (res.error) {

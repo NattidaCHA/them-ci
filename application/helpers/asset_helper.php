@@ -403,24 +403,62 @@ function _decodeData($data, $password)
 
 function checkPermission($page, $dep_id, $role)
 {
+    /* 
+        1 => การแจ้งเตือน
+        2 => รายงาน
+        3 => ตั้งค่า 
+        4 => ข้อมูลลูกค้า
+        5 => แก้ไขคอลัมและซ่อมข้อมูล
+        6 => คอลัมการแจ้งเตือน
+        7 => คอลัมรายงาน
+        8 => คอลัมลูกค้า
+        9 => คอลัมซ่อมข้อมูล
+        10 => doctype
+    */
     $result = false;
     switch ($page) {
         case 'การแจ้งเตือน':
-            if (in_array($dep_id, $role['all'])) {
+            if (!in_array($dep_id, $role['2'])) {
                 $result = true;
             }
             break;
         case 'รายงาน':
-            if (in_array($dep_id, $role['all']) || in_array($dep_id,  $role['report'])) {
+            if (empty($role['no'])) {
                 $result = true;
             }
             break;
         case 'ตั้งค่า':
-            if (in_array($dep_id, $role['all'])) {
+            if (!in_array($dep_id, $role['2'])) {
+                $result = true;
+            }
+            break;
+        case 'ข้อมูลลูกค้า':
+            if (!in_array($dep_id, $role['2'])) {
+                $result = true;
+            }
+            break;
+        case 'แก้ไขคอลัมน์และซ่อมข้อมูล':
+            if (!in_array($dep_id, $role['1,2,3,4'])) {
+                $result = true;
+            }
+            break;
+        case 'เมนูย่อยแก้ไขคอลัมน์และซ่อมข้อมูล':
+            if (!in_array($dep_id, $role['1,2,3,4,10'])) {
+                $result = true;
+            }
+            break;
+            // case 'ข้อมูลลูกค้า':
+            //     if (!in_array($dep_id, $role['no'])) {
+            //         $result = true;
+            //     }
+            //     break;
+        case 'doctype':
+            if (in_array($dep_id, $role['1,2,3,4,10']) || in_array($dep_id, $role['all'])) {
                 $result = true;
             }
             break;
         case 'system':
+            //ไม่ให้เข้าระบบ
             if (in_array($dep_id, $role['no'])) {
                 $result = true;
             }

@@ -38,13 +38,15 @@
                 <thead class="thead-light">
                     <tr>
                         <?php foreach ($table as $res) { ?>
-                            <th width="<?php if (in_array($res->sort, [2, 6])) {
+                            <th width="<?php if (in_array($res->sort, [1, 6, 3])) {
                                             echo '10%';
-                                        } else if (in_array($res->sort, [7])) {
+                                        } else if (in_array($res->sort, [8])) {
                                             echo '5%';
-                                        } else if (in_array($res->sort, [1, 3, 4, 5])) {
+                                        } else if (in_array($res->sort, [2])) {
+                                            echo '20%';
+                                        } else if (in_array($res->sort, [4, 5, 7])) {
                                             echo '15%';
-                                        }; ?>" class="no-search no-sort <?php echo $res->sort == 7 ? 'text-center' : '' ?>">
+                                        }; ?>" class="align-middle no-search no-sort <?php echo $res->sort == 8 ? 'text-center' : '' ?>">
                                 <?php echo $res->colunm; ?>
                             </th>
                         <?php } ?>
@@ -102,9 +104,7 @@
                 "processing": true,
                 "serverSide": true,
                 "pageLength": 20,
-                "order": [
-                    [0, "asc"]
-                ],
+                "order": [],
                 "ajax": {
                     url: '<?php echo $http ?>/customer/listCustomer/<?php echo $cus_no; ?>/<?php echo $is_contact; ?>',
                     dataFilter: function(data) {
@@ -158,19 +158,28 @@
                     columns.push({
                         data: 'cus_no',
                         render: function(data, type, full) {
-                            return full.info.cus_name + '(' + full.info.cus_no + ')';
+                            return full.info.cus_no;
                         }
                     })
                 }
                 if (o.sort == 2) {
                     columns.push({
-                        data: 'send_date',
+                        data: 'cus_name',
                         render: function(data, type, full) {
-                            return full.info.send_date ? days[full.info.send_date].name : '-';
+                            return full.info.cus_name ? full.info.cus_name : '-';
                         }
                     })
                 }
                 if (o.sort == 3) {
+                    columns.push({
+                        data: 'send_date',
+                        render: function(data, type, full) {
+                            let send_day = full.info.send_date ? days[full.info.send_date.charAt(0).toUpperCase() + full.info.send_date.slice(1)].name ? days[full.info.send_date.charAt(0).toUpperCase() + full.info.send_date.slice(1)].name : '-' : '-'
+                            return send_day;
+                        }
+                    })
+                }
+                if (o.sort == 4) {
                     columns.push({
                         data: 'contact',
                         render: function(data, type, full) {
@@ -186,7 +195,7 @@
                         }
                     })
                 }
-                if (o.sort == 4) {
+                if (o.sort == 5) {
                     columns.push({
                         data: 'email',
                         render: function(data, type, full) {
@@ -202,7 +211,7 @@
                         }
                     })
                 }
-                if (o.sort == 5) {
+                if (o.sort == 6) {
                     columns.push({
                         data: 'tel',
                         render: function(data, type, full) {
@@ -220,7 +229,7 @@
                         }
                     })
                 }
-                if (o.sort == 6) {
+                if (o.sort == 7) {
                     columns.push({
                         data: 'fax',
                         render: function(data, type, full) {
@@ -238,7 +247,7 @@
                         }
                     })
                 }
-                if (o.sort == 7) {
+                if (o.sort == 8) {
                     columns.push({
                         data: 'uuid',
                         render: function(data, type, full) {

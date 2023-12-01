@@ -3,18 +3,27 @@
         <!-- Tab Nav -->
         <div class="nav-wrapper position-relative mb-2">
             <ul class="nav nav-pills nav-fill setting-tab" id="tabs-text" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'invoice' ? 'active' : '' ?>" type="button" id="tabs-text-1-tab" href="<?php echo $http ?>/setting?tab=invoice" aria-controls="tabs-text-1">การแจ้งเตือน</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'report' ? 'active' : '' ?>" type="button" id="tabs-text-2-tab" href="<?php echo $http ?>/setting?tab=report" aria-controls="tabs-text-2">รายงาน</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'customer' ? 'active' : '' ?>" type="button" id="tabs-text-3-tab" href="<?php echo $http ?>/setting?tab=customer" aria-controls="tabs-text-3">ลูกค้า</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'repair' ? 'active' : '' ?>" type="button" id="tabs-text-4-tab" href="<?php echo $http ?>/setting?tab=repair" aria-controls="tabs-text-4">ซ่อมข้อมูล</a>
-                </li>
+                <?php if (checkPermission('แก้ไขคอลัมน์และซ่อมข้อมูล', $this->CURUSER->user[0]->dep_id, $this->role)) { ?>
+                    <?php if (checkPermission('เมนูย่อยแก้ไขคอลัมน์และซ่อมข้อมูล', $this->CURUSER->user[0]->dep_id, $this->role)) { ?>
+                        <li class="nav-item">
+                            <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'invoice' ? 'active' : '' ?>" type="button" id="tabs-text-1-tab" href="<?php echo $http ?>/setting?tab=invoice" aria-controls="tabs-text-1">การแจ้งเตือน</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'report' ? 'active' : '' ?>" type="button" id="tabs-text-2-tab" href="<?php echo $http ?>/setting?tab=report" aria-controls="tabs-text-2">รายงาน</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'customer' ? 'active' : '' ?>" type="button" id="tabs-text-3-tab" href="<?php echo $http ?>/setting?tab=customer" aria-controls="tabs-text-3">ลูกค้า</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'repair' ? 'active' : '' ?>" type="button" id="tabs-text-4-tab" href="<?php echo $http ?>/setting?tab=repair" aria-controls="tabs-text-4">ซ่อมข้อมูล</a>
+                        </li>
+                    <?php } ?>
+                    <?php if (checkPermission('doctype', $this->CURUSER->user[0]->dep_id, $this->role)) { ?>
+                        <li class="nav-item">
+                            <a class="nav-link mb-sm-3 mb-md-0 <?php echo $tab == 'doctype' ? 'active' : '' ?>" type="button" id="tabs-text-5-tab" href="<?php echo $http ?>/setting?tab=doctype" aria-controls="tabs-text-5">Doc Type</a>
+                        </li>
+                    <?php } ?>
+                <?php } ?>
             </ul>
         </div>
         <!-- End of Tab Nav -->
@@ -102,7 +111,7 @@
                                     <div class="input-search">
                                         <label for="dateSelect" class="form-label">วันที่ต้องการแจ้ง <span class="text-danger">*</span></label>
                                         <select class="form-select" id="dateSelect" name="dateSelect" required>
-                                            <option value="">เลือก ...</option>
+                                            <option value="1">ทั้งหมด</option>
                                             <?php foreach ($selectDays as $day) { ?>
                                                 <option value="<?php echo $day->mday; ?>"><?php echo $days[$day->mday]->name ?></option>
                                             <?php  } ?>
@@ -139,7 +148,7 @@
                                     <div class="input-search">
                                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                                         <select class="form-select" id="type" name="type">
-                                            <option value="" selected>เลือก ...</option>
+                                            <option value="1" selected>ทั้งหมด</option>
                                             <?php foreach ($types as $type) { ?>
                                                 <option value="<?php echo $type->msaleorg; ?>" <?php echo $type->msaleorg == $typeSC ? 'selected' : ''; ?>><?php echo $type->msaleorg_des ?></option>
                                             <?php }; ?>
@@ -185,6 +194,54 @@
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> โปรดรอสักครู่ ระบบกำลังซ่อมข้อมูล
                         </div>
                     </div>
+
+                    <div class="tab-pane fade <?php echo $tab == 'doctype' ? 'show active' : '' ?>" id="tabs-text-5" role="tabpanel" aria-labelledby="tabs-text-5-tab">
+                        <form class="doctypePage">
+                            <div class="setting-section">
+                                <h4>Doc Type</h4>
+                                <div class="setting-container">
+                                    <?php foreach ($doctype as $k => $val) { ?>
+                                        <div class="form-setting">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input checl-<?php echo $val->uuid; ?>" type="checkbox" name="is_show[]" role="switch" id="<?php echo $val->uuid; ?>" value="<?php echo $val->uuid; ?>" <?php echo !empty($val->is_show) ? 'checked' : ''; ?>>
+                                                <label class="form-check-label" for="<?php echo $val->uuid; ?>"><?php echo $val->type_display_th; ?></label>
+                                            </div>
+                                        </div>
+
+                                        <?php //if (in_array($val->type, ['RE', 'DC'])) { 
+                                        ?>
+                                        <div class="date-show <?php echo in_array($val->type, ['RE', 'DC']) ? '' : 'd-none' ?>">
+                                            <div class="input-search">
+                                                <label for="startDate" class="form-label">จากวันที่ <span class="text-danger">*</span></label>
+                                                <div class="input-group mb-3">
+                                                    <input type="text" class="form-control show-startDate show-start-<?php echo $val->uuid; ?>" id="show-startDate" name="show-startDate[]" required placeholder="เริ่มวันที่" autocomplete="off" readonly value="<?php echo $val->start_date; ?>">
+                                                    <span class="input-group-text"><i class="bi bi-calendar-date me-2"></i></span>
+                                                </div>
+                                            </div>
+                                            <div class="box-text">
+                                                <p class="text-form">ถึง</p>
+                                            </div>
+                                            <div class="input-search input-endDate">
+                                                <div class="input-group mb-3">
+                                                    <input type="text" class="form-control show-endDate show-end-<?php echo $val->uuid; ?>" id="show-endDate" name="show-endDate[]" required placeholder="สิ้นสุดวันที่" autocomplete="off" readonly value="<?php echo $val->end_date; ?>">
+                                                    <span class="input-group-text"><i class="bi bi-calendar-date me-2"></i></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <?php //} 
+                                        ?>
+                                    <?php } ?>
+                                </div>
+                                <div class="d-flex justify-content-end aligtn mt-5">
+                                    <button class="btn btn-primary loading" type="button" disabled style="display: none;">
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        โหลด...
+                                    </button>
+                                    <button type="button" class="btn btn-primary submit">ยืนยัน</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -194,6 +251,20 @@
 
 <script>
     $(function() {
+
+        $('.show-startDate').datepicker({
+            todayHighlight: true,
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+        });
+
+        $('.show-endDate').datepicker({
+            todayHighlight: true,
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+        });
+
+
         $('.invoicePage').on('click', '.submit', function(e) {
             e.preventDefault();
             readyProcess('.invoicePage', true)
@@ -213,6 +284,43 @@
             readyProcess('.customerPage', true)
             let formData = $('.customerPage').serializeArray();
             process('.customerPage', formData)
+        });
+
+        $('.doctypePage').on('click', '.submit', function(e) {
+            e.preventDefault();
+            readyProcess('.doctypePage', true)
+            let formData = $('.doctypePage').serializeArray();
+            $.post("<?php echo $http ?>/setting/processDoctype/<?php echo $tab; ?>", formData).done(function(res) {
+                if (res.status === 200) {
+                    Swal.fire({
+                        icon: 'success',
+                        text: 'อัปเดตข้อมูลเรียบร้อย',
+                        confirmButtonText: 'ตกลง'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location = '<?php echo $http ?>/setting?tab=' + '<?php echo $tab; ?>';
+
+                            $.post('<?php echo $http  ?>/api/addMainLog/update', {
+                                page: 'setting_<?php echo $tab ?>',
+                                url: CURRENT_URL,
+                                detail: JSON.stringify(res.data),
+                            });
+                        }
+                    })
+                } else {
+                    if (res.error) {
+                        Swal.fire({
+                            icon: 'error',
+                            text: res.error,
+                            confirmButtonText: 'ตกลง'
+                        })
+                    } else {
+                        Swal.fire("Error", 'Something went wrong', "error");
+                    }
+                }
+                readyProcess('<?php echo $tab; ?>');
+            });
+
         });
 
         $('#startDate').datepicker({

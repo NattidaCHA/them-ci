@@ -8,6 +8,7 @@ class Invoice extends MY_Controller
         $this->load->model('model_invoice');
         $this->load->model('model_system');
         $this->load->model('report/model_report');
+        $this->load->model('setting/model_setting');
     }
 
 
@@ -25,33 +26,34 @@ class Invoice extends MY_Controller
         $typeSC = $this->input->get('type') ? $this->input->get('type') : '0281';
         $is_bill = $this->input->get('is_bill') ? $this->input->get('is_bill') : '3';
         $is_contact = $this->input->get('is_contact') ? $this->input->get('is_contact') : '1';
+        $customer = NULL;
 
+        if ($this->CURUSER->user[0]->user_type == 'Cus') {
+            $customer = $this->CURUSER->user_cus->cus_code;
+        } else {
+            if (!empty($this->input->get('customer'))) {
+                $customer = $this->input->get('customer');
+            }
+        }
+
+        $cus_no =  !empty($customer) ? $this->model_system->findCustomerById($customer)->items : '';
+
+        // var_dump($cus_no->cus_no);
+        // exit;
         foreach ($table['invoice'] as $v) {
             array_push($keyTable, $v->sort);
         }
-
-        if ($this->CURUSER->user[0]->user_type == 'Cus') {
-            if (!empty($this->input->get('customer'))) {
-                $cus_no = $this->input->get('customer');
-            } else {
-                $cus_no = $this->CURUSER->user_cus->cus_code;
-            }
-        } else {
-            if (!empty($this->input->get('customer'))) {
-                $cus_no = $this->input->get('customer');
-            }
-        }
-
 
         $condition = [
             'dateSelect' => $dateSelect,
             'startDate' => $startDate,
             'endDate' => $endDate,
-            'cus_no' => $cus_no,
+            'cus_no' => $customer,
             'type' => $typeSC,
             'is_bill' => $is_bill,
             'is_contact' => $is_contact
         ];
+
 
         $o = $this->model_system->getTypeBusiness()->items;
 
@@ -65,17 +67,20 @@ class Invoice extends MY_Controller
 
         $result = !empty($this->model_invoice->getInvoice($condition)->items) ? $this->model_invoice->getInvoice($condition)->items  : [];
 
+        $checkBill = $this->model_invoice->checkBill($startDate, $endDate)->items;
+
         $this->data['lists'] = $result;
         $this->data['selectDays'] = $this->model_system->getDateSelect()->items;
         $this->data['typeSC'] = $typeSC;
         $this->data['dateSelect'] = $dateSelect;
         $this->data['startDate'] = $startDate;
         $this->data['endDate'] = $endDate;
-        $this->data['cus_no'] = $cus_no;
+        $this->data['_customer'] = $cus_no;
         $this->data['table'] = $table['invoice'];
         $this->data['keyTable'] = $keyTable;
         $this->data['is_bill'] = $is_bill;
         $this->data['is_contact'] = $is_contact;
+        $this->data['checkBill'] = $checkBill;
         $this->data['page_header'] = 'การแจ้งเตือน';
         $this->loadAsset(['dataTables', 'datepicker', 'select2']);
         $this->view('search_invoice');
@@ -87,12 +92,15 @@ class Invoice extends MY_Controller
         $start = $this->input->get('start');
         $end = $this->input->get('end');
         $send = $this->input->get('send');
-
+        $type = $this->input->get('type');
+        $doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
+        $doctype = [];
         $condition = (object)[
             'cus_no' => $id,
             'start_date' => $start,
             'end_date' => $end,
             'send_date' => $send,
+            'type' => $type
         ];
 
         if (!empty($id) && !empty($start) && !empty($end) && !empty($send)) {
@@ -100,7 +108,7 @@ class Invoice extends MY_Controller
         }
 
         // echo '<pre>';
-        // var_dump($result);
+        // var_dump($result->total_summary);
         // exit;
 
         // echo '</pre>';
@@ -108,6 +116,8 @@ class Invoice extends MY_Controller
         $this->data['lists'] = $result;
         $this->data['start'] = $start;
         $this->data['end'] = $end;
+        $this->data['send'] = $send;
+        $this->data['doctype'] = $doctypeLists;
         $this->data['page_header'] = 'รายละเอียดการแจ้งเตือน';
         $this->view('invoice_detail');
     }
@@ -177,7 +187,7 @@ class Invoice extends MY_Controller
                 }
             }
 
-            // var_dump($report);
+            // var_dump($reportMain);
             // exit;
             $checkMain = !empty($reportMain[$cus_main]) ? true : false;
             foreach ($reportMain as $key => $report) {
@@ -222,7 +232,8 @@ class Invoice extends MY_Controller
                     $item->mpayterm,
                     $item->mnetamt,
                     $item->mtext,
-                    $this->genType($item->mdoctype)
+                    $this->genType($item->mdoctype),
+                    $item->mdocdate
                 ];
 
                 $this->model_invoice->createDetailInvoice($data);
@@ -281,18 +292,20 @@ class Invoice extends MY_Controller
         ];
 
 
-        if (!empty($condition["dateSelect"])) {
+        if (!empty($condition["dateSelect"]) && $params['startDate'] && $params['endDate']) {
             $result = !empty($this->model_invoice->getInvoice($condition)->items) ? $this->model_invoice->getInvoice($condition)->items  : [];
+            $checkBill = $this->model_invoice->checkBill($params['startDate'], $params['endDate'])->items;
             header('Content-Type: text/csv; charset=utf-8');
             header("Content-Type: application/vnd.ms-excel");
             header('Content-Disposition: attachment; filename="invoice.xls"');
-            $data['result'] = (object)['data' => $result, 'header' => $table['invoice'], 'keyTable' => $keyTable, 'types' => $types];
+            $data['result'] = (object)['data' => $result, 'header' => $table['invoice'], 'keyTable' => $keyTable, 'types' => $types, 'checkBill' => $checkBill];
             $this->load->view('export_invoice', $data);
         }
     }
+
     public function genExcel($uuid)
     {
-        $result = $this->model_report->excel($uuid);
+        $result = $this->model_report->genPDF($uuid, 'excel');
         $tem = $this->model_system->getTemPDF()->items;
         $size = count($result->lists);
         $data['data'] = (object)['index' => 1, 'report' => $result, 'size' => $size, 'tem' => $tem];

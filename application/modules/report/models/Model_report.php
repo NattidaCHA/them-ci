@@ -13,6 +13,7 @@ class Model_report extends MY_Model
         parent::__construct();
         $this->load->model('model_system');
         $this->load->model('customer/model_customer');
+        $this->load->model('invoice/model_invoice');
     }
 
     public function getBillNo($cus_no = FALSE)
@@ -76,12 +77,9 @@ class Model_report extends MY_Model
 
         foreach ($isCheck as $val) {
             $result = $this->model_customer->email($val->cus_main)->items;
-
-            // if (($val->cus_main == $cus_no && !empty($is_email)) || $val->cus_main != $cus_no) {
             foreach ($result as $val) {
-                $lists[$val->cus_main] = $val;
+                $lists[$val->cus_main][] = $val;
             }
-            // }
         }
         return  $lists;
     }
@@ -151,39 +149,21 @@ class Model_report extends MY_Model
         return $output;
     }
 
-    public function countBill($params)
+    public function queryBills($params)
     {
-        $result = [];
         $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
         $last_date = date('Y-m-d H:i:s');
-
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno  where " . REPORT . " .created_date between '$first_date' and '$last_date'";
+        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(" . REPORT_DETAIL . ".mduedate) as mduedate,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no left join " . REPORT_DETAIL . " on " . REPORT . ".bill_no = " . REPORT_DETAIL . ".bill_no where " . REPORT . " .created_date between '$first_date' and '$last_date'";
 
         if (!empty($params->cus_no)) {
-            $in_cusNo = [];
-            if ($this->CURUSER->user[0]->user_type == 'Cus') {
-                array_push($in_cusNo, $this->CURUSER->user_cus->cus_code);
+            $index = (string)array_search('all', $params->cus_no);
+            if ($index == '0') {
+                array_splice($params->cus_no, 0, 1);
             }
-
-
-            foreach ($params->cus_no as $cus_no) {
-                if (!empty($cus_no) && $cus_no != 'all') {
-                    $checkCustomer = $this->model_system->findCustomerById($cus_no)->items;
-                    if ($checkCustomer->type == 'main') {
-                        $findChild = $this->model_system->checkSendtoMain($cus_no)->items;
-                        foreach ($findChild as $val) {
-                            if (!in_array($val->cus_no, $in_cusNo)) {
-                                array_push($in_cusNo, $val->cus_no);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!empty($in_cusNo)) {
-                $sql = $sql . " AND " . REPORT . ".cus_no in (" . implode(',', $in_cusNo) . ")";
-            }
+            $sql = $sql . " AND " . REPORT . ".cus_no in (" . implode(',', $params->cus_no) . ")";
         }
+
+
 
         if (!empty($params->bill_no)) {
             $sql = $sql . " AND " . REPORT . ".bill_no = '$params->bill_no'";
@@ -195,88 +175,35 @@ class Model_report extends MY_Model
             $sql = $sql . " AND " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
         }
 
-        $sql = $sql . "  group by " . REPORT . ".uuid," . REPORT . ".bill_no order by created_date desc";
 
-
-        $stmt = sqlsrv_query($this->conn, $sql);
-        if ($stmt == false) {
-            $output = (object)[
-                'status' => 500,
-                'error'  => sqlsrv_errors(),
-                'msg'  => "Database error",
-            ];
-        } else {
-            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                array_push($result, (object)$row);
+        if (!empty($params->is_contact) && $params->is_contact != '1') {
+            $isContact = $this->model_invoice->checkIsContact($params->is_contact);
+            if ($isContact->is_email != 2) {
+                $sql = $sql . " AND " . CUSTOMER . ".is_email in ($isContact->is_email)";
             }
 
-            $output = (object)[
-                'status' => 200,
-                'items'  => count($result),
-                'msg'  => "success",
-            ];
+            if ($isContact->is_fax != 2) {
+                $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
+            }
         }
 
-        return $output;
+        $sql = $sql . "  group by " . REPORT . ".uuid," . REPORT . ".bill_no order by created_date desc";
+
+        return $sql;
     }
 
     public function getBillTb($condition)
     {
 
         $conn = json_decode(json_encode($condition));
+        $sql = $this->queryBills($conn);
         $result = [];
-        $lists = [];
+        $result2 = [];
         $offset = max($conn->page - 1, 0) * $conn->limit;
-        $totalRecord = !empty($this->countBill($conn)->items) ? $this->countBill($conn)->items : 0;
-
-        $result = [];
-        $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
-        $last_date = date('Y-m-d H:i:s');
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(" . REPORT_DETAIL . ".mduedate) as mduedate,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no left join " . REPORT_DETAIL . " on " . REPORT . ".bill_no = " . REPORT_DETAIL . ".bill_no where " . REPORT . " .created_date between '$first_date' and '$last_date'";
-
-
-        if (!empty($conn->cus_no)) {
-            $in_cusNo = [];
-            if ($this->CURUSER->user[0]->user_type == 'Cus') {
-                array_push($in_cusNo, $this->CURUSER->user_cus->cus_code);
-            }
-
-            foreach ($conn->cus_no as $cus_no) {
-                if (!empty($cus_no) && $cus_no != 'all') {
-                    $checkCustomer = $this->model_system->findCustomerById($cus_no)->items;
-                    if ($checkCustomer->type == 'main') {
-                        $findChild = $this->model_system->checkSendtoMain($cus_no)->items;
-                        foreach ($findChild as $val) {
-                            if (!in_array($val->cus_no, $in_cusNo)) {
-                                array_push($in_cusNo, $val->cus_no);
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!empty($in_cusNo)) {
-                $sql = $sql . " AND " . REPORT . ".cus_no in (" . implode(',', $in_cusNo) . ")";
-            }
-        }
-
-        if (!empty($conn->bill_no)) {
-            $sql = $sql . " AND " . REPORT . ".bill_no = '$conn->bill_no'";
-        }
-
-        if (!empty($conn->created_date)) {
-            $startDate = $conn->created_date . ' 00:00:00';
-            $endDate = $conn->created_date . ' 23:59:59';
-            $sql = $sql . " AND " . REPORT . ".created_date >= '$startDate' AND " . REPORT . ".created_date <= '$endDate'";
-        }
-
-        $sql = $sql . "  group by " . REPORT . ".uuid," . REPORT . ".bill_no order by created_date desc offset $offset rows fetch next $conn->limit rows only";
-
-        // var_dump($sql);
-        // exit;
-
         $stmt = sqlsrv_query($this->conn, $sql);
-        if ($stmt == false) {
+        $stmt2 = sqlsrv_query($this->conn, $sql . " offset $offset rows fetch next $conn->limit rows only");
+
+        if ($stmt == false || $stmt2 == false) {
             $output = (object)[
                 'status' => 500,
                 'error'  => sqlsrv_errors(),
@@ -287,22 +214,21 @@ class Model_report extends MY_Model
                 array_push($result, (object)$row);
             }
 
+
+            while ($row2 = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
+                $val = (object)$row2;
+                array_push($result2, (object)['info' => $val, 'tels' => $this->getTelById($val->cus_no), 'emails' => $this->getEmailById($val->cus_no), 'cf_call' => $this->getCfCallByuuid($val->uuid)->items, 'faxs' => $this->getFaxById($val->cus_no)]);
+            }
+
             $output = (object)[
                 'status' => 200,
-                'items'  => $result,
+                'items'  => $result2,
+                'totalRecord' => !empty($result) ? count($result) : 0,
                 'msg'  => "success",
             ];
         }
 
-
-
-        if (!empty($output->items)) {
-            foreach ($result as $key => $val) {
-                array_push($lists, (object)['info' => $val, 'tels' => $this->getTelById($val->cus_no), 'emails' => $this->getEmailById($val->cus_no), 'cf_call' => $this->getCfCallByuuid($val->uuid)->items, 'faxs' => $this->getFaxById($val->cus_no)]);
-            }
-        }
-
-        return (object)['lists' => $lists, 'totalRecord' => $totalRecord];
+        return $output;
     }
 
     public function getListItem($bill_id)
@@ -384,7 +310,7 @@ class Model_report extends MY_Model
         return $output;
     }
 
-    public function genPDF($bill_id)
+    public function genPDF($bill_id, $action)
     {
         $data = (object)[
             'info' => (object)[],
@@ -393,7 +319,13 @@ class Model_report extends MY_Model
             'total' => (object)[
                 'total_debit' => 0,
                 'total_credit' => 0,
-                'total_summary' => 0
+                'total_summary' => 0,
+                'total_RA' => 0,
+                'total_RD' => 0,
+                'total_RC' => 0,
+                'total_RB' => 0,
+                'total_DC' => 0,
+                'total_RE' => 0,
             ],
             'total_items' => 0,
             'total_page' => 0,
@@ -435,32 +367,25 @@ class Model_report extends MY_Model
                 // echo '</pre>';
                 // exit;
                 $data->total_items = count($itemLists);
-                $size = count($itemLists) > 40 ? 50 : 40;
+                $size = count($itemLists) > 20 ? 35 : 20;
                 $count = ceil(count($itemLists) / $size);
                 $data->total_page = $count;
                 $data->total = $this->calculateTotallChild($itemLists);
-                //"|010556217035200\n . $info->mcustno .\n. str_replace('N', '8', $bill_info->bill_no) .\n0"
-                //$code =  "|010556217035200\r\n" . $info->mcustno .  "\r\n" . str_replace('N', '8', $bill_info->bill_no) .   "\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));0273022069
                 $code = "|0273022069\r\n$info->mcustno\r\n$bill_info->bill_no\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
                 $data->qrcode = $this->qrcode($code);
                 $data->barcode->image = $this->barcode($code);
                 $data->barcode->code = $code;
 
-                for ($i = 1; $i <= $count; $i++) {
-                    $sumList = $this->paginate($itemLists, $size, $i);
-                    $sumList['total'] = $this->calculateTotallChild($sumList)->total_summary;
-                    $data->lists[$i] = $sumList;
+                if ($action == 'pdf') {
+                    for ($i = 1; $i <= $count; $i++) {
+                        $sumList = $this->paginate($itemLists, $size, $i);
+                        $sumList['total'] = $this->calculateTotallChild($sumList)->total_summary;
+                        $data->lists[$i] = $sumList;
+                    }
+                } else {
+                    $data->lists = $itemLists;
                 }
             }
-
-
-            // usort($data->lists, function ($a, $b) {
-            //     return $a->sortType < $b->sortType;
-            // });
-            // echo '<pre>';
-            // var_dump($data);
-            // echo '</pre>';
-            // exit;
         }
         return $data;
     }
@@ -474,7 +399,13 @@ class Model_report extends MY_Model
             'total' => (object)[
                 'total_debit' => 0,
                 'total_credit' => 0,
-                'total_summary' => 0
+                'total_summary' => 0,
+                'total_RA' => 0,
+                'total_RD' => 0,
+                'total_RC' => 0,
+                'total_RB' => 0,
+                'total_DC' => 0,
+                'total_RE' => 0,
             ],
             'total_items' => 0,
             'total_page' => 0,
@@ -558,34 +489,46 @@ class Model_report extends MY_Model
         $total_summary = 0;
         $total_debit = 0;
         $total_credit = 0;
+        $total_RA = 0;
+        $total_RD = 0;
+        $total_RC = 0;
+        $total_RB = 0;
+        $total_DC = 0;
+        $total_RE = 0;
         foreach ($result as $res) {
             if (!empty($res->mdoctype == 'RA')) {
                 $total_summary = $total_summary + $res->mnetamt;
                 $total_debit = $total_debit + $res->mnetamt;
+                $total_RA += $res->mnetamt;
             }
             if (!empty($res->mdoctype == 'RD')) {
                 $total_summary = $total_summary + $res->mnetamt;
                 $total_debit = $total_debit + $res->mnetamt;
+                $total_RD += $res->mnetamt;
             }
             if (!empty($res->mdoctype == 'DC')) {
                 $total_summary = $total_summary - $res->mnetamt;
                 $total_credit = $total_credit + $res->mnetamt;
+                $total_DC += $res->mnetamt;
             }
             if (!empty($res->mdoctype == 'RB')) {
                 $total_summary = $total_summary - $res->mnetamt;
                 $total_credit = $total_credit + $res->mnetamt;
+                $total_RB += $res->mnetamt;
             }
             if (!empty($res->mdoctype == 'RC')) {
                 $total_summary = $total_summary - $res->mnetamt;
                 $total_credit = $total_credit + $res->mnetamt;
+                $total_RC += $res->mnetamt;
             }
             if (!empty($res->mdoctype == 'RE')) {
                 $total_summary = $total_summary - $res->mnetamt;
                 $total_credit = $total_credit + $res->mnetamt;
+                $total_RE += $res->mnetamt;
             }
         }
 
-        return (object)['total_debit' => $total_debit, 'total_credit' => $total_credit, 'total_summary' =>  $total_summary];
+        return (object)['total_debit' => $total_debit, 'total_credit' => $total_credit, 'total_summary' =>  $total_summary, 'total_RA' => $total_RA, 'total_RD' => $total_RD, 'total_DC' => $total_DC, 'total_RB' => $total_RB, 'total_RC' => $total_RC, 'total_RE' => $total_RE];
     }
 
     public function getPayment()

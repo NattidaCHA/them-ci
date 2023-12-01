@@ -104,6 +104,7 @@ defined('BILLPAY')      or define('BILLPAY', 'vw_billpay_txt02');
 defined('LOG')      or define('LOG', 'log_notification');
 defined('DEPARTMENT')      or define('DEPARTMENT', 'master_department');
 defined('LOG_IN')      or define('LOG_IN', 'log_log_in');
+defined('DOCTYPE')      or define('DOCTYPE', 'master_doctype');
 
 defined('CLIENT_ID') or define('CLIENT_ID', '9f716aa3b7ffb2c939483195444512d8d3b6a5ea');
 defined('CLIENT_SECRET') or define('CLIENT_SECRET', 'b34eac00d585e57c2bbc6528114908f53ab7f41b');

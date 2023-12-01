@@ -23,37 +23,41 @@ $config['page'] = [
         'page' => 'invoice',
         'colunm' => [
             (object)['id' => 1, 'name' => 'ประเภทธุรกิจ'],
-            (object)['id' => 2, 'name' => 'ลูกค้า'],
-            (object)['id' => 3, 'name' => 'ยอดหนี้'],
-            (object)['id' => 4, 'name' => 'รีเบท'],
-            (object)['id' => 5, 'name' => 'เงินเหลือ'],
-            (object)['id' => 6, 'name' => 'ลดหนี้'],
-            (object)['id' => 7, 'name' => 'เพิ่มหนี้'],
-            (object)['id' => 8, 'name' => 'Action']
+            (object)['id' => 2, 'name' => 'รหัสลูกค้า'],
+            (object)['id' => 3, 'name' => 'ชื่อลูกค้า'],
+            (object)['id' => 4, 'name' => 'ยอดหนี้'],
+            (object)['id' => 5, 'name' => 'รีเบท'],
+            (object)['id' => 6, 'name' => 'เงินเหลือ'],
+            (object)['id' => 7, 'name' => 'ลดหนี้'],
+            (object)['id' => 8, 'name' => 'เพิ่มหนี้'],
+            (object)['id' => 9, 'name' => '<div class="d-flex"><i class="bi bi-check-circle text-success me-1"></i><i class="bi bi-x-circle text-danger"></i></div>'],
+            (object)['id' => 10, 'name' => 'Action']
         ],
     ],
     (object)[
         'id' => 2, 'page' => 'report', 'colunm' => [
             (object)['id' => 1, 'name' => 'เลขที่เอกสาร'],
-            (object)['id' => 2, 'name' => 'ลูกค้า'],
-            (object)['id' => 3, 'name' => 'อีเมล'],
-            (object)['id' => 4, 'name' => 'เบอร์โทร'],
-            (object)['id' => 5, 'name' => 'โทรแจ้ง'],
-            (object)['id' => 6, 'name' => 'ผู้ติดต่อ'],
-            (object)['id' => 7, 'name' => 'ผู้รับสาย'],
-            (object)['id' => 8, 'name' => 'สถานะ'],
-            (object)['id' => 9, 'name' => 'Action']
+            (object)['id' => 2, 'name' => 'รหัสลูกค้า'],
+            (object)['id' => 3, 'name' => 'ชื่อลูกค้า'],
+            (object)['id' => 4, 'name' => 'อีเมล'],
+            (object)['id' => 5, 'name' => 'เบอร์โทร'],
+            (object)['id' => 6, 'name' => 'โทรแจ้ง'],
+            (object)['id' => 7, 'name' => 'ผู้ติดต่อ'],
+            (object)['id' => 8, 'name' => 'ผู้รับสาย'],
+            (object)['id' => 9, 'name' => 'สถานะ'],
+            (object)['id' => 10, 'name' => 'Action']
         ]
     ],
     (object)[
         'id' => 3, 'page' => 'customer', 'colunm' => [
-            (object)['id' => 1, 'name' => 'ลูกค้า'],
-            (object)['id' => 2, 'name' => 'วันที่ต้องการแจ้ง'],
-            (object)['id' => 3, 'name' => 'ผู้ติดต่อ'],
-            (object)['id' => 4, 'name' => 'อีเมล'],
-            (object)['id' => 5, 'name' => 'เบอร์โทร'],
-            (object)['id' => 6, 'name' => 'Fax'],
-            (object)['id' => 7, 'name' => 'Action']
+            (object)['id' => 1, 'name' => 'รหัสลูกค้า'],
+            (object)['id' => 2, 'name' => 'ลูกค้า'],
+            (object)['id' => 3, 'name' => 'รอบการแจ้ง'],
+            (object)['id' => 4, 'name' => 'ผู้ติดต่อ'],
+            (object)['id' => 5, 'name' => 'อีเมล'],
+            (object)['id' => 6, 'name' => 'เบอร์โทร'],
+            (object)['id' => 7, 'name' => 'Fax'],
+            (object)['id' => 8, 'name' => 'Action']
         ]
     ],
 ];
@@ -608,6 +612,75 @@ $config['department'] = [
         'department_nameLC' => 'Credit Mgt.',
         'department_nameEN' => 'Credit Mgt.',
         'department_status' => 'A',
-        'menu' => 'all'
+        'menu' => 'invoice,report,customer'
+    ],
+];
+
+$config['docType'] = [
+    (object) [
+        'type' => "RA",
+        'type_display_th' => 'RA: ยอด Invoice',
+        'type_display_en' => 'SD Invoice',
+        'calculateSign' => 'บวก(หนี้)',
+        'msort' => 1,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "RD",
+        'type_display_th' => 'RD: ยอดเพิ่มหนี้',
+        'type_display_en' => 'SD Debit Memo',
+        'calculateSign' => 'บวก(หนี้)',
+        'msort' => 2,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "RC",
+        'type_display_th' => 'RC: ยอดลดหนี้',
+        'type_display_en' => 'SD Credit Memo',
+        'calculateSign' => 'ลบ(ลดหนี้)',
+        'msort' => 3,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "RB",
+        'type_display_th' => 'RB: ยอดเงินเหลือ',
+        'type_display_en' => 'SD Receipt - Credit',
+        'calculateSign' => 'ลบ(ลดหนี้)',
+        'msort' => 4,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "DC",
+        'type_display_th' => 'DC: ยอด Rebate',
+        'type_display_en' => 'Customer Credit Memo',
+        'calculateSign' => 'ลบ(ลดหนี้)',
+        'msort' => 5,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "RE",
+        'type_display_th' => 'RE: ยอดเงินเหลือในใบเสร็จ',
+        'type_display_en' => 'SD Receipt-CashSales',
+        'calculateSign' => 'ลบ(ลดหนี้)',
+        'msort' => 6,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
     ],
 ];

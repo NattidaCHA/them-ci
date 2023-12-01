@@ -73,7 +73,7 @@ function disabledPageForm() {
 
 function addComma(input, decision = 0, defaultText = '0') {
     if (input || input === 0) {
-        var parts = input.toString().replace(/[^-0-9\.]+/g, '');
+        var parts = parseFloat(input).toFixed(2).toString().replace(/[^-0-9\.]+/g, '');
         parts = parts.split(".");
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         parts[0] = (parts[0]) ? parts[0] : '0';

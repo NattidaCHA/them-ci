@@ -22634,7 +22634,7 @@ fieldset:disabled .btn {
 }
 
 .navbar-brand img {
-	height: 40px;
+	height: 53px;
 }
 
 .navbar-dark .navbar-brand-light {
@@ -29933,21 +29933,25 @@ article .h6 {
 }
 
 .navbar-blackground-lg {
-	background-color: rgb(255, 0, 0, 0.9);
-	padding-top: 1rem;
-	padding-bottom: 1rem;
+	width: 50%;
+	background-color: #ed2324;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+	height: 70px;
 
 	@media (max-width: 991px) {
+		width: 100%;
 		background-color: transparent;
 		padding: 0;
+		height: 0;
 	}
 }
 
 .navbar-blackground-sm {
 	background-color: #fff;
-	padding-top: 1rem;
-	padding-bottom: 1rem;
-
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
+	height: 70px;
 	@media (min-width: 991px) {
 		background-color: transparent;
 		padding: 0;
@@ -29956,26 +29960,63 @@ article .h6 {
 
 .logo-lg {
 	width: 13%;
+	/* height: 85px; */
 	background-color: #fff;
-	padding-top: 1rem;
-	padding-bottom: 1rem;
+	padding-top: 0.5rem;
+	padding-bottom: 0.5rem;
 	padding-left: 10px;
 	padding-right: 10px;
 	@media (max-width: 991px) {
 		background-color: transparent;
 		padding: 0;
+		/* height: 0; */
 	}
 }
 
+.navbar-title {
+	width: 40%;
+	background: linear-gradient(#3f3f3f 70%, #ed2324 30%);
+	/* padding-top: 1.5rem;
+	padding-bottom: 1.5rem; */
+	display: flex;
+	justify-content: space-around;
+	/* align-items: center; */
+	height: 70px;
+
+	@media (max-width: 991px) {
+		display: none;
+	}
+
+	.title {
+		color: #ffffff;
+		font-size: 14px;
+		font-weight: bold;
+	}
+
+
+	.border-right-nav{
+		height: 15px;
+		border-right: 1px solid #fff;
+		padding-top: 1.5rem;
+		padding-bottom: 1.5rem;
+	}
+}
+
+
 .displayname {
-	width: 20%;
+	width: 25%;
 	color: #fff;
-	background-color: #8b8b8b;
-	padding-top: 1.5rem;
-	padding-bottom: 1.5rem;
-	overflow: hidden;
+	background-color: #ed2324; 
+	background: linear-gradient(#8b8b8b 70%, #ed2324 30%);
+	padding-top: 0.25rem;
+	/* padding-bottom: 1.5rem; */
+	/* overflow: hidden;
 	text-overflow: ellipsis;
-	white-space: normal;
+	white-space: normal; */
+	display: flex;
+	justify-content: space-between;
+	height: 70px;
+	font-size: 13px;
 
 	@media (max-width: 991px) {
 		display: none;
@@ -29984,13 +30025,30 @@ article .h6 {
 	.name-role {
 		padding-left: 10px;
 		padding-right: 10px;
-		width: 170px;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		width: 240px;
+		/* overflow: hidden;
+		text-overflow: ellipsis; */
 		white-space: normal;
 		height: 22px;
 	}
+
 }
+
+.signout {
+	width: 5%;
+	color: #fff;
+	background-color: #6e6e6e;
+	background: linear-gradient(#6e6e6e 70%, #ed2324 30%);
+	padding-top: 0.75rem;
+	display: flex;
+	justify-content: center;
+	height: 70px;
+
+	@media (max-width: 991px) {
+		display: none;
+	}
+}
+
 
 .footer_tem {
 	width: 100%;

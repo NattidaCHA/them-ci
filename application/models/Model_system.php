@@ -328,7 +328,7 @@ class Model_system extends MY_Model
     public function getSendDate($id)
     {
         $result = (object)[];
-        $sql =  "SELECT mday FROM " . CUST_NOTI . " where mcustno = $id AND mday != 'NO FAX' group by mday";
+        $sql =  "SELECT mday FROM " . CUST_NOTI . " where mcustno = $id group by mday";
         $stmt = sqlsrv_query($this->conn, $sql);
         if ($stmt == false) {
             $output = (object)[
@@ -348,12 +348,48 @@ class Model_system extends MY_Model
         return $output;
     }
 
+    public function getDoctypeShow()
+    {
+        $result = [];
+        $sql =  "SELECT * FROM " . DOCTYPE . " where is_show = 1 ";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $res = (object)$row;
+
+                if (empty($res->start_date) || empty($res->end_date)) {
+                    $result[$res->type] = $res;
+                } else {
+                    $currentDay = date('Y-m-d');
+                    if ($currentDay >= $res->start_date && $currentDay <= $res->end_date) {
+                        $result[$res->type] = $res;
+                    }
+                }
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
+    }
+
     public function findCustomerById($cus_no)
     {
         $output = (object)['status' => 500];
         $result = (object)[];
-        $sql =  "SELECT * FROM " . CUSTOMER . " where cus_no = $cus_no";
+        $sql =  "SELECT * FROM " . CUSTOMER . " where cus_no = '$cus_no'";
         $stmt = sqlsrv_query($this->conn, $sql);
+
         if ($stmt == false) {
             $output = (object)[
                 'status' => 500,

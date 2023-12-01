@@ -4,7 +4,7 @@ class Model_invoice extends MY_Model
 {
 
     private $tableAllowFieldsInvoice = ('cus_main, cus_no, bill_no, is_email, created_date,uuid,start_date,end_date,is_sms,updated_date, created_by, is_receive_bill');
-    private $tableAllowFieldsInvoiceDatail = ('uuid, bill_no, bill_id, macctdoc, cus_no, cus_main, mdoctype, mbillno, mpostdate, mduedate, msaleorg, mpayterm, mnetamt, mtext, msort');
+    private $tableAllowFieldsInvoiceDatail = ('uuid, bill_no, bill_id, macctdoc, cus_no, cus_main, mdoctype, mbillno, mpostdate, mduedate, msaleorg, mpayterm, mnetamt, mtext, msort,mdocdate');
 
     public function __construct()
     {
@@ -20,6 +20,8 @@ class Model_invoice extends MY_Model
         $data = [];
         $cus_main = [];
         $cus_child = [];
+        $doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
+
         $select =  "" . BILLPAY . ".mcustno," . BILLPAY . ".mdoctype,SUM(" . BILLPAY . ".mnetamt) as total_mnetamt,MAX(" . BILLPAY . ".mcustname) as cus_name,MAX(" . BILLPAY . ".msaleorg) as msaleorg,MAX(" . BILLPAY . ".mduedate) as end_date,MAX(" . BILLPAY . ".mpostdate) as start_date,MAX(" . CUST_NOTI . ".mday) as send_date ,MAX(" . CUSTOMER . ".type) as type ";
 
         $join = " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno ";
@@ -27,7 +29,6 @@ class Model_invoice extends MY_Model
         // $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate'";
 
         $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'";
-
 
         if (!empty($val->is_bill)) {
             $result2 = [];
@@ -54,7 +55,7 @@ class Model_invoice extends MY_Model
             $sql = $sql . " AND " . BILLPAY . ".mcustno = '$val->cus_no'";
         }
 
-        if (!empty($val->type)) {
+        if (!empty($val->type) && $val->type !== '1') {
             $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
         }
 
@@ -69,10 +70,11 @@ class Model_invoice extends MY_Model
             }
         }
 
-        $sql = $sql . " group by "  . BILLPAY . ".mdoctype,"  . BILLPAY . ".mcustno";
+        if (!empty($doctypeLists)) {
+            $sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
+        }
 
-        // var_dump($sql);
-        // exit;
+        $sql = $sql . " group by "  . BILLPAY . ".mdoctype,"  . BILLPAY . ".mcustno";
 
         $stmt = sqlsrv_query($this->conn, $sql);
 
@@ -88,12 +90,6 @@ class Model_invoice extends MY_Model
                 array_push($result, (object)$row);
             }
 
-            // if (!empty($result)) {
-            //     foreach ($result as $row) {
-            //         $data[$row->mcustno][] = $row;
-            //     }
-            // }
-
             if (!empty($result)) {
                 foreach ($result as $row) {
                     if ($row->type == 'main') {
@@ -102,23 +98,30 @@ class Model_invoice extends MY_Model
                         array_splice($childs, $this->findObject($childs, $row->mcustno, TRUE), 1);
                         if (!empty($childs)) {
                             foreach ($childs as $val) {
-                                $cus_child[$row->mcustno] =  $val;
+                                array_push($cus_child, $val);
                             }
                         }
                         $data[$row->mcustno][] = $row;
                     } else {
                         if (!in_array($row->mcustno, $cus_child)) {
-                            $data[$row->mcustno][] = $row;
+                            if ($this->CURUSER->user[0]->user_type == 'Cus') {
+                                $data[$row->mcustno][] = $row;
+                            } else {
+                                $main = $this->checkMainBill($row->mcustno)->items;
+                                if (!in_array($main->mcustno, array_keys($cus_main))) {
+                                    $cus_main[$main->mcustno][] = $main->mcustno;
+                                    $data[$row->mcustno][] = $main;
+                                }
+                            }
                         }
                     }
                 }
             }
 
 
-
             // echo '<pre>';
             // var_dump($data);
-            // exit;
+            // // exit;
 
             // echo '</pre>';
             $output = (object)[
@@ -177,7 +180,8 @@ class Model_invoice extends MY_Model
         $lists = [];
         foreach ($result as $key => $rows) {
             $data = (object)[
-                'cus_no' => $key
+                'cus_no' => $this->CURUSER->user[0]->user_type == 'Cus' ?  $key :  $result[$key][0]->mcustno
+                // 'cus_no' => $result[$key][0]->mcustno
             ];
 
             foreach ($rows as $val) {
@@ -187,23 +191,25 @@ class Model_invoice extends MY_Model
                 $data->end_date = !empty($val->end_date) ? $val->end_date : '-';
                 $data->send_date = !empty($val->send_date) ? $val->send_date : '-';
 
-                if ($val->mdoctype == 'DC') {
-                    $data->DC = floatval($val->total_mnetamt);
-                }
-                if ($val->mdoctype == 'RA') {
-                    $data->RA = floatval($val->total_mnetamt);
-                }
-                if ($val->mdoctype == 'RB') {
-                    $data->RB = floatval($val->total_mnetamt);
-                }
-                if ($val->mdoctype == 'RC') {
-                    $data->RC = floatval($val->total_mnetamt);
-                }
-                if ($val->mdoctype == 'RD') {
-                    $data->RD = floatval($val->total_mnetamt);
-                }
-                if ($val->mdoctype == 'RE') {
-                    $data->RE = floatval($val->total_mnetamt);
+                if (!empty($val->mdoctype)) {
+                    if ($val->mdoctype == 'DC') {
+                        $data->DC = floatval($val->total_mnetamt);
+                    }
+                    if ($val->mdoctype == 'RA') {
+                        $data->RA = floatval($val->total_mnetamt);
+                    }
+                    if ($val->mdoctype == 'RB') {
+                        $data->RB = floatval($val->total_mnetamt);
+                    }
+                    if ($val->mdoctype == 'RC') {
+                        $data->RC = floatval($val->total_mnetamt);
+                    }
+                    if ($val->mdoctype == 'RD') {
+                        $data->RD = floatval($val->total_mnetamt);
+                    }
+                    if ($val->mdoctype == 'RE') {
+                        $data->RE = floatval($val->total_mnetamt);
+                    }
                 }
             }
             $lists[$key] = $data;
@@ -215,9 +221,16 @@ class Model_invoice extends MY_Model
     public function getCustomerChain($id)
     {
 
-        $lists = [];
-        $lists = $this->findChildCustomer((object)['cus_no' => $id])->items;
-        return $lists;
+        $result = [];
+        $lists = $this->checkSendtoMain($id)->items;
+        if (!empty($lists)) {
+            foreach ($lists as $val) {
+                $customer = $this->model_system->findCustomerById($val)->items;
+                array_push($result, $customer);
+            }
+        }
+
+        return $result;
     }
 
     public function calculateTotall($result)
@@ -251,11 +264,13 @@ class Model_invoice extends MY_Model
     public function findChildCustomer($condition)
     {
         $result = [];
-        $sql =  "SELECT MAX(mcustno) as cus_no,MAX(mcustname) as cus_name,MAX(msaleorg) as msaleorg FROM " . VW_Customer . " where msendto = '$condition->cus_no' group by mcustno";
+        // $join = " left join " . TBL_CUT . " on " . TBL_CUT . ".mcustno = " . VW_Customer . ".mcustno";
+        $sql =  "SELECT MAX(" . VW_Customer . ".mcustno) as cus_no,MAX(" . VW_Customer . ".mcustname) as cus_name,MAX(" . VW_Customer . ".msaleorg) as msaleorg FROM " . VW_Customer . " left join " . SENTO_CUS . " on " . SENTO_CUS . ".cus_main = " . VW_Customer . ".mcustno where " . SENTO_CUS . ".cus_main = '$condition->cus_no' AND " . SENTO_CUS . ".is_check = 1 group by mcustno";
 
         $stmt = sqlsrv_query($this->conn, $sql);
 
-
+        var_dump($sql);
+        exit;
         if ($stmt == false) {
             $output = (object)[
                 'status' => 500,
@@ -309,7 +324,22 @@ class Model_invoice extends MY_Model
     public function getBillChild($condition)
     {
         $result = [];
-        $sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date'";
+        $doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
+
+        $sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno," . BILLPAY . ".mdocdate FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date'";
+
+        if (!empty($condition->type) && $condition->type !== '1') {
+            $sql =  $sql . ' AND ' . BILLPAY . ".msaleorg = " . "$condition->type";
+        }
+
+        if (!empty($doctypeLists)) {
+            $sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
+        }
+
+        // echo '<pre>';
+        // var_dump($sql);
+        // exit;
+        // echo '</pre>';
 
         $stmt = sqlsrv_query($this->conn, $sql);
 
@@ -324,6 +354,11 @@ class Model_invoice extends MY_Model
             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                 array_push($result, (object)$row);
             }
+
+            // echo '<pre>';
+            // var_dump($result);
+            // exit;
+            // echo '</pre>';
 
             $output = (object)[
                 'status' => 200,
@@ -338,7 +373,7 @@ class Model_invoice extends MY_Model
     public function summaryBills($condition)
     {
         $result = [];
-        $sql =  "SELECT "  . BILLPAY . ".mdoctype,SUM(" . BILLPAY . ".mnetamt) as total FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno in ($condition->cus_no) AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date' group by "  . BILLPAY . ".mdoctype ";
+        $sql =  "SELECT "  . BILLPAY . ".mdoctype,SUM(" . BILLPAY . ".mnetamt) as mnetamt FROM " . BILLPAY . " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno in ($condition->cus_no) AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date' AND " . CUST_NOTI . ".mday = '$condition->send_date' group by "  . BILLPAY . ".mdoctype ";
 
         $stmt = sqlsrv_query($this->conn, $sql);
 
@@ -350,13 +385,11 @@ class Model_invoice extends MY_Model
             ];
         } else {
             while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                // if (in_array($row["mdoctype"],['RA', 'RD'])) {
                 array_push($result, (object)$row);
-                // }
             }
 
             usort($result, function ($a, $b) {
-                return $a->total < $b->total;
+                return $a->mnetamt < $b->mnetamt;
             });
 
             $output = (object)[
@@ -369,15 +402,15 @@ class Model_invoice extends MY_Model
         return $output;
     }
 
-    public function getDetailCustomer($res)
+    public function getDetailCustomer($params)
     {
         $childs = [];
         $summary = [];
-        $val = json_decode(json_encode($res));
+        $val = json_decode(json_encode($params));
         $customer = (object)[];
         if (!empty($val)) {
             $customer = $this->model_system->findCustomerById($val->cus_no)->items;
-            $res = $customer->type == 'main' && !empty($customer) ? $this->findChildCustomer($val)->items : $this->findCustomerDefault($val)->items;
+            $res = $customer->type == 'main' && !empty($customer) ? $this->getCustomerChain($val->cus_no) : $this->findCustomerDefault($val)->items;
             $child_cus = [];
 
             foreach ($res as $bill) {
@@ -387,7 +420,7 @@ class Model_invoice extends MY_Model
                     'info' => (object)[
                         'cus_no' => $bill->cus_no,
                         'cus_name' => $bill->cus_name,
-                        'saleorg' =>  $bill->msaleorg
+                        'saleorg' =>  !empty($bill->saleorg) ? $bill->saleorg : $bill->msaleorg
                     ],
                     'bills' => [],
                     'balance' => (object)[
@@ -426,7 +459,7 @@ class Model_invoice extends MY_Model
             'cus_no' => $val->cus_no,
             'cus_name' => !empty($customer) && !empty($customer->mcustname)  ? $customer->mcustname : '-',
             'childs' => $childs,
-            'total_summary' => $summary
+            'total_summary' => $this->calculateTotallChild($summary)
         ];
         return $lists;
     }
@@ -466,13 +499,13 @@ class Model_invoice extends MY_Model
                 // $total_balance = $total_balance - $res->mnetamt;
                 $total_RE = $total_RE + $res->mnetamt;
             }
-            $res->total_balance =  $total_balance;
-            $res->total_RA =  $total_RA;
-            $res->total_RD =  $total_RD;
-            $res->total_DC =  $total_DC;
-            $res->total_RB =  $total_RB;
-            $res->total_RC =  $total_RC;
-            $res->total_RE =  $total_RE;
+            // $res->total_balance =  $total_balance;
+            // $res->total_RA =  $total_RA;
+            // $res->total_RD =  $total_RD;
+            // $res->total_DC =  $total_DC;
+            // $res->total_RB =  $total_RB;
+            // $res->total_RC =  $total_RC;
+            // $res->total_RE =  $total_RE;
         }
 
         return (object)['total_balance' => $total_balance, 'total_RA' => $total_RA, 'total_RD' => $total_RD, 'total_DC' => $total_DC, 'total_RB' => $total_RB, 'total_RC' => $total_RC, 'total_RE' => $total_RE];
@@ -493,7 +526,7 @@ class Model_invoice extends MY_Model
 
     public function createDetailInvoice($params)
     {
-        $sql = "INSERT INTO " . REPORT_DETAIL . ' (' . $this->tableAllowFieldsInvoiceDatail . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?,?, ?, ?)";
+        $sql = "INSERT INTO " . REPORT_DETAIL . ' (' . $this->tableAllowFieldsInvoiceDatail . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?,?, ?, ?, ?)";
         $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
             return true;
@@ -640,6 +673,65 @@ class Model_invoice extends MY_Model
                 // $result[$res->cus_no] = $res;
                 array_push($result, $row['cus_no']);
             }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
+    }
+
+    public function checkBill($startDate, $endDate)
+    {
+        $result = [];
+        $sql = "SELECT cus_no FROM " . REPORT . " where start_date = '$startDate' AND  end_date = '$endDate' group by cus_no";
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, $row["cus_no"]);
+            }
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+
+        return $output;
+    }
+
+    public function checkMainBill($cus_no)
+    {
+        $result = (object)[];
+        $sql =  "SELECT MAX(" . CUSTOMER . ".cus_no) as mcustno,MAX(CONVERT(int," . SENTO_CUS . ".is_check)) as is_check,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(" . CUSTOMER . ".send_date) as send_date,MAX(" . CUSTOMER . ".type) as type,MAX(" . CUSTOMER . ".saleorg) as msaleorg FROM " . SENTO_CUS . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . SENTO_CUS . ".cus_main where " . SENTO_CUS . ".cus_no = '$cus_no' AND " . SENTO_CUS . ".is_check = 1 group by " . CUSTOMER . ".cus_no";
+        $stmt = sqlsrv_query($this->conn, $sql);
+
+
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                $result = (object)$row;
+                // $result[$res->cus_no] = $res;
+                // array_push($result, $res);
+            }
+
 
             $output = (object)[
                 'status' => 200,

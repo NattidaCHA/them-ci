@@ -3,16 +3,16 @@
         <form id="searchForm" method="post" action="<?php echo $http ?>/report" class="mb-4">
             <div class="section-filter-2">
                 <div class="box-search">
-                    <div class="input-search-2">
+                    <div class="input-search-<?php echo $this->CURUSER->user[0]->user_type == 'Emp' ? '3' : '2' ?>">
                         <label for="startDate" class="form-label">วันสร้างบิล</label>
-                        <div class="input-group mb-3">
+                        <div class="input-group">
                             <input type="text" class="form-control" id="created_date" name="created_date" placeholder="วันสร้างบิล" readonly autocomplete="off" value="<?php echo $created_date; ?>">
                             <span class="input-group-text"><i class="bi bi-calendar-date me-2"></i></span>
                         </div>
                     </div>
-                    <div class="input-search-2">
+                    <div class="input-search-<?php echo $this->CURUSER->user[0]->user_type == 'Emp' ? '3' : '2' ?>">
                         <label for="bill_no" class="form-label">เลขที่เอกสาร</label>
-                        <div class="input-group mb-3">
+                        <div class="input-group">
                             <select class="select2 form-select" name="bill_no" id="bill_no">
                                 <option value="">เลือก ...</option>
                                 <?php foreach ($billNos as $billNo) { ?>
@@ -22,9 +22,9 @@
                             </select>
                         </div>
                     </div>
-                    <div class="input-search-2">
+                    <div class="input-search-<?php echo $this->CURUSER->user[0]->user_type == 'Emp' ? '3' : '2' ?>">
                         <label for="customer" class="form-label">ลูกค้า</label>
-                        <div class="input-group mb-3 report-select2">
+                        <div class="input-group  report-select2">
                             <select class="select2 form-select customer" name="customer[]" id="customer" multiple>
                                 <option value="all" class="all">เลือกทั้งหมด</option>
                                 <?php foreach ($customers as $k => $customer) { ?>
@@ -34,10 +34,38 @@
                             </select>
                         </div>
                     </div>
-                    <div class="mb-3 mt-4 me-3">
-                        <button type="submit" class="btn btn-primary">ค้นหา</button>
-                    </div>
+                    <?php if ($this->CURUSER->user[0]->user_type == 'Emp') { ?>
+                        <div class="input-search-3">
+                            <label for="is_contact" class="form-label">ช่องทางการติดต่อ</label>
+                            <div class="input-group">
+                                <select class="form-select" id="is_contact" name="is_contact">
+                                    <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
+                                    <option value="2" <?php echo $is_contact == '2' ? 'selected' : ''; ?>>Email</option>
+                                    <option value="3" <?php echo $is_contact == '3' ? 'selected' : ''; ?>>Fax</option>
+                                    <option value="4" <?php echo $is_contact == '4' ? 'selected' : ''; ?>>Email & Fax</option>
+                                    <option value="5" <?php echo $is_contact == '5' ? 'selected' : ''; ?>>No Fax</option>
+                                    <option value="6" <?php echo $is_contact == '6' ? 'selected' : ''; ?>>No Email</option>
+                                    <option value="7" <?php echo $is_contact == '7' ? 'selected' : ''; ?>>No Fax & No Email</option>
+                                    <option value="8" <?php echo $is_contact == '8' ? 'selected' : ''; ?>>Email & No Fax</option>
+                                    <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
+                                </select>
+                            </div>
+                        </div>
+                    <?php } else { ?>
+                        <div class="mb-3 mt-4 me-3">
+                            <button type="submit" class="btn btn-primary">ค้นหา</button>
+                        </div>
+                    <?php   }; ?>
                 </div>
+
+                <?php if ($this->CURUSER->user[0]->user_type == 'Emp') {  ?>
+                    <div class="d-flex justify-content-end">
+                        <div class="mb-3 mt-4 me-3">
+                            <button type="submit" class="btn btn-primary">ค้นหา</button>
+                        </div>
+                    </div>
+                <?php };
+                ?>
             </div>
         </form>
 
@@ -46,22 +74,22 @@
                 <thead class="thead-light">
                     <tr>
                         <?php foreach ($table as $res) { ?>
-                            <?php if ($this->CURUSER->user[0]->user_type == 'Cus' && !in_array($res->sort, [5, 6, 7, 8])) { ?>
-                                <th width="<?php if (in_array($res->sort, [2, 3, 4])) {
+                            <?php if ($this->CURUSER->user[0]->user_type == 'Cus' && !in_array($res->sort, [6, 7, 8, 9])) { ?>
+                                <th width="<?php if (in_array($res->sort, [2, 3, 4, 5])) {
                                                 echo '20%';
-                                            } else if (in_array($res->sort, [1, 9])) {
+                                            } else if (in_array($res->sort, [1, 10])) {
                                                 echo '10%';
-                                            }; ?>" class="no-search no-sort <?php echo $res->sort == 9 ? 'text-center' : '' ?>">
+                                            }; ?>" class="align-middle no-search no-sort <?php echo $res->sort == 10 ? 'text-center' : '' ?>">
                                     <?php echo $res->colunm; ?>
                                 </th>
                             <?php } else  if ($this->CURUSER->user[0]->user_type == 'Emp') { ?>
-                                <th width="<?php if (in_array($res->sort, [2, 3, 4, 9, 6])) {
+                                <th width="<?php if (in_array($res->sort, [1, 7, 2, 4, 5,  6])) {
                                                 echo '10%';
-                                            } else if (in_array($res->sort, [1, 7])) {
-                                                echo '10%';
-                                            } else if (in_array($res->sort, [5, 8])) {
+                                            } else if (in_array($res->sort, [3])) {
+                                                echo '15%';
+                                            } else if (in_array($res->sort, [5, 8, 9, 10])) {
                                                 echo '5%';
-                                            }; ?>" class="no-search no-sort <?php echo $res->sort == 9 ? 'text-center' : '' ?>">
+                                            }; ?>" class="align-middle no-search no-sort <?php echo $res->sort == 9 ? 'text-center' : '' ?>">
                                     <?php echo $res->colunm; ?>
                                 </th>
                             <?php } ?>
@@ -215,7 +243,7 @@
                 "serverSide": true,
                 "pageLength": 20,
                 "order": [
-                    [0, "asc"]
+                    // [0, "asc"]
                 ],
                 "ajax": {
                     url: "<?php echo $http ?>/report/listReport",
@@ -223,6 +251,7 @@
                         cus_no: '<?php echo $cus_no ?>',
                         created_date: '<?php echo $created_date ?>',
                         bill_no: '<?php echo $bill_no ?>',
+                        is_contact: '<?php echo $is_contact ?>',
                     },
                     dataFilter: function(data) {
                         let json = jQuery.parseJSON(data);
@@ -536,11 +565,19 @@
                     columns.push({
                         data: 'cus_no',
                         render: function(data, type, full) {
-                            return '<div class="tb-15">' + full.info.cus_name + '(' + full.info.cus_no + ')</div>';
+                            return '<div class="tb-15">' + full.info.cus_no + '</div>';
                         }
                     })
                 }
                 if (o.sort == 3) {
+                    columns.push({
+                        data: 'cus_name',
+                        render: function(data, type, full) {
+                            return '<div class="tb-15">' + full.info.cus_name + '</div>';
+                        }
+                    })
+                }
+                if (o.sort == 4) {
                     columns.push({
                         data: 'email',
                         render: function(data, type, full) {
@@ -556,7 +593,7 @@
                         }
                     })
                 }
-                if (o.sort == 4) {
+                if (o.sort == 5) {
                     columns.push({
                         data: 'tel',
                         render: function(data, type, full) {
@@ -574,7 +611,7 @@
                         }
                     })
                 }
-                if (o.sort == 5 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
+                if (o.sort == 6 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'is_call',
                         render: function(data, type, full) {
@@ -583,7 +620,7 @@
                     })
                 }
 
-                if (o.sort == 6 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
+                if (o.sort == 7 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'contact',
                         render: function(data, type, full) {
@@ -599,7 +636,7 @@
                         }
                     })
                 }
-                if (o.sort == 7 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
+                if (o.sort == 8 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'cf_call',
                         render: function(data, type, full) {
@@ -617,7 +654,7 @@
                         }
                     })
                 }
-                if (o.sort == 8 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
+                if (o.sort == 9 && '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp') {
                     columns.push({
                         data: 'is_email',
                         render: function(data, type, full) {
@@ -625,20 +662,23 @@
                         }
                     })
                 }
-                if (o.sort == 9) {
+                if (o.sort == 10) {
                     columns.push({
                         data: 'uuid',
                         render: function(data, type, full) {
                             let action = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? '<a class="btn btn-sm btn-gray-700 modalAction" type="button" data-bs-toggle="modal" data-bs-target="#modal_action" data-cus_no="' + full.info.cus_no + '" data-uuid="' + full.info.uuid + '" data-cus_main="' + full.info.cus_main + '" data-is_receive_bill="' + full.info.is_receive_bill + '"><i class="bi bi-pencil"></i></a>' : ''
                             let mail = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' && full.info.m_is_email ? '<a class="btn btn-sm btn-primary email" type="button" href="javascript:void(0);" id="email" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-end_date="' + full.info.end_date + '" data-bill_no="' + full.info.bill_no + '" data-created_date="' + full.info.created_date + ' " data-mduedate="' + full.info.mduedate + ' "><i class="bi bi-envelope"></i></a>' : ''
 
-                            let fax = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' && full.info.is_fax ? '<a class="btn btn-sm btn-success modelFax" type="button" data-bs-toggle="modal" data-bs-target="#modal_fax"  id="fax" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-bill_no="' + full.info.bill_no + '"><i class="bi bi-printer"></i></a>' : ''
+                            let fax = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' && full.info.is_fax ? '<a class="btn btn-sm btn-gray-300 modelFax" type="button" data-bs-toggle="modal" data-bs-target="#modal_fax"  id="fax" data-uuid="' + full.info.uuid + '" data-cus_no="' + full.info.cus_no + '" data-cus_main="' + full.info.cus_main + '" data-bill_no="' + full.info.bill_no + '"><i class="bi bi-printer text-gray-900"></i></a>' : ''
 
-                            let excel = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? '<a  href="<?php echo $http ?>/invoice/genExcel/' + full.info.uuid + '" target="_self" class="btn btn-sm btn-gray-300" type="button"  id="excel" data-uuid="' + full.info.uuid + '"><i class="bi bi-file-earmark-excel text-gray-900"></i></a>' : ''
+                            let excel = '<?php echo $this->CURUSER->user[0]->user_type; ?>' == 'Emp' ? '<a  href="<?php echo $http ?>/invoice/genExcel/' + full.info.uuid + '" target="_self" class="btn btn-sm btn-success" type="button"  id="excel" data-uuid="' + full.info.uuid + '"><i class="bi bi-file-earmark-excel"></i></a>' : ''
 
-                            return '<div class="tb-15 d-flex justify-content-center">' +
-                                action +
-                                '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>' + mail + fax + excel + '</div>'
+                            let pdf = '<a class="btn btn-sm btn-danger" href="<?php echo $http ?>/report/pdf/' + full.info.uuid + '" target="_blank" id="report"><i class="bi bi-file-earmark-pdf"></i></a>'
+
+                            let displayAction = mail && !fax ? '<div>' + mail + excel + '</div>' : !mail && fax ? '<div>' + fax + excel + '</div>' : '<div>' + mail + fax + '</div>' + '<div>' + excel + '</div>'
+
+                            return '<div class="tb-15 d-flex justify-content-center"><div>' +
+                                action + pdf + '</div>' + displayAction + '</div>'
                         }
                     })
                 }

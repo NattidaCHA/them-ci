@@ -3,13 +3,13 @@
         margin: 0;
         padding: 0;
         line-height: 1.3;
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 400;
         color: #222222;
     }
 
     .pdf {
-        height: 93%;
+        height: 100%;
         margin: 2% 5% 2% 5%;
         border: 2px solid #cdcdcd;
         display: flex;
@@ -113,7 +113,7 @@
     }
 
     .mt-05 {
-        margin-top: 5px;
+        margin-top: 2px;
     }
 
     .mt-2 {
@@ -328,7 +328,7 @@
     .bank {
         margin: 0;
         padding: 0;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: bold;
     }
 
@@ -384,7 +384,7 @@
     .pl-5 {
         padding-left: 5px;
         font-weight: bold;
-        font-size: 13px;
+        font-size: 15px;
     }
 
     .border-bottom {
@@ -395,7 +395,7 @@
         margin: 0;
         padding: 0;
         font-weight: bold;
-        font-size: 14px;
+        font-size: 16px;
     }
 
     .logo-bank {
@@ -429,7 +429,7 @@
         border-collapse: collapse;
         border-spacing: 0;
         border-color: #222;
-        font-size: 12px;
+        font-size: 15px;
         border-width: 1px;
         border-color: #222;
         border-style: solid;
@@ -507,7 +507,7 @@
     .text-detail-total {
         margin: 0;
         padding: 0;
-        font-size: 12px;
+        font-size: 15px;
         font-weight: bold;
         text-align: center;
     }
@@ -605,7 +605,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-branch">สาขา/Branch ………………………………วันที่/Date………………………………</div>
+                        <div class="text-branch">สาขา/Branch………………………วันที่/Date………………………</div>
                     </div>
                     <div class="boder-bank">
                         <div class="box-service">
@@ -621,7 +621,7 @@
                         <div class="pl-5"><span>Customer No./Ref. 1: รหัสลูกค้า</span><span class="">&nbsp;<?php echo $data->report->info->mcustno; ?></span></div>
                         <div class="pl-5"><span>Reference 2 : หมายเหตุ(ถ้ามี)</span>&nbsp;<span>&nbsp;<?php echo $data->report->bill_info->bill_no; ?></span></div>
                         <div style="border-bottom: 1px solid #777;"></div>
-                        <div class="pl-5"><span>ยอดเงินสดชําระ/Amount in Cash ……………………………………… บาท/Baht</span></div>
+                        <div class="pl-5"><span>ยอดเงินสดชําระ/Amount in Cash……………………………บาท/Baht</span></div>
                     </div>
                 </div>
             </div>
@@ -671,8 +671,8 @@
 
             <div class="box-scan">
                 <div class="text-scan">
-                    <p>ผู้นำฝาก…………………………………………</p>
-                    <p>โทร………………………………………………</p>
+                    <p>ผู้นำฝาก…………………………………</p>
+                    <p>โทร………………………………………</p>
                 </div>
                 <div class="qr-scan">
                     <img src="<?php echo $http;
@@ -685,7 +685,7 @@
                                                 ?></p>
                 </div>
             </div>
-            <p class="text-danger mt-05">* หมายเหตุ QR code & Barcode สามารถสแกนได้เฉพาะธนาคารไทยพาณิชย์</p>
+            <p class="text-danger">* หมายเหตุ QR code & Barcode สามารถสแกนได้เฉพาะธนาคารไทยพาณิชย์</p>
             <div class="box-detail-payment">
                 <p><u><strong><?php echo  $data->tem['footer'][0]->payment_title; ?></strong></u></p>
                 <ol>

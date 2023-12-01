@@ -1,9 +1,4 @@
 <?php (defined('BASEPATH')) or exit('No direct script access allowed');
-
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
-use PHPMailer\PHPMailer\Exception;
-
 class Report extends MY_Controller
 {
 
@@ -33,28 +28,39 @@ class Report extends MY_Controller
         $searchLists = $this->CURUSER->user[0]->user_type == 'Cus' ? $this->model_system->findeCustomersearch($this->CURUSER->user_cus->cus_code) : $this->model_system->getCustomerAll()->items;
         $cus_no = NULL;
         $table = $this->model_system->getPageIsShow()->items;
+        $is_contact =  (!empty($this->input->post('is_contact')) ? $this->input->post('is_contact') : '1');
 
         if ($this->CURUSER->user[0]->user_type == 'Emp') {
             if (!empty($this->input->post('customer'))) {
                 $cus_no = implode(',', $this->input->post('customer'));
             }
         } else {
-            $sendto = [];
-            array_push($sendto, $this->CURUSER->user_cus->cus_code);
-            if ($this->CURUSER->user_cus->cus_type == 'A') {
-                $isCheck = $this->model_system->checkSendtoMain($this->CURUSER->user_cus->cus_code)->items;
-                foreach ($isCheck as $val) {
-                    if (!in_array($val->cus_no, $sendto)) {
-                        array_push($sendto, $val->cus_no);
+            if (!empty($this->input->post('customer'))) {
+                $cus_no = implode(',', $this->input->post('customer'));
+            } else {
+                $sendto = [];
+                array_push($sendto, $this->CURUSER->user_cus->cus_code);
+                if ($this->CURUSER->user_cus->cus_type == 'A') {
+                    $isCheck = $this->model_system->checkSendtoMain($this->CURUSER->user_cus->cus_code)->items;
+                    foreach ($isCheck as $val) {
+                        if (!in_array($val->cus_no, $sendto)) {
+                            array_push($sendto, $val->cus_no);
+                        }
                     }
                 }
-            }
 
-            $cus_no = implode(',', $sendto);
+                $cus_no = implode(',', $sendto);
+            }
         }
 
         if (!empty($cus_no)) {
-            $billNos = $this->model_report->getBillNo($cus_no)->items;
+            $cus = explode(',', $cus_no);
+            $index = (string)array_search('all', $cus);
+            if ($index == '0') {
+                array_splice($cus, 0, 1);
+            }
+
+            $billNos = $this->model_report->getBillNo(implode(',', $cus))->items;
         } else {
             $billNos = $this->model_report->getBillNo()->items;
         }
@@ -68,11 +74,12 @@ class Report extends MY_Controller
         $this->data['table'] = $table['report'];
         $this->data['info'] = $this->CURUSER;
         $this->data['first_date'] = $first_date;
+        $this->data['is_contact'] = $is_contact;
         $this->loadAsset(['dataTables', 'datepicker', 'select2', 'parsley']);
         $this->view('report_lists');
     }
 
-    public function pdf($uuid, $o = FALSE)
+    public function pdf($uuid)
     {
         return $this->genPDF($uuid, 'report');
     }
@@ -164,8 +171,6 @@ class Report extends MY_Controller
                 }
             }
 
-
-
             $output['status'] = 200;
             $output['data'] = $params;
         }
@@ -179,13 +184,12 @@ class Report extends MY_Controller
         $result = [];
         $total_filter = 0;
         $this->setPagination();
-        $this->setSearch();
-        $this->setCondition();
+        // $this->setSearch();
+        // $this->setCondition();
         $this->queryCondition['page'] = $this->page;
         $this->queryCondition['limit'] = $this->limit;
 
         $params = $this->input->get();
-
         if (!empty($params)) {
             if (!empty($params['cus_no'])) {
                 $this->queryCondition['cus_no'] = explode(',', $params['cus_no']);
@@ -197,16 +201,21 @@ class Report extends MY_Controller
             if (!empty($params['bill_no'])) {
                 $this->queryCondition['bill_no'] = $params['bill_no'];
             }
+
+            if (!empty($params['is_contact'])) {
+                $this->queryCondition['is_contact'] = $params['is_contact'];
+            }
         }
 
         $total = 0;
 
+
         if ($apiData = $this->model_report->getBillTb($this->queryCondition)) {
-            if (empty($apiData)) {
-                $this->responseJSON(['error' => 'Api Error']);
+            if (!empty($apiData->error)) {
+                $this->responseJSON(['error' => $apiData->error]);
             } else {
-                if (!empty($apiData)) {
-                    $result = $apiData->lists;
+                if (!empty($apiData->items)) {
+                    $result = $apiData->items;
                     $total = $apiData->totalRecord;
                     $total_filter = $apiData->totalRecord;
                 }
@@ -222,7 +231,7 @@ class Report extends MY_Controller
         $limit = (int) $this->input->get('length', TRUE);
         $offset = (int) $this->input->get('start', TRUE);
         $search = $this->input->get('search', TRUE);
-        $order = $this->input->get('order', TRUE);
+        // $order = $this->input->get('order', TRUE);
         $this->column = $this->input->get('columns', TRUE);
 
         if (!empty($limit)) {
@@ -236,8 +245,8 @@ class Report extends MY_Controller
             $this->search = $search['value'];
             $this->is_search = TRUE;
         }
-        $field_name = $this->column[$order[0]['column']]['data'];
-        $this->order = [$order[0]['column'], $order[0]['dir'], $field_name];
+        // $field_name = $this->column[$order[0]['column']]['data'];
+        // $this->order = [$order[0]['column'], $order[0]['dir'], $field_name];
 
         return $this;
     }

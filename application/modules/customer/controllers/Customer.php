@@ -29,7 +29,7 @@ class Customer extends MY_Controller
         $limit = (int) $this->input->get('length', TRUE);
         $offset = (int) $this->input->get('start', TRUE);
         $search = $this->input->get('search', TRUE);
-        $order = $this->input->get('order', TRUE);
+        // $order = $this->input->get('order', TRUE);
         $this->column = $this->input->get('columns', TRUE);
 
         if (!empty($limit)) {
@@ -43,8 +43,8 @@ class Customer extends MY_Controller
             $this->search = $search['value'];
             $this->is_search = TRUE;
         }
-        $field_name = $this->column[$order[0]['column']]['data'];
-        $this->order = [$order[0]['column'], $order[0]['dir'], $field_name];
+        // $field_name = $this->column[$order[0]['column']]['data'];
+        // $this->order = [$order[0]['column'], $order[0]['dir'], $field_name];
 
         return $this;
     }
@@ -124,12 +124,12 @@ class Customer extends MY_Controller
                     if (strpos($customer->tel, ",") > 0) {
                         $mobile = explode(',', $customer->tel);
                         foreach ($mobile as $tel) {
-                            if (!empty($tel) ||  trim($tel) != '-') {
+                            if (!empty($tel) || trim($tel) != '-') {
                                 array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
                             }
                         }
                     } else {
-                        if (!empty($customer->tel) ||  trim($customer->tel) != '-') {
+                        if (!empty($customer->tel) || trim($customer->tel) != '-') {
                             array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
                         }
                     }
@@ -139,12 +139,12 @@ class Customer extends MY_Controller
                     if (strpos($customer->email, ";") > 0) {
                         $res = explode(';', $customer->email);
                         foreach ($res as $email) {
-                            if (!empty($email) ||  trim($email) != '-') {
+                            if (!empty($email) || trim($email) != '-') {
                                 array_push($emails, (object)['email' => $email]);
                             }
                         }
                     } else {
-                        if (!empty($customer->email) ||  trim($customer->email) != '-') {
+                        if (!empty($customer->email) || trim($customer->email) != '-') {
                             array_push($emails, (object)['email' => $customer->email]);
                         }
                     }
@@ -155,12 +155,12 @@ class Customer extends MY_Controller
                     if (strpos($customer->fax, ",") > 0) {
                         $_faxs = explode(',', $customer->fax);
                         foreach ($_faxs as $fax) {
-                            if (!empty($fax) ||  trim($fax) != '-') {
+                            if (!empty($fax) || trim($fax) != '-') {
                                 array_push($faxs, (object)['fax' => $fax]);
                             }
                         }
                     } else {
-                        if (!empty($customer->fax) && trim($customer->fax) != '-') {
+                        if (!empty($customer->fax) || trim($customer->fax) != '-') {
                             array_push($faxs, (object)['fax' => $customer->fax]);
                         }
                     }
@@ -180,12 +180,12 @@ class Customer extends MY_Controller
                         if (strpos($customer->tel, ",") > 0) {
                             $mobile = explode(',', $customer->tel);
                             foreach ($mobile as $tel) {
-                                if (!empty($tel) ||  trim($tel) != '-') {
+                                if (!empty($tel) || trim($tel) != '-') {
                                     array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
                                 }
                             }
                         } else {
-                            if (!empty($customer->tel) ||  trim($customer->tel) != '-') {
+                            if (!empty($customer->tel) || trim($customer->tel) != '-') {
                                 array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
                             }
                         }
@@ -195,12 +195,12 @@ class Customer extends MY_Controller
                         if (strpos($customer->email, ";") > 0) {
                             $res = explode(';', $customer->email);
                             foreach ($res as $email) {
-                                if (!empty($email) ||  trim($email) != '-') {
+                                if (!empty($email) || trim($email) != '-') {
                                     array_push($emails, (object)['email' => $email]);
                                 }
                             }
                         } else {
-                            if (!empty($customer->email) ||  trim($customer->email) != '-') {
+                            if (!empty($customer->email) || trim($customer->email) != '-') {
                                 array_push($emails, (object)['email' => $customer->email]);
                             }
                         }
@@ -211,12 +211,12 @@ class Customer extends MY_Controller
                         if (strpos($customer->fax, ",") > 0) {
                             $_faxs = explode(',', $customer->fax);
                             foreach ($_faxs as $fax) {
-                                if (!empty($fax) ||  trim($fax) != '-') {
+                                if (!empty($fax) || trim($fax) != '-') {
                                     array_push($faxs, (object)['fax' => $fax]);
                                 }
                             }
                         } else {
-                            if (!empty($customer->fax) && trim($customer->fax) != '-') {
+                            if (!empty($customer->fax) || trim($customer->fax) != '-') {
                                 array_push($faxs, (object)['fax' => $customer->fax]);
                             }
                         }
@@ -226,7 +226,7 @@ class Customer extends MY_Controller
         } else {
             $customer = $this->model_customer->customer($cus_no)->items;
             if ($customer->type == 'main') {
-                $customerChild = $this->model_customer->findChildList($customer->cus_no)->items;
+                $customerChild = !empty($this->model_customer->findChildList($customer->cus_no)->items) ? $this->model_customer->findChildList($customer->cus_no)->items : [];
             } else {
                 $findMiain = $this->model_customer->findChild($customer->cus_no)->items;
                 $customerMain = $this->model_customer->findChild($findMiain->msendto)->items;
@@ -276,7 +276,7 @@ class Customer extends MY_Controller
                 $findCus = $this->model_customer->findChild($params['cus_no'])->items;
                 if (empty($checkCustomer)) {
                     $customer = [
-                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], $this->CURUSER->user[0]->userdisplay_th, NULL, $findCus->is_email, $findCus->is_fax
+                        genRandomString(16), $params['cus_no'], $params['cus_name'], $params['send_date'], date("Y-m-d H:i:s"), date("Y-m-d H:i:s"), $params['type'], $this->CURUSER->user[0]->userdisplay_th, NULL, $findCus->is_email, $findCus->is_fax, $findCus->msaleorg
                     ];
 
                     $create = $this->model_customer->createCustomer($customer);
@@ -614,10 +614,14 @@ class Customer extends MY_Controller
                     if (strpos($customer->tel, ",") > 0) {
                         $mobile = explode(',', $customer->tel);
                         foreach ($mobile as $tel) {
-                            array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                            if (!empty($tel) || trim($tel) != '-') {
+                                array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                            }
                         }
                     } else {
-                        array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                        if (!empty($tel) || trim($customer->tel) != '-') {
+                            array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                        }
                     }
                 }
 
@@ -625,10 +629,14 @@ class Customer extends MY_Controller
                     if (strpos($customer->email, ";") > 0) {
                         $res = explode(';', $customer->email);
                         foreach ($res as $email) {
-                            array_push($emails, (object)['email' => $email]);
+                            if (!empty($email) || trim($email) != '-') {
+                                array_push($emails, (object)['email' => $email]);
+                            }
                         }
                     } else {
-                        array_push($emails, (object)['email' => $customer->email]);
+                        if (!empty($customer->email) || trim($customer->email) != '-') {
+                            array_push($emails, (object)['email' => $customer->email]);
+                        }
                     }
                 }
 
@@ -636,12 +644,12 @@ class Customer extends MY_Controller
                     if (strpos($customer->fax, ",") > 0) {
                         $_faxs = explode(',', $customer->fax);
                         foreach ($_faxs as $fax) {
-                            if (!empty($fax) ||  trim($fax) != '-') {
+                            if (!empty($fax) || trim($fax) != '-') {
                                 array_push($faxs, (object)['fax' => $fax]);
                             }
                         }
                     } else {
-                        if (!empty($customer->fax) && trim($customer->fax) != '-') {
+                        if (!empty($customer->fax) || trim($customer->fax) != '-') {
                             array_push($faxs, (object)['fax' => $customer->fax]);
                         }
                     }
@@ -665,10 +673,14 @@ class Customer extends MY_Controller
                         if (strpos($customer->tel, ",") > 0) {
                             $mobile = explode(',', $customer->tel);
                             foreach ($mobile as $tel) {
-                                array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                                if (!empty($tel) || trim($tel) != '-') {
+                                    array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+                                }
                             }
                         } else {
-                            array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                            if (!empty($tel) || trim($customer->tel) != '-') {
+                                array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+                            }
                         }
                     }
 
@@ -676,10 +688,14 @@ class Customer extends MY_Controller
                         if (strpos($customer->email, ";") > 0) {
                             $res = explode(';', $customer->email);
                             foreach ($res as $email) {
-                                array_push($emails, (object)['email' => $email]);
+                                if (!empty($email) || trim($email) != '-') {
+                                    array_push($emails, (object)['email' => $email]);
+                                }
                             }
                         } else {
-                            array_push($emails, (object)['email' => $customer->email]);
+                            if (!empty($customer->email) || trim($customer->email) != '-') {
+                                array_push($emails, (object)['email' => $customer->email]);
+                            }
                         }
                     }
 
@@ -687,12 +703,12 @@ class Customer extends MY_Controller
                         if (strpos($customer->fax, ",") > 0) {
                             $_faxs = explode(',', $customer->fax);
                             foreach ($_faxs as $fax) {
-                                if (!empty($fax) ||  trim($fax) != '-') {
+                                if (!empty($fax) || trim($fax) != '-') {
                                     array_push($faxs, (object)['fax' => $fax]);
                                 }
                             }
                         } else {
-                            if (!empty($customer->fax) && trim($customer->fax) != '-') {
+                            if (!empty($customer->fax) || trim($customer->fax) != '-') {
                                 array_push($faxs, (object)['fax' => $customer->fax]);
                             }
                         }
@@ -737,6 +753,7 @@ class Customer extends MY_Controller
             NULL,
             !empty($info->is_email) ? 1 : 0,
             !empty($info->is_fax) ? 1 : 0,
+            $info->msaleorg
         ];
         $create = $this->model_customer->createCustomer($customer);
         // var_dump($info);
@@ -815,18 +832,18 @@ class Customer extends MY_Controller
         $result = [];
         $total_filter = 0;
         $this->setPagination();
-        $this->setSearch();
-        $this->setCondition();
+        // $this->setSearch();
+        // $this->setCondition();
         $this->queryCondition['page'] = $this->page;
         $this->queryCondition['limit'] = $this->limit;
         $total = 0;
 
         if ($apiData = $this->model_customer->getCustomerTb($cus_no, $is_contact, $this->limit, $this->page)) {
-            if (!empty($apiData->lists->error)) {
-                $this->responseJSON(['error' => $apiData->lists->error]);
+            if (!empty($apiData->error)) {
+                $this->responseJSON(['error' => $apiData->error]);
             } else {
-                if (!empty($apiData->lists)) {
-                    $result = $apiData->lists->items;
+                if (!empty($apiData->items)) {
+                    $result = $apiData->items;
                     $total = $apiData->totalRecord;
                     $total_filter = $apiData->totalRecord;
                 }

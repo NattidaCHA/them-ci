@@ -2,7 +2,7 @@
 
 class Model_customer extends MY_Model
 {
-    private $tableAllowFieldsCustomer = ('uuid, cus_no,cus_name, send_date,created_date, updated_date,type,created_by, updated_by,is_email,is_fax');
+    private $tableAllowFieldsCustomer = ('uuid, cus_no,cus_name, send_date,created_date, updated_date,type,created_by, updated_by,is_email,is_fax,saleorg');
     private $tableAllowFieldsTelContact = ('uuid, cus_main,  tel, created_date,updated_date, is_call, contact');
     private $tableAllowFieldsEmailContact = ('uuid, email, cus_main, created_date, updated_date');
     private $tableAllowFieldsFaxContact = ('uuid, cus_main,fax, created_date, updated_date');
@@ -150,7 +150,7 @@ class Model_customer extends MY_Model
 
     public function createCustomer($params)
     {
-        $sql = "INSERT INTO " . CUSTOMER . ' (' . $this->tableAllowFieldsCustomer . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO " . CUSTOMER . ' (' . $this->tableAllowFieldsCustomer . ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
         $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
             return true;
@@ -508,9 +508,9 @@ class Model_customer extends MY_Model
         return FALSE;
     }
 
-    public function countCustomer($cus_no, $is_contact)
+    public function queryCustomerList($cus_no, $is_contact)
     {
-        $result = [];
+
         $sql =  "SELECT * FROM " . CUSTOMER;
 
         if (!empty($cus_no) && $cus_no != '1') {
@@ -544,8 +544,19 @@ class Model_customer extends MY_Model
             }
         }
 
+        return $sql;
+    }
+
+    public function getCustomerTb($cus_no = FALSE, $is_contact = FALSE, $limit, $page)
+    {
+        $sql = $this->queryCustomerList($cus_no, $is_contact);
+        $result = [];
+        $result2 = [];
+        $offset = max($page - 1, 0) * $limit;
         $stmt = sqlsrv_query($this->conn, $sql);
-        if ($stmt == false) {
+        $stmt2 = sqlsrv_query($this->conn, $sql . " order by cus_no asc offset $offset rows fetch next $limit rows only");
+
+        if ($stmt == false || $stmt2 == false) {
             $output = (object)[
                 'status' => 500,
                 'error'  => sqlsrv_errors(),
@@ -556,89 +567,19 @@ class Model_customer extends MY_Model
                 array_push($result, (object)$row);
             }
 
+            while ($row2 = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
+                $val = (object)$row2;
+                array_push($result2, (object)['info' => $val, 'tels' => $this->tel($val->cus_no)->items, 'emails' => $this->email($val->cus_no)->items, 'faxs' => $this->fax($val->cus_no)->items]);
+            }
+
             $output = (object)[
                 'status' => 200,
-                'items'  => $result,
+                'items'  => $result2,
+                'totalRecord' => !empty($result) ? count($result) : 0,
                 'msg'  => "success",
             ];
         }
 
         return $output;
-    }
-
-    public function getCustomerTb($cus_no = FALSE, $is_contact = FALSE, $limit, $page)
-    {
-
-        $totalRecord = !empty($this->countCustomer($cus_no, $is_contact)) ? count($this->countCustomer($cus_no, $is_contact)->items) : 0;
-        $result = [];
-        $lists = [];
-        $offset = max($page - 1, 0) * $limit;
-
-        $sql =  "SELECT * FROM " . CUSTOMER;
-
-
-        if (!empty($cus_no) && $cus_no != '1') {
-            $sql = $sql . " where cus_no = '$cus_no'";
-
-            if (!empty($is_contact) && $is_contact != '1') {
-                $isContact = $this->model_invoice->checkIsContact($is_contact);
-                if ($isContact->is_email != 2) {
-                    $sql = $sql . " AND " . CUSTOMER . ".is_email in ($isContact->is_email)";
-                }
-
-                if ($isContact->is_fax != 2) {
-                    $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
-                }
-            }
-        } else {
-            if (!empty($is_contact) && $is_contact != '1') {
-                $isContact = $this->model_invoice->checkIsContact($is_contact);
-
-                if ($isContact->is_email != 2) {
-                    $sql = $sql . " where " . CUSTOMER . ".is_email in ($isContact->is_email)";
-
-                    if ($isContact->is_fax != 2) {
-                        $sql = $sql . " AND " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
-                    }
-                } else {
-                    if ($isContact->is_fax != 2) {
-                        $sql = $sql . " where " . CUSTOMER . ".is_fax in ($isContact->is_fax)";
-                    }
-                }
-            }
-        }
-
-        $sql = $sql . " order by cus_no asc offset $offset rows fetch next $limit rows only";
-
-        // var_dump($sql);
-        // exit;
-
-        $stmt = sqlsrv_query($this->conn, $sql);
-        if ($stmt == false) {
-            $output = (object)[
-                'status' => 500,
-                'error'  => sqlsrv_errors(),
-                'msg'  => "Database error",
-            ];
-        } else {
-            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-                array_push($result, (object)$row);
-            }
-
-
-            if (!empty($result)) {
-                foreach ($result as $key => $val) {
-                    array_push($lists, (object)['info' => $val, 'tels' => $this->tel($val->cus_no)->items, 'emails' => $this->email($val->cus_no)->items, 'faxs' => $this->fax($val->cus_no)->items]);
-                }
-            }
-
-            $output = (object)[
-                'status' => 200,
-                'items'  => $lists,
-                'msg'  => "success",
-            ];
-        }
-
-        return (object)['lists' => $output, 'totalRecord' => $totalRecord];
     }
 }

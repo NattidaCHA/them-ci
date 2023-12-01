@@ -13,9 +13,9 @@ class Setting extends MY_Controller
     public function index()
     {
         $result = !empty($this->model_setting->getPage()->items) ? $this->model_setting->getPage()->items : [];
-        $tab = !empty($this->input->get('tab', TRUE)) ? $this->input->get('tab', TRUE) : 'invoice';
+        $doctype = !empty($this->model_setting->doctype()->items) ? $this->model_setting->doctype()->items : [];
+        $tab = (!empty($this->input->get('tab', TRUE)) ? $this->input->get('tab', TRUE) : ($this->CURUSER->user[0]->dep_id != 4 &&  $this->CURUSER->user[0]->user_type == 'Emp' ?  'invoice' : 'doctype'));
         $days = $this->config->item('day');
-
         $this->data['days'] = [];
         $startDate =  date('Y-m-d');
         $endDate =  date('Y-m-d', strtotime("+7 day", strtotime(date('Y-m-d'))));
@@ -32,6 +32,7 @@ class Setting extends MY_Controller
         }
 
         $this->data['lists'] = $result;
+        $this->data['doctype'] = $doctype;
         $this->data['tab'] = $tab;
         $this->data['page_header'] = 'แก้ไขคอลัมน์และซ่อมข้อมูล';
         $this->data['selectDays'] = $this->model_system->getDateSelect()->items;
@@ -143,13 +144,39 @@ class Setting extends MY_Controller
         $this->responseJSON($output);
     }
 
+    public function processDoctype()
+    {
+        $output = $this->apiDefaultOutput();
+        $params = $this->input->post();
+        $formData = $this->model_setting->doctype()->items;
+
+        if (!empty($params)) {
+            foreach ($formData as $key => $val) {
+                if (in_array($val->uuid, $params['is_show'])) {
+                    $this->model_setting->updateDocTypeShow($val->uuid, [1]);
+                } else {
+                    $this->model_setting->updateDocTypeShow($val->uuid, [0]);
+                }
+
+                $this->model_setting->updateDocTypeDate($val->uuid, [$params['show-startDate'][$key], $params['show-endDate'][$key]]);
+            }
+
+            $output['status'] = 200;
+            $output['data'] = $params;
+            unset($output['error']);
+        }
+
+        $output['source'] = $params;
+        $this->responseJSON($output);
+    }
+
     public function repair()
     {
         $output = $this->apiDefaultOutput();
         $params = $this->input->post();
 
         if (!empty($params)) {
-            if (!empty($params['is_bill']) && $params['is_bill'] == '2') {
+            if (!empty($params['is_bill']) && $params['is_bill'] != '3') {
                 $checkReport = $this->model_setting->checkReport((object)$params);
                 if (!empty($checkReport->key)) {
                     set_time_limit(0);
@@ -447,7 +474,7 @@ class Setting extends MY_Controller
 
             $checkMain = !empty($this->findObjectSendTo($result)) ? true : false;
             foreach ($reportMain as $key => $report) {
-                $email = $this->genEmail((array)$report, 'invoice', $checkMain);
+                $email = $this->genEmail((array)$report, 'setting', $checkMain);
                 if ($email->status == 204) {
                     return (object)['status' => 204, 'data' => $email->data, 'msg' => $email->msg];
                 } else if ($email->status == 500) {
@@ -461,5 +488,26 @@ class Setting extends MY_Controller
         }
 
         // sleep(500);
+    }
+
+    public function createDocType()
+    {
+        $list = $this->config->item('docType');
+
+        foreach ($list as $val) {
+            $params = [
+                genRandomString(16),
+                $val->type,
+                $val->type_display_th,
+                $val->type_display_en,
+                $val->calculateSign,
+                $val->msort,
+                $val->mstatus,
+                $val->is_show,
+                $val->start_date,
+                $val->end_date
+            ];
+            $this->model_setting->create_docType($params);
+        }
     }
 }

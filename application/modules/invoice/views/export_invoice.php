@@ -8,8 +8,8 @@
     <TABLE border="1" style="border-collapse:collapse;">
         <TR>
             <?php
-            foreach ($result->header as $val) if ($val->sort != 8) { ?>
-                <TD><b><?php echo $val->colunm; ?></b></TD>
+            foreach ($result->header as $val) if ($val->sort != 10) { ?>
+                <TD><b><?php echo $val->sort == 9 ? 'สร้างใบแจ้งเตือน' :  $val->colunm; ?></b></TD>
             <?php } ?>
         </TR>
         <?php
@@ -21,18 +21,23 @@
                 <?php if (in_array(1, $result->keyTable)) { ?><td>
                         <?php echo $result->types[$invoice->msaleorg]->msaleorg_des; ?></td><?php }; ?>
                 <?php if (in_array(2, $result->keyTable)) { ?><td>
+                        <?php echo !empty($invoice->cus_no) ? $invoice->cus_no : '-'; ?>
+                    </td><?php }; ?>
+                <?php if (in_array(3, $result->keyTable)) { ?><td>
                         <?php echo !empty($invoice->cus_name) ? $invoice->cus_name . ' (' . $invoice->cus_no . ')' : '-'; ?>
                     </td><?php }; ?>
-                <?php if (in_array(3, $result->keyTable)) { ?><td><?php echo number_format($invoice->balance, 2); ?>
+                <?php if (in_array(4, $result->keyTable)) { ?><td><?php echo number_format($invoice->balance, 2); ?>
                     </td><?php }; ?>
-                <?php if (in_array(4, $result->keyTable)) { ?><td>
-                        <?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
                 <?php if (in_array(5, $result->keyTable)) { ?><td>
-                        <?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
+                        <?php echo !empty($invoice->DC) ? number_format($invoice->DC, 2) : 0; ?></td><?php }; ?>
                 <?php if (in_array(6, $result->keyTable)) { ?><td>
-                        <?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
+                        <?php echo !empty($invoice->RE) ? number_format($invoice->RE, 2) : 0; ?></td><?php }; ?>
                 <?php if (in_array(7, $result->keyTable)) { ?><td>
+                        <?php echo !empty($invoice->RC) ? number_format($invoice->RC, 2) : 0; ?></td><?php }; ?>
+                <?php if (in_array(8, $result->keyTable)) { ?><td>
                         <?php echo !empty($invoice->RD) ? number_format($invoice->RD, 2) : 0; ?></td><?php }; ?>
+                <?php if (in_array(9, $result->keyTable)) { ?><td>
+                        <?php echo in_array($invoice->cus_no, $result->checkBill) ? 'ทำใบแจ้งเตือนแล้ว' : 'ยังไม่ได้ทำใบแจ้งเตือน'; ?></td><?php }; ?>
             </TR>
         <?php } ?>
     </TABLE>

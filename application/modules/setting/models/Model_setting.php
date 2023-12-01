@@ -5,6 +5,7 @@ class Model_setting extends MY_Model
     private $tableAllowFieldsSetting = ('uuid,page_name, colunm, sort, page_sort, is_show');
     private $tableAllowFieldsTemPDF = ('uuid,page, company, address, tel, tel2,tax, account_no, account_name, image_name, bank_name, branch,comp_code, due_detail, cal, contact, type, payment_title, detail_1_1,detail_1_2, detail_2, detail_2_1, detail_2_2, detail_2_3, detail_2_4,detail_2_5, detail_2_6, detail_2_7, detail_2_8, detail_3,detail_4, detail_5, sort,tran_header,tran_detail_1,tran_detail_2,tran_detail_3');
     private $tableAllowFieldsDepartment = ('uuid,department_id, department_code, department_nameLC, department_nameEN, department_status,menu');
+    private $tableAllowFieldsDocType = ('uuid,type, type_display_th, type_display_en, calculateSign, msort,mstatus,is_show,start_date,end_date');
 
     public function __construct()
     {
@@ -25,6 +26,18 @@ class Model_setting extends MY_Model
     public function create_tem_pdf($params)
     {
         $sql = "INSERT INTO " . PAYMENT . ' (' . $this->tableAllowFieldsTemPDF . ") VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+
+        if (!empty($res)) {
+            return true;
+        }
+
+        return FALSE;
+    }
+
+    public function create_docType($params)
+    {
+        $sql = "INSERT INTO " . DOCTYPE . ' (' . $this->tableAllowFieldsDocType . ") VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, ?)";
         $res = sqlsrv_query($this->conn, $sql, $params);
 
         if (!empty($res)) {
@@ -65,9 +78,58 @@ class Model_setting extends MY_Model
         return $output;
     }
 
+    public function doctype()
+    {
+        $result = [];
+        $sql =  "SELECT * FROM " . DOCTYPE . " order by msort asc";
+
+        $stmt = sqlsrv_query($this->conn, $sql);
+        if ($stmt == false) {
+            $output = (object)[
+                'status' => 500,
+                'error'  => sqlsrv_errors(),
+                'msg'  => "Database error",
+            ];
+        } else {
+            while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+                array_push($result, (object)$row);
+            }
+
+
+            $output = (object)[
+                'status' => 200,
+                'items'  => $result,
+                'msg'  => "success",
+            ];
+        }
+        return $output;
+    }
+
     public function updateSetting($id, $params)
     {
         $sql = "update " . SETTING . " set is_show=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
+        }
+
+        return FALSE;
+    }
+
+    public function updateDocTypeShow($id, $params)
+    {
+        $sql = "update " . DOCTYPE . " set is_show=(?) where uuid = '$id'";
+        $res = sqlsrv_query($this->conn, $sql, $params);
+        if (!empty($res)) {
+            return $res;
+        }
+
+        return FALSE;
+    }
+
+    public function updateDocTypeDate($id, $params)
+    {
+        $sql = "update " . DOCTYPE . " set start_date=(?),end_date=(?) where uuid = '$id'";
         $res = sqlsrv_query($this->conn, $sql, $params);
         if (!empty($res)) {
             return $res;
@@ -82,14 +144,12 @@ class Model_setting extends MY_Model
 
         $result = [];
         $data = [];
+        $doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
         $select =  "" . BILLPAY . ".mcustno," . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno," . VW_Customer . ".msendto," . CUST_NOTI . ".mday," . BILLPAY . ".mbillno," . BILLPAY . ".mpostdate," . BILLPAY . ".mduedate," . BILLPAY . ".mpayterm," . BILLPAY . ".mtext ";
 
         $join = " left join " . CUST_NOTI . " on " . CUST_NOTI . ".mcustno = " . BILLPAY . ".mcustno left join " . VW_Customer . " on " . VW_Customer . ".mcustno = " . BILLPAY . ".mcustno";
 
-        // $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mpostdate >='$val->startDate' AND " . BILLPAY . ".mduedate <='$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
-
-
-        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate' AND " . BILLPAY . ".mdoctype in ('RA','RD')";
+        $sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUST_NOTI . ".mday = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate' ";
 
         if (!empty($val->is_fax) && $val->is_fax != '1') {
             $fax = $val->is_fax == '2' ? 1 : 0;
@@ -101,8 +161,13 @@ class Model_setting extends MY_Model
             $sql = $sql . " AND " . CUST_NOTI . ".m_isemail = $email";
         }
 
-        if (!empty($val->type)) {
+        if (!empty($val->type) &&  $val->type != '1') {
             $sql = $sql . " AND " . BILLPAY . ".msaleorg = '$val->type'";
+        }
+
+        
+        if (!empty($doctypeLists)) {
+            $sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
         }
 
         if (!empty($val->is_bill)) {

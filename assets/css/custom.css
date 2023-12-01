@@ -911,6 +911,22 @@ div.dataTables_wrapper div.dataTables_paginate {
 			}
 		}
 
+		.input-search-2 {
+			width: 25%;
+
+			@media (max-width: 610px) {
+				width: 100%;
+			}
+		}
+
+		.input-search-3 {
+			width: 23%;
+
+			@media (max-width: 610px) {
+				width: 100%;
+			}
+		}
+
 		.box-text {
 			display: flex;
 			flex-direction: column;
@@ -972,6 +988,14 @@ div.dataTables_wrapper div.dataTables_paginate {
 
 		.input-search-2 {
 			width: 27%;
+
+			@media (max-width: 610px) {
+				width: 100%;
+			}
+		}
+
+		.input-search-3 {
+			width: 23%;
 
 			@media (max-width: 610px) {
 				width: 100%;
@@ -1208,6 +1232,29 @@ div.dataTables_wrapper div.dataTables_paginate {
 
 	.form-setting {
 		margin-left: 35px;
+	}
+
+	.date-show {
+		display: flex;
+		margin-left: 15px;
+	}
+
+	.input-endDate {
+		margin-top: 30px;
+
+		@media (max-width: 610px) {
+			margin-top: 0px;
+		}
+	}
+
+	.box-text {
+		margin-top: 35px;
+		margin-left: 10px;
+		margin-right: 10px;
+
+		@media (max-width: 610px) {
+			margin-top: 0px;
+		}
 	}
 }
 
