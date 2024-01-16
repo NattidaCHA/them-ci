@@ -118,7 +118,7 @@ if (ENVIRONMENT == 'production') {
     defined('PWD') or define('PWD', 'Noti22@PRD');
     defined('HTTP')      or define('HTTP', 'invoicenotification/');
     defined('WWW') or define('WWW', 'https://npismo.scg.com');
-    defined('API') or define('API', 'https://npismo.scg.com/api/');
+    defined('API') or define('API', 'https://npismo.scg.com/api_smo/');
 } else {
     if (ENVIRONMENT == 'testing') {
         defined('HTTP')      or define('HTTP', 'invoicenotification/');

@@ -147,7 +147,7 @@ class Model_report extends MY_Model
     {
         $first_date = date('Y-m-d H:i:s', strtotime('-3 months'));
         $last_date = date('Y-m-d H:i:s');
-        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no  where " . REPORT . " .created_date between '$first_date' and '$last_date'";
+        $sql =  "SELECT " . REPORT . ".uuid," . REPORT . ".bill_no,MAX(CONVERT(int," . REPORT . ".is_email)) as is_email,MAX(" . REPORT . ".cus_main) as cus_main,MAX(CONVERT(int," . REPORT . ".is_receive_bill)) as is_receive_bill,MAX(" . REPORT . ".created_date) as created_date,MAX(" . REPORT . ".mduedate) as mduedate,MAX(" . REPORT . ".cus_no) as cus_no,MAX(" . CUSTOMER . ".cus_name) as cus_name,MAX(" . REPORT . ".created_by) as created_by,MAX(" . REPORT . ".end_date) as end_date,MAX(CONVERT(int," . CUSTOMER . ".is_email)) as m_is_email,MAX(CONVERT(int," . CUSTOMER . ".is_fax)) as is_fax FROM " . REPORT . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no  where " . REPORT . " .created_date between '$first_date' and '$last_date'";
         // left join " . VW_Customer . " on " . REPORT . ".cus_no = " . VW_Customer . ".mcustno
         //left join " . REPORT_DETAIL . " on " . REPORT . ".bill_no = " . REPORT_DETAIL . ".bill_no
 
@@ -322,6 +322,9 @@ class Model_report extends MY_Model
                 'total_RB' => 0,
                 'total_DC' => 0,
                 'total_RE' => 0,
+                'total_DA' => 0,
+                'total_DB' => 0,
+                'total_DE' => 0,
             ],
             'total_items' => 0,
             'total_page' => 0,
@@ -342,6 +345,8 @@ class Model_report extends MY_Model
             if (!empty($bill_info)) {
                 $data->bill_info = $bill_info;
                 $info = $this->getCustomerInfo($bill_info->cus_no)->items;
+                // var_dump($info);
+                // exit;
                 if (!empty($info)) {
                     $data->info = $info;
                 }
@@ -363,7 +368,7 @@ class Model_report extends MY_Model
                 // echo '</pre>';
                 // exit;
                 $data->total_items = count($itemLists);
-                $size = count($itemLists) > 20 ? 35 : 20;
+                $size = count($itemLists) > 20 ? 30 : 20;
                 $count = ceil(count($itemLists) / $size);
                 $data->total_page = $count;
                 $data->total = $this->calculateTotallChild($itemLists);
@@ -386,69 +391,6 @@ class Model_report extends MY_Model
         return $data;
     }
 
-    public function excel($bill_id)
-    {
-        $data = (object)[
-            'info' => (object)[],
-            'bill_info' => (object)[],
-            'lists' => [],
-            'total' => (object)[
-                'total_debit' => 0,
-                'total_credit' => 0,
-                'total_summary' => 0,
-                'total_RA' => 0,
-                'total_RD' => 0,
-                'total_RC' => 0,
-                'total_RB' => 0,
-                'total_DC' => 0,
-                'total_RE' => 0,
-            ],
-            'total_items' => 0,
-            'total_page' => 0,
-            'payment' => [],
-            'barcode' => (object)[
-                'code' => '',
-                'image' => ''
-            ],
-            'qrcode' => ''
-        ];
-
-        if (!empty($bill_id)) {
-            $bill_info = $this->getReportUuid($bill_id)->items;
-            $itemLists = $this->getListItem($bill_id)->items;
-            $data->payment = $this->getPayment()->items;
-            $info = (object)[];
-
-            if (!empty($bill_info)) {
-                $data->bill_info = $bill_info;
-                $info = $this->getCustomerInfo($bill_info->cus_no)->items;
-                if (!empty($info)) {
-                    $data->info = $info;
-                }
-            }
-
-            if (!empty($itemLists)) {
-                foreach ($itemLists as $val) {
-                    if (!empty($val)) {
-                        $val->type = $this->genType($val->mdoctype)->type;
-                        $val->sortType = $this->genType($val->mdoctype)->sortType;
-                    }
-                }
-
-                $data->total_items = count($itemLists);
-                $size = count($itemLists) > 40 ? 40 : 40;
-                $count = ceil(count($itemLists) / $size);
-                $data->total_page = $count;
-                $data->total = $this->calculateTotallChild($itemLists);
-                $code = "|0273022069\r\n$info->mcustno\r\n$bill_info->bill_no\r\n" . str_replace('.', '', (str_replace('-', '', $data->total->total_summary)));
-                $data->qrcode = $this->qrcode($code);
-                $data->barcode->image = $this->barcode($code);
-                $data->barcode->code = $code;
-                $data->lists = $itemLists;
-            }
-        }
-        return $data;
-    }
 
     public function paginate($array, $page_size, $page_number)
     {
@@ -458,7 +400,7 @@ class Model_report extends MY_Model
     public function getCustomerInfo($cus_no)
     {
         $result = (object)[];
-        $sql =  "SELECT * FROM " . VW_Customer . " where mcustno = '$cus_no'";
+        $sql =  "SELECT * FROM " . VW_Customer . " where mcustno = '$cus_no' and msaleorg = '0281'";
 
         $stmt = sqlsrv_query($this->conn, $sql);
 
@@ -491,6 +433,9 @@ class Model_report extends MY_Model
         $total_RB = 0;
         $total_DC = 0;
         $total_RE = 0;
+        $total_DA = 0;
+        $total_DB = 0;
+        $total_DE = 0;
         foreach ($result as $res) {
             if (!empty($res->mdoctype == 'RA')) {
                 $total_summary = $total_summary + $res->mnetamt;
@@ -522,9 +467,24 @@ class Model_report extends MY_Model
                 $total_credit = $total_credit + $res->mnetamt;
                 $total_RE += $res->mnetamt;
             }
+            if (!empty($res->mdoctype == 'DA')) {
+                $total_summary = $total_summary + $res->mnetamt;
+                $total_debit = $total_debit + $res->mnetamt;
+                $total_DA += $res->mnetamt;
+            }
+            if (!empty($res->mdoctype == 'DB')) {
+                $total_summary = $total_summary - $res->mnetamt;
+                $total_credit = $total_credit + $res->mnetamt;
+                $total_DB += $res->mnetamt;
+            }
+            if (!empty($res->mdoctype == 'DE')) {
+                $total_summary = $total_summary - $res->mnetamt;
+                $total_credit = $total_credit + $res->mnetamt;
+                $total_DE += $res->mnetamt;
+            }
         }
 
-        return (object)['total_debit' => $total_debit, 'total_credit' => $total_credit, 'total_summary' =>  $total_summary, 'total_RA' => $total_RA, 'total_RD' => $total_RD, 'total_DC' => $total_DC, 'total_RB' => $total_RB, 'total_RC' => $total_RC, 'total_RE' => $total_RE];
+        return (object)['total_debit' => $total_debit, 'total_credit' => $total_credit, 'total_summary' =>  $total_summary, 'total_RA' => $total_RA, 'total_RD' => $total_RD, 'total_DC' => $total_DC, 'total_RB' => $total_RB, 'total_RC' => $total_RC, 'total_RE' => $total_RE, 'total_DA' => $total_DA, 'total_DB' => $total_DB, 'total_DE' => $total_DE];
     }
 
     public function getPayment()
@@ -582,6 +542,18 @@ class Model_report extends MY_Model
         if (!empty($res == 'RE')) {
             $text = 'RE - ยอดเงินเหลือในใบเสร็จ';
             $sortType  = 6;
+        }
+        if (!empty($res == 'DA')) {
+            $text = 'DA: Customer Manual Inv.';
+            $sortType  = 7;
+        }
+        if (!empty($res == 'DB')) {
+            $text = 'DB: Customer Adjustment';
+            $sortType  = 8;
+        }
+        if (!empty($res == 'DE')) {
+            $text = 'DE: Customer Manual Payment';
+            $sortType  = 9;
         }
 
 

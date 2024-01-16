@@ -108,13 +108,30 @@
                                         </p>
                                     </div>
 
+                                    <div class="total-invoice _sum_DA-<?php echo $key; ?> d-none">
+                                        <p>ยอดรวม DA</p>
+                                        <p class="ms-2 DA-text-<?php echo $key; ?>">
+                                            <?php echo !empty($child->balance->total_DA) ? '(' . number_format($child->balance->total_DA, 2) . ')' : 0; ?>
+                                        </p>
+                                    </div>
+
+                                    <div class="total-invoice _sum_DB-<?php echo $key; ?> d-none">
+                                        <p>ยอดรวม DB</p>
+                                        <p class="ms-2 DB-text-<?php echo $key; ?>">
+                                            <?php echo !empty($child->balance->total_DB) ? '(' . number_format($child->balance->total_DB, 2) . ')' : 0; ?>
+                                        </p>
+                                    </div>
+
+                                    <div class="total-invoice _sum_DE-<?php echo $key; ?> d-none">
+                                        <p>ยอดรวม DE</p>
+                                        <p class="ms-2 DE-text-<?php echo $key; ?>">
+                                            <?php echo !empty($child->balance->total_DE) ? '(' . number_format($child->balance->total_DE, 2) . ')' : 0; ?>
+                                        </p>
+                                    </div>
+
 
                                     <p class="ms-2 RA_total d-none">
                                         <?php echo !empty($child->balance->total_RA) ? $child->balance->total_RA : 0; ?>
-                                    </p>
-
-                                    <p class="ms-2 RD_total d-none">
-                                        <?php echo !empty($child->balance->total_RD) ? $child->balance->total_RD : 0; ?>
                                     </p>
 
                                     <p class="ms-2 RD_total d-none">
@@ -135,6 +152,16 @@
 
                                     <p class="ms-2 RE_total d-none">
                                         <?php echo !empty($child->balance->total_RE) ? $child->balance->total_RE : 0; ?>
+                                    </p>
+
+                                    <p class="ms-2 DA_total d-none">
+                                        <?php echo !empty($child->balance->total_DA) ? $child->balance->total_DA : 0; ?>
+                                    </p>
+                                    <p class="ms-2 DB_total d-none">
+                                        <?php echo !empty($child->balance->total_DB) ? $child->balance->total_DB : 0; ?>
+                                    </p>
+                                    <p class="ms-2 DE_total d-none">
+                                        <?php echo !empty($child->balance->total_DE) ? $child->balance->total_DE : 0; ?>
                                     </p>
 
                                     <p class="ms-2 am_total d-none">
@@ -199,6 +226,27 @@
                             (<?php echo !empty($lists->total_summary->total_RE) ? number_format($lists->total_summary->total_RE, 2) : 0; ?>)
                         </p>
                     </div>
+
+                    <div class="total-invoice  total_summary_DA d-none">
+                        <p>ยอดรวม DA ทั้งหมด</p>
+                        <p class="ms-2 summary_DA">
+                            (<?php echo !empty($lists->total_summary->total_DA) ? number_format($lists->total_summary->total_DA, 2) : 0; ?>)
+                        </p>
+                    </div>
+
+                    <div class="total-invoice  total_summary_DB d-none">
+                        <p>ยอดรวม DB ทั้งหมด</p>
+                        <p class="ms-2 summary_DB">
+                            (<?php echo !empty($lists->total_summary->total_DB) ? number_format($lists->total_summary->total_DB, 2) : 0; ?>)
+                        </p>
+                    </div>
+
+                    <div class="total-invoice  total_summary_DE d-none">
+                        <p>ยอดรวม DE ทั้งหมด</p>
+                        <p class="ms-2 summary_DE">
+                            (<?php echo !empty($lists->total_summary->total_DE) ? number_format($lists->total_summary->total_DE, 2) : 0; ?>)
+                        </p>
+                    </div>
                 <?php } ?>
 
                 <div class="total-invoice">
@@ -217,7 +265,7 @@
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     โหลด...
                 </button>
-                <a type="button" class="btn btn-danger ms-2" href="<?php echo $http . '/invoice?dateSelect=' . $send . '&startDate=' . $start . '&endDate=' . $end; ?>">ยกเลิก</a>
+                <a type="button" class="btn btn-danger ms-2" href="<?php echo $http . '/invoice?dateSelect=' . $send . '&startDate=' . $start . '&endDate=' . $end . '&type=' . $type; ?>">ยกเลิก</a>
             </div>
         </form>
     </div>
@@ -258,7 +306,7 @@
                             value: mduedate
                         })
 
-                        $.post('<?php echo $http ?>/invoice/create/' + mainID + '/' + '<?php echo $start ?>' + '/' + '<?php echo $end ?>', formData).done(function(res) {
+                        $.post('<?php echo $http ?>/invoice/create/' + mainID + '/' + '<?php echo $start ?>' + '/' + '<?php echo $end ?>' + '/' + '<?php echo $send ?>', formData).done(function(res) {
                             if (res.status == 200) {
                                 let key = Object.keys(res.data['data'])
                                 let html = "";
@@ -332,6 +380,9 @@
                         'RB': type.trim() == 'RB' ? parseFloat(cf_mnetamt.trim()) : 0,
                         'RC': type.trim() == 'RC' ? parseFloat(cf_mnetamt.trim()) : 0,
                         'RE': type.trim() == 'RE' ? parseFloat(cf_mnetamt.trim()) : 0,
+                        'DA': type.trim() == 'DA' ? parseFloat(cf_mnetamt.trim()) : 0,
+                        'DB': type.trim() == 'DB' ? parseFloat(cf_mnetamt.trim()) : 0,
+                        'DE': type.trim() == 'DE' ? parseFloat(cf_mnetamt.trim()) : 0,
                         'mdoctype': type.trim()
                     }
 
@@ -342,7 +393,7 @@
 
                     checkDisable();
                     let summary = calculate(key);
-                    let sendTotal = (type.trim() == 'DC' ? summary.DC : type.trim() == 'RB' ? summary.RB : type.trim() == 'RC' ? summary.RC : type.trim() == 'RA' ? summary.RA : type.trim() == 'RD' ? summary.RD : summary.RE)
+                    let sendTotal = (type.trim() == 'DC' ? summary.DC : type.trim() == 'RB' ? summary.RB : type.trim() == 'RC' ? summary.RC : type.trim() == 'RA' ? summary.RA : type.trim() == 'RD' ? summary.RD : type.trim() == 'RE' ? summary.RE : type.trim() == 'DA' ? summary.DA : type.trim() == 'DB' ? summary.DB : summary.DE)
 
                     checkTotal.find('.total-text-' + key).text(addComma(summary.total, 2))
                     let text = ['RA', 'RD'].includes(type.trim()) ? addComma(sendTotal, 2) : '(' + addComma(sendTotal, 2) + ')'
@@ -350,7 +401,7 @@
                     checkTotal.find('.' + type.trim() + '-text-' + key).text(text)
                     let find = checkTotal.find('._sum_' + type.trim() + '-' + key)
                     let total_summary = calculate(false);
-                    let total_sendTo = (type.trim() == 'DC' ? total_summary.DC : type.trim() == 'RB' ? total_summary.RB : type.trim() == 'RC' ? total_summary.RC : type.trim() == 'RA' ? total_summary.RA : type.trim() == 'RD' ? total_summary.RD : total_summary.RE)
+                    let total_sendTo = (type.trim() == 'DC' ? total_summary.DC : type.trim() == 'RB' ? total_summary.RB : type.trim() == 'RC' ? total_summary.RC : type.trim() == 'RA' ? total_summary.RA : type.trim() == 'RD' ? total_summary.RD : type.trim() == 'RE' ? total_summary.RE : type.trim() == 'DA' ? total_summary.DA : type.trim() == 'DB' ? total_summary.DB : total_summary.DE)
 
                     let sum_text = ['RA', 'RD'].includes(type.trim()) ? addComma(total_sendTo, 2) : '(' + addComma(total_sendTo, 2) + ')'
 
@@ -379,7 +430,7 @@
                     let total_find = $('.summary_' + type.trim())
 
                     let total_summary = calculate(false);
-                    let total_sendTo = (type.trim() == 'DC' ? total_summary.DC : type.trim() == 'RB' ? total_summary.RB : type.trim() == 'RC' ? total_summary.RC : type.trim() == 'RA' ? total_summary.RA : type.trim() == 'RD' ? total_summary.RD : total_summary.RE)
+                    let total_sendTo = (type.trim() == 'DC' ? total_summary.DC : type.trim() == 'RB' ? total_summary.RB : type.trim() == 'RC' ? total_summary.RC : type.trim() == 'RA' ? total_summary.RA : type.trim() == 'RD' ? total_summary.RD : type.trim() == 'RE' ? total_summary.RE : type.trim() == 'DA' ? total_summary.DA : type.trim() == 'DB' ? total_summary.DB : total_summary.DE)
 
                     let sum_text = ['RA', 'RD'].includes(type.trim()) ? addComma(total_sendTo, 2) : '(' + addComma(total_sendTo, 2) + ')'
                     $('._allTotal').text(addComma(total_summary.total, 2))
@@ -405,6 +456,9 @@
                             'RB': o.mdoctype == 'RB' ? parseFloat(o.mnetamt) : 0,
                             'RC': o.mdoctype == 'RC' ? parseFloat(o.mnetamt) : 0,
                             'RE': o.mdoctype == 'RE' ? parseFloat(o.mnetamt) : 0,
+                            'DA': o.mdoctype == 'DA' ? parseFloat(o.mnetamt) : 0,
+                            'DB': o.mdoctype == 'DB' ? parseFloat(o.mnetamt) : 0,
+                            'DE': o.mdoctype == 'DE' ? parseFloat(o.mnetamt) : 0,
                             'mdoctype': o.mdoctype
                         }
 
@@ -416,7 +470,7 @@
                         checkDisable();
                         let summary = calculate(childLists.childs[value].info.cus_no);
 
-                        let sendTotal = (o.mdoctype == 'DC' ? summary.DC : o.mdoctype == 'RB' ? summary.RB : o.mdoctype == 'RC' ? summary.RC : o.mdoctype == 'RA' ? summary.RA : o.mdoctype == 'RD' ? summary.RD : summary.RE)
+                        let sendTotal = (o.mdoctype == 'DC' ? summary.DC : o.mdoctype == 'RB' ? summary.RB : o.mdoctype == 'RC' ? summary.RC : o.mdoctype == 'RA' ? summary.RA : o.mdoctype == 'RD' ? summary.RD : o.mdoctype == 'RE' ? summary.RE : o.mdoctype == 'DA' ? summary.DA : o.mdoctype == 'DB' ? summary.DB : summary.DE)
 
                         checkTotal.find('.total-text-' + childLists.childs[value].info.cus_no).text(
                             addComma(summary.total, 2))
@@ -429,7 +483,7 @@
                         displayCal(sendTotal, find)
 
                         let total_summary = calculate(false);
-                        let total_sendTo = (o.mdoctype == 'DC' ? total_summary.DC : o.mdoctype == 'RB' ? total_summary.RB : o.mdoctype == 'RC' ? total_summary.RC : o.mdoctype == 'RA' ? total_summary.RA : o.mdoctype == 'RD' ? total_summary.RD : total_summary.RE)
+                        let total_sendTo = (o.mdoctype == 'DC' ? total_summary.DC : o.mdoctype == 'RB' ? total_summary.RB : o.mdoctype == 'RC' ? total_summary.RC : o.mdoctype == 'RA' ? total_summary.RA : o.mdoctype == 'RD' ? total_summary.RD : o.mdoctype == 'RE' ? total_summary.RE : o.mdoctype == 'DA' ? total_summary.DA : o.mdoctype == 'DB' ? total_summary.DB : total_summary.DE)
 
                         let sum_text = ['RA', 'RD'].includes(o.mdoctype) ? addComma(total_sendTo, 2) : '(' + addComma(total_sendTo, 2) + ')'
                         $('.summary_' + o.mdoctype).text(sum_text)
@@ -449,7 +503,7 @@
                         displayCal(0, find)
 
                         let total_summary = calculate(false);
-                        let total_sendTo = (o.mdoctype == 'DC' ? total_summary.DC : o.mdoctype == 'RB' ? total_summary.RB : o.mdoctype == 'RC' ? total_summary.RC : o.mdoctype == 'RA' ? total_summary.RA : o.mdoctype == 'RD' ? total_summary.RD : total_summary.RE)
+                        let total_sendTo = (o.mdoctype == 'DC' ? total_summary.DC : o.mdoctype == 'RB' ? total_summary.RB : o.mdoctype == 'RC' ? total_summary.RC : o.mdoctype == 'RA' ? total_summary.RA : o.mdoctype == 'RD' ? total_summary.RD : o.mdoctype == 'RE' ? total_summary.RE : o.mdoctype == 'DA' ? total_summary.DA : o.mdoctype == 'DB' ? total_summary.DB : total_summary.DE)
 
                         let sum_text = ['RA', 'RD'].includes(o.mdoctype) ? addComma(total_sendTo, 2) : '(' + addComma(total_sendTo, 2) + ')'
                         $('.summary_' + o.mdoctype).text(sum_text)
@@ -468,6 +522,9 @@
             let RB = 0
             let RC = 0
             let RE = 0
+            let DA = 0
+            let DB = 0
+            let DE = 0
             data.map(o => {
                 if (key) {
                     if (key == o.id) {
@@ -495,6 +552,18 @@
                             total = total - o.balance
                             RE += o.RE
                         }
+                        if (o.mdoctype == 'DA') {
+                            total = total + o.balance
+                            DA += o.DA
+                        }
+                        if (o.mdoctype == 'DB') {
+                            total = total - o.balance
+                            DB += o.DB
+                        }
+                        if (o.mdoctype == 'DE') {
+                            total = total - o.balance
+                            DE += o.DE
+                        }
                     }
                 } else {
                     if (o.mdoctype == 'RA') {
@@ -521,6 +590,18 @@
                         total = total - o.balance
                         RE += o.RE
                     }
+                    if (o.mdoctype == 'DA') {
+                        total = total + o.balance
+                        DA += o.DA
+                    }
+                    if (o.mdoctype == 'DB') {
+                        total = total - o.balance
+                        DB += o.DB
+                    }
+                    if (o.mdoctype == 'DE') {
+                        total = total - o.balance
+                        DE += o.DE
+                    }
                 }
             })
             return {
@@ -531,6 +612,9 @@
                 'RB': RB,
                 'RC': RC,
                 'RE': RE,
+                'DA': DA,
+                'DB': DB,
+                'DE': DE
             };
         }
 
@@ -576,6 +660,9 @@
                         'RB': x.mdoctype == 'RB' ? parseFloat(x.mnetamt) : 0,
                         'RC': x.mdoctype == 'RC' ? parseFloat(x.mnetamt) : 0,
                         'RE': x.mdoctype == 'RE' ? parseFloat(x.mnetamt) : 0,
+                        'DA': x.mdoctype == 'DA' ? parseFloat(x.mnetamt) : 0,
+                        'DB': x.mdoctype == 'DB' ? parseFloat(x.mnetamt) : 0,
+                        'DE': x.mdoctype == 'DE' ? parseFloat(x.mnetamt) : 0,
                         'mdoctype': x.mdoctype
                     }) : '')
                 })

@@ -674,18 +674,18 @@
                     <p>ผู้นำฝาก…………………………………</p>
                     <p>โทร………………………………………</p>
                 </div>
-                <div class="qr-scan">
-                    <img src="<?php echo $http;
+                <!-- <div class="qr-scan">
+                    <img src="<?php //echo $http;
                                 ?>assets/img/qrcode/qrcode.png" class="logo-qr-scan">
-                </div>
-                <div class="bacode-scan">
-                    <img src="<?php echo $http;
+                </div> -->
+                <!-- <div class="bacode-scan">
+                    <img src="<?php //echo $http;
                                 ?>assets/img/qrcode/barcode.jpg" class="logo-bacode-scan">
-                    <p style="font-size: 12px;"><?php echo $data->report->barcode->code;
+                    <p style="font-size: 12px;"><?php //echo $data->report->barcode->code;
                                                 ?></p>
-                </div>
+                </div> -->
             </div>
-            <p class="text-danger">* หมายเหตุ QR code & Barcode สามารถสแกนได้เฉพาะธนาคารไทยพาณิชย์</p>
+            <!-- <p class="text-danger">* หมายเหตุ QR code & Barcode สามารถสแกนได้เฉพาะธนาคารไทยพาณิชย์</p> -->
             <div class="box-detail-payment">
                 <p><u><strong><?php echo  $data->tem['footer'][0]->payment_title; ?></strong></u></p>
                 <ol>

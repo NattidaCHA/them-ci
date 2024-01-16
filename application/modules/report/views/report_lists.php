@@ -584,7 +584,7 @@
                             let count = full.emails.length > 0 ? full.emails.slice(3).length : 0
                             let _i = 0;
                             let move = full.emails.length > 3 ? '&nbsp;&nbsp;<span id="headingemail_' + full.info.cus_no + '" data-bs-toggle="collapse" data-bs-target="#collapseemail_' + full.info.cus_no + '" aria-expanded="true" style="cursor: pointer;" class="text-primary">More&nbsp;<i class="bi bi-chevron-down"></i></span>' : ''
-                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.tels.length > 0 ? full.emails.slice(0, 3).map((x, j) => x.email ? x.email + ' ' : '') : full.emails[0].email ? full.emails[0].email : '-' : ' '
+                            let show3Top = full.emails.length > 0 ? full.emails.length > 3 ? full.emails.slice(0, 3).map((o, i) => i < 2 ? o.email + ' ' : o.email) : full.emails.length > 0 ? full.emails.slice(0, 3).map((x, j) => x.email ? x.email + ' ' : '') : full.emails[0].email ? full.emails[0].email : '-' : ' '
                             let moveShow = full.emails.slice(3).map((x, i) => _i++ == count ? x.email : x.email + ' ')
 
                             return full.emails.length > 0 ? '<div class="tb-15" id="email_' + full.info.cus_no + '">' +

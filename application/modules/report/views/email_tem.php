@@ -41,5 +41,8 @@
         </p>
     </div>
     <p>ขอแสดงความนับถือ,</p>
-    <p>Smart Ordering</p>
+    <p>Smart Ordering</p></br>
+
+    <p><strong>***** อีเมลนี้เป็นการแจ้งจากระบบอัตโนมัติ กรุณาอย่าตอบกลับ *****</strong></p>
+    <p><strong>This is and electronic email, please do not reply. For more information, please contact us at <?php echo $data->contact; ?></strong></p>
 </div>

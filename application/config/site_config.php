@@ -30,8 +30,11 @@ $config['page'] = [
             (object)['id' => 6, 'name' => 'เงินเหลือ'],
             (object)['id' => 7, 'name' => 'ลดหนี้'],
             (object)['id' => 8, 'name' => 'เพิ่มหนี้'],
-            (object)['id' => 9, 'name' => '<div class="d-flex"><i class="bi bi-check-circle text-success me-1"></i><i class="bi bi-x-circle text-danger"></i></div>'],
-            (object)['id' => 10, 'name' => 'Action']
+            (object)['id' => 9, 'name' => 'ยอดเงินเหลือในใบเสร็จ'],
+            (object)['id' => 10, 'name' => 'Customer Adjustment'],
+            (object)['id' => 11, 'name' => 'Customer Manual Payment'],
+            // (object)['id' => 12, 'name' => '<div class="d-flex"><i class="bi bi-check-circle text-success me-1"></i><i class="bi bi-x-circle text-danger"></i></div>'],
+            (object)['id' => 12, 'name' => 'Action']
         ],
     ],
     (object)[
@@ -580,7 +583,7 @@ $config['department'] = [
         'department_nameLC' => 'CS',
         'department_nameEN' => 'CS',
         'department_status' => 'A',
-        'menu' => 'report'
+        'menu' => '2'
     ],
     (object) [
         'department_id' => 2,
@@ -588,7 +591,7 @@ $config['department'] = [
         'department_nameLC' => 'SR',
         'department_nameEN' => 'SR',
         'department_status' => 'A',
-        'menu' => 'report'
+        'menu' => '2'
     ],
     (object) [
         'department_id' => 3,
@@ -604,7 +607,7 @@ $config['department'] = [
         'department_nameLC' => 'MKT',
         'department_nameEN' => 'MKT',
         'department_status' => 'A',
-        'menu' => 'no'
+        'menu' => '1,2,3,4,10'
     ],
     (object) [
         'department_id' => 5,
@@ -612,7 +615,7 @@ $config['department'] = [
         'department_nameLC' => 'Credit Mgt.',
         'department_nameEN' => 'Credit Mgt.',
         'department_status' => 'A',
-        'menu' => 'invoice,report,customer'
+        'menu' => '1,2,3,4,10'
     ],
 ];
 
@@ -678,6 +681,39 @@ $config['docType'] = [
         'type_display_en' => 'SD Receipt-CashSales',
         'calculateSign' => 'ลบ(ลดหนี้)',
         'msort' => 6,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "DA",
+        'type_display_th' => 'DA: Customer Manual Inv.',
+        'type_display_en' => 'Customer Manual Inv.',
+        'calculateSign' => 'บวก(หนี้)',
+        'msort' => 7,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "DB",
+        'type_display_th' => 'DB: Customer Adjustment',
+        'type_display_en' => 'Customer Adjustment',
+        'calculateSign' => 'ลบ(ลดหนี้)',
+        'msort' => 8,
+        'mstatus' => 'A',
+        'is_show' => 1,
+        'start_date' => null,
+        'end_date' => null,
+    ],
+    (object) [
+        'type' => "DE",
+        'type_display_th' => 'DE: Customer Manual Payment',
+        'type_display_en' => 'Customer Manual Payment',
+        'calculateSign' => 'ลบ(ลดหนี้)',
+        'msort' => 9,
         'mstatus' => 'A',
         'is_show' => 1,
         'start_date' => null,

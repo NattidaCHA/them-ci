@@ -106,19 +106,19 @@
 
                     <div class="tab-pane fade <?php echo $tab == 'repair' ? 'show active' : '' ?>" id="tabs-text-4" role="tabpanel" aria-labelledby="tabs-text-4-tab">
                         <form class="repairPage" method="get" action="<?php echo $http ?>/setting?tab=repair">
-                            <div class="section-filter">
+                            <div class="section-filter-2">
                                 <div class="box-search">
-                                    <div class="input-search">
-                                        <label for="dateSelect" class="form-label">วันที่ต้องการแจ้ง <span class="text-danger">*</span></label>
+                                    <div class="input-search-2">
+                                        <label for="dateSelect" class="form-label">รอบการแจ้ง <span class="text-danger">*</span></label>
                                         <select class="form-select" id="dateSelect" name="dateSelect" required>
-                                            <option value="1">ทั้งหมด</option>
+                                            <option value="">เลือก ...</option>
                                             <?php foreach ($selectDays as $day) { ?>
                                                 <option value="<?php echo $day->mday; ?>"><?php echo $days[$day->mday]->name ?></option>
                                             <?php  } ?>
                                         </select>
                                     </div>
 
-                                    <div class="input-search">
+                                    <div class="input-search-2">
                                         <label for="startDate" class="form-label">จากวันที่ <span class="text-danger">*</span></label>
                                         <div class="input-group mb-3">
                                             <input type="text" class="form-control" id="startDate" name="startDate" required placeholder="เริ่มวันที่" autocomplete="off" readonly value=<?php echo $startDate; ?>>
@@ -136,7 +136,7 @@
                                     </div>
                                 </div>
                                 <div class="box-search">
-                                    <div class="input-search">
+                                    <div class="input-search-2">
                                         <label for="customer" class="form-label">ลูกค้า</label>
                                         <div class="input-group mb-3">
                                             <select class="select2 form-select" name="customer" id="customer">
@@ -145,7 +145,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="input-search">
+                                    <div class="input-search-2">
                                         <label for="type" class="form-label">ประเภทธุรกิจ</label>
                                         <select class="form-select" id="type" name="type">
                                             <option value="1" selected>ทั้งหมด</option>
@@ -157,17 +157,7 @@
                                     <div class="box-text">
                                         <p class="text-form"></p>
                                     </div>
-                                    <div class="input-search">
-                                        <label for="type" class="form-label">ทำบิล</label>
-                                        <select class="form-select" id="is_bill" name="is_bill">
-                                            <option value="1">ทั้งหมด</option>
-                                            <option value="2">ทำใบแจ้งเตือนแล้ว</option>
-                                            <option value="3" selected>ยังไม่ได้ทำใบแจ้งเตือน</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="box-search-2">
-                                    <div class="input-search">
+                                    <div class="input-search-2">
                                         <label for="type" class="form-label">ช่องทางการติดต่อ</label>
                                         <select class="form-select" id="is_contact" name="is_contact">
                                             <option value="1" <?php echo $is_contact == '1' ? 'selected' : ''; ?>>ทั้งหมด</option>
@@ -181,8 +171,10 @@
                                             <option value="9" <?php echo $is_contact == '9' ? 'selected' : ''; ?>>No Email & Fax</option>
                                         </select>
                                     </div>
+                                </div>
 
-                                    <div class="btn-full mb-3 mt-4">
+                                <div class="d-flex justify-content-end">
+                                    <div class="mb-3 mt-4 me-3">
                                         <button type="button" class="btn btn-primary submit" disabled>ค้นหา</button>
                                         <button type="button" class="btn btn-success export" disabled>Export excel</button>
                                     </div>
@@ -201,35 +193,29 @@
                                 <h4>Doc Type</h4>
                                 <div class="setting-container">
                                     <?php foreach ($doctype as $k => $val) { ?>
-                                        <div class="form-setting">
-                                            <div class="form-check form-switch">
+                                        <div class="setting-doctype">
+                                            <div class="form-check form-switch size-text">
                                                 <input class="form-check-input checl-<?php echo $val->uuid; ?>" type="checkbox" name="is_show[]" role="switch" id="<?php echo $val->uuid; ?>" value="<?php echo $val->uuid; ?>" <?php echo !empty($val->is_show) ? 'checked' : ''; ?>>
-                                                <label class="form-check-label" for="<?php echo $val->uuid; ?>"><?php echo $val->type_display_th; ?></label>
+                                                <label class="form-check-label label-width" for="<?php echo $val->uuid; ?>"><?php echo $val->type_display_th; ?></label>
                                             </div>
-                                        </div>
 
-                                        <?php //if (in_array($val->type, ['RE', 'DC'])) { 
-                                        ?>
-                                        <div class="date-show <?php echo in_array($val->type, ['RE', 'DC']) ? '' : 'd-none' ?>">
-                                            <div class="input-search">
-                                                <label for="startDate" class="form-label">จากวันที่ <span class="text-danger">*</span></label>
+                                            <div class="input-search date-doctype">
+                                                <label for="startDate" class="form-label label-duedate">แสดงวันที่ <span class="text-danger">*</span></label>
                                                 <div class="input-group mb-3">
-                                                    <input type="text" class="form-control show-startDate show-start-<?php echo $val->uuid; ?>" id="show-startDate" name="show-startDate[]" required placeholder="เริ่มวันที่" autocomplete="off" readonly value="<?php echo $val->start_date; ?>">
+                                                    <input type="text" class="form-control show-startDate show-start-<?php echo $val->uuid; ?>" id="show-startDate" name="show-startDate[]" required placeholder="เริ่มวันที่" autocomplete="off" readonly value="<?php echo !empty($val->start_date) ? $val->start_date : $startDefault; ?>">
                                                     <span class="input-group-text"><i class="bi bi-calendar-date me-2"></i></span>
                                                 </div>
                                             </div>
-                                            <div class="box-text">
+                                            <div class="box-text-date">
                                                 <p class="text-form">ถึง</p>
                                             </div>
-                                            <div class="input-search input-endDate">
+                                            <div class="input-search date-doctype">
                                                 <div class="input-group mb-3">
-                                                    <input type="text" class="form-control show-endDate show-end-<?php echo $val->uuid; ?>" id="show-endDate" name="show-endDate[]" required placeholder="สิ้นสุดวันที่" autocomplete="off" readonly value="<?php echo $val->end_date; ?>">
+                                                    <input type="text" class="form-control show-endDate show-end-<?php echo $val->uuid; ?>" id="show-endDate" name="show-endDate[]" required placeholder="สิ้นสุดวันที่" autocomplete="off" readonly value="<?php echo !empty($val->end_date) ? $val->end_date : $endDefault; ?>">
                                                     <span class="input-group-text"><i class="bi bi-calendar-date me-2"></i></span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <?php //} 
-                                        ?>
                                     <?php } ?>
                                 </div>
                                 <div class="d-flex justify-content-end aligtn mt-5">
@@ -369,7 +355,7 @@
             $('#tabs-text-4 .alert').removeClass('d-none').addClass('d-block')
             let formData = $('.repairPage').serializeArray();
             $.post("<?php echo $http ?>/setting/repair", formData).done(function(res) {
-                if (res.status === 200) {
+                if (res.status === 200 || (res.status === 204 && res.msg.search('Fax'))) {
                     $('#tabs-text-4 .alert').removeClass('d-block').addClass('d-none')
                     Swal.fire({
                         icon: 'success',
@@ -388,15 +374,25 @@
                     $('#tabs-text-4 .alert').removeClass('d-block').addClass('d-none')
                     $('.repairPage .submit').prop("disabled", false);
                     $('.repairPage .export').prop("disabled", false);
-                    if (res.error) {
+
+                    if (res.status === 204) {
                         Swal.fire({
                             icon: 'error',
-                            text: res.error,
+                            text: res.msg,
                             confirmButtonText: 'ตกลง'
                         })
                     } else {
-                        Swal.fire("Error", 'Something went wrong', "error");
+                        if (res.error) {
+                            Swal.fire({
+                                icon: 'error',
+                                text: res.error,
+                                confirmButtonText: 'ตกลง'
+                            })
+                        } else {
+                            Swal.fire("Error", 'Something went wrong', "error");
+                        }
                     }
+
                 }
             });
 

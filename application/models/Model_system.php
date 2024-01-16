@@ -351,7 +351,7 @@ class Model_system extends MY_Model
     public function getDoctypeShow()
     {
         $result = [];
-        $sql =  "SELECT * FROM " . DOCTYPE . " where is_show = 1 ";
+        $sql =  "SELECT * FROM " . DOCTYPE . " where is_show = 1 order by msort";
         $stmt = sqlsrv_query($this->conn, $sql);
 
         if ($stmt == false) {
@@ -385,7 +385,7 @@ class Model_system extends MY_Model
 
     public function findCustomerById($cus_no)
     {
-        $output = (object)['status' => 500];
+        // $output = (object)['status' => 500];
         $result = (object)[];
         $sql =  "SELECT * FROM " . CUSTOMER . " where cus_no = '$cus_no'";
         $stmt = sqlsrv_query($this->conn, $sql);

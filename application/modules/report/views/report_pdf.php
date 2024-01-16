@@ -241,7 +241,7 @@
 
     .table-list {
         width: 100%;
-        height: 45%;
+        height: 44%;
     }
 
     .full-table-2 {
@@ -651,7 +651,10 @@
                         </tr>
                         <tr>
                             <td class="title">รหัสผู้แทนขาย :</td>
-                            <td class="no"><?php echo $data->report->info->msalegrp; ?></td>
+                            <td class="no">
+                                <?php echo !empty($data->report->info->msale_phone) ? $data->report->info->msalegrp . ' (' . $data->report->info->msale_phone . ')' : $data->report->info->msalegrp; 
+                                        ?>
+                            </td>
                             <td class="date-send">วันที่ออกเอกสาร&nbsp;:&nbsp;<?php echo date('d.m.Y', strtotime($data->report->bill_info->created_date)); ?></td>
                         </tr>
                         <tr>
@@ -726,25 +729,66 @@
                             <table class="GeneratedTable2">
                                 <thead>
                                     <tr>
-                                        <th class="text-center" width="15%">ยอด Invoice(RA)</th>
-                                        <th class="text-center" width="15%">ยอดเพิ่มหนี้(RD)</th>
-                                        <th class="text-center" width="15%">ยอดลดหนี้(RC)</th>
-                                        <th class="text-center" width="15%">ยอดเงินเหลือ(RB)</th>
-                                        <th class="text-center" width="15%">ยอด Rebate(DC)</th>
-                                        <th class="text-center" width="10%">
-                                            <p>ยอดเงินเหลือใน</p>
-                                            <p>ใบเสร็จ(RE)</p>
-                                        </th>
+                                        <?php
+                                        foreach ($data->doctypeLists as $key => $doctype) {
+                                            if ($doctype->msort <= 5) {
+                                                echo '<th class="text-center" width="15%">' . $doctype->type_display_th . '</th>';
+                                            }
+                                        }
+                                        ?>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td class="text-right"><?php echo !empty($data->report->total->total_RA) ? number_format($data->report->total->total_RA, 2) : 0 ?></td>
-                                        <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_RD) ? '- ' . number_format($data->report->total->total_RD, 2) : 0 ?></td>
-                                        <td class="text-right"><?php echo !empty($data->report->total->total_RC) ? number_format($data->report->total->total_RC, 2) : 0 ?></td>
-                                        <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_RB) ? '- ' . number_format($data->report->total->total_RB, 2) : 0 ?></td>
-                                        <td class="text-right"><?php echo !empty($data->report->total->total_DC) ? number_format($data->report->total->total_DC, 2) : 0 ?></td>
-                                        <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_RE) ? '- ' . number_format($data->report->total->total_RE, 2) : 0 ?></td>
+                                        <?php if (!empty($data->doctypeLists['RA'])) { ?>
+                                            <td class="text-right"><?php echo !empty($data->report->total->total_RA) ? number_format($data->report->total->total_RA, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['RD'])) { ?>
+                                            <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_RD) ? '- ' . number_format($data->report->total->total_RD, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['RC'])) { ?>
+                                            <td class="text-right"><?php echo !empty($data->report->total->total_RC) ? number_format($data->report->total->total_RC, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['RB'])) { ?>
+                                            <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_RB) ? '- ' . number_format($data->report->total->total_RB, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['DC'])) { ?>
+                                            <td class="text-right"><?php echo !empty($data->report->total->total_DC) ? number_format($data->report->total->total_DC, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="detail-summary-2">
+                        <div class="table-summary-2">
+                            <table class="GeneratedTable2">
+                                <thead>
+                                    <tr>
+                                        <?php
+                                        foreach ($data->doctypeLists as $key => $doctype) {
+                                            if ($doctype->msort > 5) {
+                                                echo '<th class="text-center" width="15%">' . $doctype->type_display_th . '</th>';
+                                            }
+                                        }
+                                        ?>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <?php if (!empty($data->doctypeLists['RE'])) { ?>
+                                            <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_RE) ? '- ' . number_format($data->report->total->total_RE, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['DA'])) { ?>
+                                            <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_DA) ? '- ' . number_format($data->report->total->total_DA, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['DB'])) { ?>
+                                            <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_DB) ? '- ' . number_format($data->report->total->total_DB, 2) : 0 ?></td>
+                                        <?php  } ?>
+                                        <?php if (!empty($data->doctypeLists['DE'])) { ?>
+                                            <td class="text-right">&nbsp;<?php echo !empty($data->report->total->total_DE) ? '- ' . number_format($data->report->total->total_DE, 2) : 0 ?></td>
+                                        <?php  } ?>
                                     </tr>
                                 </tbody>
                             </table>
@@ -772,7 +816,16 @@
                         <div class="text-amount">จํานวนเอกสารทั้งหมด&nbsp;<?php echo $data->report->total_items ?>&nbsp;รายการ</div>
                         <div>
                             <div class="mt-05 text-total"><?php echo  $data->tem['page_footer'][0]->contact; ?></div>
-                            <div class="text-total"><?php echo  $data->tem['page_footer'][0]->type; ?></div>
+                            <div class="text-total">ประเภท*
+                                <?php
+                                $i = 1;
+                                foreach ($data->doctypeLists as $key => $doctype) {
+                                    echo str_replace(':', ' = ', $doctype->type_display_th);
+                                    echo $i == count($data->doctypeLists) ? '' : ', ';
+                                    $i++;
+                                }
+                                ?>
+                            </div>
                         </div>
                     </div>
                 <?php } ?>

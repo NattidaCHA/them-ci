@@ -41,7 +41,7 @@
                     <li><a class="dropdown-item" href="<?php echo $http . '/customer' ?>">ข้อมูลลูกค้า</a></li>
                     <?php if (checkPermission('แก้ไขคอลัมน์และซ่อมข้อมูล', $this->CURUSER->user[0]->dep_id, $this->role)) {
                     ?>
-                        <li><a class="dropdown-item" href="<?php echo $this->CURUSER->user[0]->dep_id != 4 && $this->CURUSER->user[0]->user_type == 'Emp' ? $http . '/setting?tab=invoice' : $http . '/setting?tab=doctype' ?>">แก้ไขคอลัมน์และซ่อมข้อมูล</a></li>
+                        <li><a class="dropdown-item" href="<?php echo checkPermission('เมนูย่อยแก้ไขคอลัมน์และซ่อมข้อมูล', $this->CURUSER->user[0]->dep_id, $this->role) && $this->CURUSER->user[0]->user_type == 'Emp' ? $http . '/setting?tab=invoice' : $http . '/setting?tab=doctype' ?>">แก้ไขคอลัมน์และซ่อมข้อมูล</a></li>
                     <?php }
                     ?>
                 </ul>
@@ -132,7 +132,7 @@
                 </li>
                 <?php if (checkPermission('แก้ไขคอลัมน์และซ่อมข้อมูล', $this->CURUSER->user[0]->dep_id, $this->role)) { ?>
                     <li class="nav-item">
-                        <a href="<?php echo $this->CURUSER->user[0]->dep_id != 4 && $this->CURUSER->user[0]->user_type == 'Emp' ? $http . '/setting?tab=invoice' : $http . '/setting?tab=doctype' ?>" class="nav-link">
+                        <a href="<?php echo checkPermission('เมนูย่อยแก้ไขคอลัมน์และซ่อมข้อมูล', $this->CURUSER->user[0]->dep_id, $this->role) && $this->CURUSER->user[0]->user_type == 'Emp' ? $http . '/setting?tab=invoice' : $http . '/setting?tab=doctype' ?>" class="nav-link">
                             <span class="sidebar-icon"></span>
                             <span class="sidebar-text">แก้ไขคอลัมน์และซ่อมข้อมูล</span>
                         </a>

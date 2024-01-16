@@ -438,7 +438,7 @@ function checkPermission($page, $dep_id, $role)
             }
             break;
         case 'แก้ไขคอลัมน์และซ่อมข้อมูล':
-            if (!in_array($dep_id, $role['1,2,3,4'])) {
+            if (!in_array($dep_id, $role['2'])) {
                 $result = true;
             }
             break;
@@ -576,6 +576,51 @@ function jobNotifyMessage($message, $token = '')
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        $data_pack = curl_exec($ch);
+        curl_close($ch);
+
+        if (!empty($data_pack)) {
+            $data_decode = json_decode($data_pack);
+
+            if (json_last_error() == JSON_ERROR_NONE && !empty($data_decode)) {
+                return $data_decode;
+            }
+        }
+    } else {
+        $response->message = 'Close notify now !';
+    }
+
+
+    return $response;
+}
+
+function genUserLineOA()
+{
+    $response = (object) ['status' => 500, 'message' => 'Cannot request to Line Notify'];
+
+    if (OPEN_JOB_NOTIFY) {
+        $token = 'bcs6ZfiPFGGgnNBNPNlWRREIJLFBE6CTxqK0iLNtOvGyNNfQEiYJpvFFs6kFoykYYy+i08ieC9imVXZHL/IZ/mQG1AhiWBlsZ4PK1CF9ox5jajt2LKbGdYYb+hHgYF7hjQC5TSl3UjtRHkulNQ9/LwdB04t89/1O/w1cDnyilFU=';
+
+        if (ENVIRONMENT != 'production') {
+            $token = JOB_NOTIFY_TOKEN;
+        }
+        $headers = array(
+            'Content-Type: application/json; charset=UTF-8',
+            'Authorization: Bearer ' . $token
+        );
+        // $message = strip_tags($message);
+        $data = array(
+            'message' => ''
+        );
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.line.me/v2/bot/message/reply');
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
         $data_pack = curl_exec($ch);
         curl_close($ch);
 

@@ -184,8 +184,6 @@ class Report extends MY_Controller
         $result = [];
         $total_filter = 0;
         $this->setPagination();
-        // $this->setSearch();
-        // $this->setCondition();
         $this->queryCondition['page'] = $this->page;
         $this->queryCondition['limit'] = $this->limit;
 
@@ -248,31 +246,6 @@ class Report extends MY_Controller
         // $field_name = $this->column[$order[0]['column']]['data'];
         // $this->order = [$order[0]['column'], $order[0]['dir'], $field_name];
 
-        return $this;
-    }
-
-    private function setSearch()
-    {
-        if (!empty($this->column)) {
-            foreach ($this->column as $key => $val) {
-                if (!empty($val['search']['value']) || $val['search']['value'] === '0') {
-                    $this->is_search = TRUE;
-                    $this->condition[] = [$val['data'], $val['search']['value'], $val['search']['regex']];
-                }
-            }
-        }
-        return $this;
-    }
-
-    private function setCondition()
-    {
-        $this->queryCondition = [];
-        if (!empty($this->condition)) {
-            foreach ($this->condition as $cond) {
-                // $cond[0] = field name & $cond[1] = value
-                $this->queryCondition[$cond[0]] = $cond[1];
-            }
-        }
         return $this;
     }
 
