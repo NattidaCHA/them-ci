@@ -70,19 +70,19 @@
 					<div class="box-text">
 						<p class="text-form"></p>
 					</div>
-					<div class="input-search">
+					<!-- <div class="input-search">
 						<label for="type" class="form-label">ทำบิล</label>
 						<select class="form-select" id="is_bill" name="is_bill">
-							<option value="1" <?php echo $is_bill == '1' ? 'selected' : '';
+							<option value="1" <?php //echo $is_bill == '1' ? 'selected' : '';
 												?>>ทั้งหมด</option>
-							<option value="2" <?php echo $is_bill == '2' ? 'selected' : '';
+							<option value="2" <?php //echo $is_bill == '2' ? 'selected' : '';
 												?>>ทำใบแจ้งเตือนแล้ว
 							</option>
-							<option value="3" <?php echo $is_bill == '3' ? 'selected' : '';
+							<option value="3" <?php //echo $is_bill == '3' ? 'selected' : '';
 												?>>ยังไม่ได้ทำใบแจ้งเตือน
 							</option>
 						</select>
-					</div>
+					</div> -->
 					<?php if ($this->CURUSER->user[0]->user_type == 'Emp') {
 					?>
 						<div class="input-search-2">
@@ -100,23 +100,42 @@
 							</select>
 						</div>
 					<?php  } else { ?>
-						<div class="btn-cus">
-							<button type="submit" class="btn btn-primary me-2">ค้นหา</button>
-							<button type="button" class="btn btn-success export" <?php echo !empty($dateSelect) ? '' : 'disabled' ?>>Export excel</button>
+						<div class="input-search-2">
+							<label for="type" class="form-label">ประเภทเอกสาร</label>
+							<select class="form-select" id="is_showType" name="is_showType">
+								<option value="1" <?php echo $is_showType == '1' ? 'selected' : '';
+													?>>Default</option>
+								<option value="2" <?php echo $is_showType == '2' ? 'selected' : '';
+													?>>ไม่มียอดชำระ
+								</option>
+							</select>
 						</div>
+
 					<?php }
 					?>
 				</div>
 				<?php if ($this->CURUSER->user[0]->user_type == 'Emp') {
 				?>
-					<div class="d-flex justify-content-end">
-						<div class="mb-3 mt-4 me-3">
-							<button type="submit" class="btn btn-primary me-2">ค้นหา</button>
-							<button type="button" class="btn btn-success export" <?php echo !empty($dateSelect) ? '' : 'disabled' ?>>Export excel</button>
+					<div class="box-search">
+						<div class="input-search-2">
+							<label for="type" class="form-label">ประเภทเอกสาร</label>
+							<select class="form-select" id="is_showType" name="is_showType">
+								<option value="1" <?php echo $is_showType == '1' ? 'selected' : '';
+													?>>มียอดชำระ</option>
+								<option value="2" <?php echo $is_showType == '2' ? 'selected' : '';
+													?>>ไม่มียอดชำระ
+								</option>
+							</select>
 						</div>
 					</div>
 				<?php }
 				?>
+				<div class="d-flex justify-content-end">
+					<div class="mb-3 mt-4 me-3">
+						<button type="submit" class="btn btn-primary me-2">ค้นหา</button>
+						<button type="button" class="btn btn-success export" <?php echo !empty($dateSelect) ? '' : 'disabled' ?>>Export excel</button>
+					</div>
+				</div>
 			</div>
 		</form>
 
@@ -253,7 +272,8 @@
 						endDate: '<?php echo $endDate ?>',
 						is_bill: '<?php echo $is_bill ?>',
 						is_contact: '<?php echo $is_contact ?>',
-						type: '<?php echo $typeSC ? $typeSC : '' ?>'
+						type: '<?php echo $typeSC ? $typeSC : '' ?>',
+						is_showType: '<?php echo $is_showType; ?>'
 					},
 					dataFilter: function(data) {
 						let json = jQuery.parseJSON(data);
@@ -342,8 +362,7 @@
 		$('#invoiceForm').on('click', '.export', function(e) {
 			e.preventDefault();
 			let formData = $('#invoiceForm').serializeArray();
-			let path = formData[0].name + '=' + formData[0].value + '&' + formData[1].name + '=' + formData[1].value + '&' + formData[2].name + '=' + formData[2].value + '&' + formData[3].name + '=' + formData[3].value + '&' + formData[4].name + '=' + formData[4].value + '&' + formData[5].name + '=' + formData[5].value
-			//+ '&' + formData[6].name + '=' + formData[6].value
+			let path = formData[0].name + '=' + formData[0].value + '&' + formData[1].name + '=' + formData[1].value + '&' + formData[2].name + '=' + formData[2].value + '&' + formData[3].name + '=' + formData[3].value + '&' + formData[4].name + '=' + formData[4].value + '&' + formData[5].name + '=' + formData[5].value + '&' + formData[6].name + '=' + formData[6].value
 			window.open("<?php echo $http ?>/invoice/genInvoiceListExcel?" + path, '_self');
 
 		})
@@ -378,7 +397,7 @@
 					columns.push({
 						data: 'balance',
 						render: function(data, type, full) {
-							let balance = full.balance ? addComma(full.balance, 2) : 0
+							let balance = full.balance ? addComma(full.balance, 2) : '0.00'
 							return '<div class="text-end">' + balance + '</div>';
 						}
 					})
@@ -387,7 +406,7 @@
 					columns.push({
 						data: 'DC',
 						render: function(data, type, full) {
-							let DC = full.DC ? addComma(full.DC, 2) : 0
+							let DC = full.DC ? addComma(full.DC, 2) : '0.00'
 							return '<div class="text-end">' + DC + '</div>';
 						}
 					})
@@ -396,7 +415,7 @@
 					columns.push({
 						data: 'RB',
 						render: function(data, type, full) {
-							let RB = full.RB ? addComma(full.RB, 2) : 0
+							let RB = full.RB ? addComma(full.RB, 2) : '0.00'
 							return '<div class="text-end">' + RB + '</div>';
 						}
 					})
@@ -406,7 +425,7 @@
 					columns.push({
 						data: 'RC',
 						render: function(data, type, full) {
-							let RC = full.RC ? addComma(full.RC, 2) : 0
+							let RC = full.RC ? addComma(full.RC, 2) : '0.00'
 							return '<div class="text-end">' + RC + '</div>';
 						}
 					})
@@ -415,7 +434,7 @@
 					columns.push({
 						data: 'RD',
 						render: function(data, type, full) {
-							let RD = full.RD ? addComma(full.RD, 2) : 0
+							let RD = full.RD ? addComma(full.RD, 2) : '0.00'
 							return '<div class="text-end">' + RD + '</div>';
 						}
 					})
@@ -424,7 +443,7 @@
 					columns.push({
 						data: 'RE',
 						render: function(data, type, full) {
-							let RE = full.RE ? addComma(full.RE, 2) : 0
+							let RE = full.RE ? addComma(full.RE, 2) : '0.00'
 							return '<div class="text-end">' + RE + '</div>';
 						}
 					})
@@ -433,7 +452,7 @@
 					columns.push({
 						data: 'DB',
 						render: function(data, type, full) {
-							let DB = full.DB ? addComma(full.DB, 2) : 0
+							let DB = full.DB ? addComma(full.DB, 2) : '0.00'
 							return '<div class="text-end">' + DB + '</div>';
 						}
 					})
@@ -442,7 +461,7 @@
 					columns.push({
 						data: 'DE',
 						render: function(data, type, full) {
-							let DE = full.DE ? addComma(full.DE, 2) : 0
+							let DE = full.DE ? addComma(full.DE, 2) : '0.00'
 							return '<div class="text-end">' + DE + '</div>';
 						}
 					})

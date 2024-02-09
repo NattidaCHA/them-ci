@@ -7,12 +7,12 @@
 					<div class="input-group mb-3">
 						<select class="select2 form-select" name="customer" id="customer">
 							<option value="" selected>เลือก ...</option>
-							<!-- <?php //foreach ($customers as $customer) { 
+							<!-- <?php //foreach ($customers as $customer) {
 									?>
-								<option value="<?php //echo $customer->mcustno; 
-												?>"><?php //echo $customer->cus_name . ' (' . $customer->mcustno . ')' 
+								<option value="<?php //echo $customer->mcustno;
+												?>"><?php //echo $customer->cus_name . ' (' . $customer->mcustno . ')'
 													?></option>
-							<?php  //} 
+							<?php //}
 							?> -->
 						</select>
 					</div>
@@ -29,11 +29,21 @@
         } ?> -->
 		<span class="spinner-border spinner-border-lg mt-5 text-center <?php echo !empty($loading) && $action == 'create' ? 'd-flex' : 'd-none' ?>" role="status"></span>
 		<?php if (!empty($info) && count((array)$info) > 0) { ?>
+			<?php if ($action == 'update' && !empty($nameChange)) { ?>
+				<div class="alert alert-warning mb-4" role="alert">
+					<i class="bi bi-exclamation-circle-fill me-1"></i>
+					<span>ข้อมูลบริษัทมีการเปลี่ยนแปลง กรุณากดปุ่มยืนยันเพื่ออัพเดตข้อมูล</span>
+				</div>
+			<?php } ?>
 			<form id="customerForm" class="mb-4 <?php echo !empty($loading) ? 'd-none' : 'd-flex' ?>">
 				<div class="customer-section">
 					<div class="customer-page">
 						<div class="bg-customer">
-							<h4 class="mb-3 text-muted">ข้อมูลลูกค้า</h4>
+							<h5 class="mb-3 text-muted">ข้อมูลลูกค้า</h5>
+							<?php if ($action == 'update' && !empty($nameChange)) { ?>
+								<input class="form-control  nameChange-<?php echo  $info->cus_no;
+																		?>" type="hidden" value="<?php echo $nameChange; ?>" id="nameChange" name="nameChange" autocomplete="off">
+							<?php } ?>
 							<div class="mb-3">
 								<input class="form-check-input  is_email-<?php echo  $info->cus_no;
 																			?> uncheck-is_email" type="checkbox" value="1" id="is_email" name="is_email" <?php echo (!empty($info->is_email) ? 'checked' : ''); ?> autocomplete="off">
@@ -46,7 +56,7 @@
 							</div>
 							<div class="form-customer">
 								<div class="mb-3">
-									<label for="exampleFormControlInput1" class="form-label">บริษัท</label>
+									<label for="cus_name" class="form-label">บริษัท</label>
 									<input type="hidden" id="cus_name" name="cus_name" value="<?php echo $info->cus_name; ?>" autocomplete="off">
 									<input type="hidden" id="type" name="type" value="<?php echo $type; ?>" autocomplete="off">
 									<input type="hidden" id="cus_no" name="cus_no" value="<?php echo $info->cus_no; ?>" autocomplete="off">
@@ -66,7 +76,7 @@
 								</div>
 							</div>
 							<div class="boder-under"></div>
-							<h4 class="mb-3 text-muted">บริษัทที่เกี่ยวข้อง</h4>
+							<h5 class="mb-3 text-muted">บริษัทที่เกี่ยวข้อง</h5>
 							<div class="checkbox-cus">
 								<?php foreach ($select_customer as $k => $customer) { ?>
 									<div class="form-check">
@@ -86,7 +96,7 @@
 						<div class="boder-right"></div>
 						<div class="bg-contact">
 							<div class="contact-header">
-								<h4 class="text-muted">ข้อมูลติดต่อ</h4>
+								<h5 class="text-muted">ข้อมูลติดต่อ</h5>
 								<div class="d-flex">
 									<button type="button" class="btn btn-success btn-sm add-email me-1">+ เพิ่มอีเมล</button>
 									<button type="button" class="btn btn-gray-700 btn-sm add-tel me-1">+ เพิ่มเบอร์โทร</button>
@@ -212,7 +222,7 @@
 			allowClear: false,
 			placeholder: "ลูกค้าทั้งหมด",
 			ajax: {
-				url: "<?php echo $http ?>/api/searchCustomerMain",
+				url: "<?php echo $http ?>/api/searchCustomerVW",
 				dataType: 'json',
 				delay: 250,
 				data: function(params) {
@@ -261,12 +271,14 @@
 							confirmButtonText: 'ตกลง'
 						}).then((result) => {
 							if (result.isConfirmed) {
+								console.log(res)
 								window.location = '<?php echo $http ?>/customer/process/update?customer=' + cusNo;
 
 								$.post('<?php echo $http ?>/api/addMainLog/<?php echo $action; ?>', {
 									page: '<?php echo $action == 'create' ? 'สร้าง' : 'อัปเดต' ?>ข้อมูลลูกค้า',
 									url: CURRENT_URL,
 									detail: JSON.stringify(res.data),
+									source: JSON.stringify(res.source)
 								});
 							}
 						})
@@ -337,6 +349,7 @@
 										page: 'ลบอีเมล',
 										url: CURRENT_URL,
 										detail: res.data,
+										source: res.source
 									});
 									// }
 								})
@@ -398,6 +411,7 @@
 										page: 'ลบเบอร์โทร',
 										url: CURRENT_URL,
 										detail: res.data,
+										source: res.source
 									});
 									// }
 								})
@@ -456,6 +470,7 @@
 										page: 'ลบ Fax',
 										url: CURRENT_URL,
 										detail: res.data,
+										source: res.source
 									});
 									// }
 								})

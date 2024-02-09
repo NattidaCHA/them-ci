@@ -15,7 +15,7 @@ class MY_Controller extends CI_Controller
 	public $conn = NULL;
 	public $http = ((ENVIRONMENT == 'development') ? '' : '/invoicenotification');
 	public $url = ((ENVIRONMENT == 'production') ? 'https://npismo.scg.com' : 'https://npismodev.scg.com');
-	public $tableAllowLog = ('uuid, page,action,detail,created_date,created_by,updated_date,updated_by,url');
+	public $tableAllowLog = ('uuid, page,action,detail,created_date,created_by,updated_date,updated_by,url,source');
 	public $tableAllowLogin = ('uuid, userid,cus_id,username,userdisplay_th,user_type,dep_id,dep_code,user_status,roleid,rolename,roletype,created_date');
 	public $CURUSER = NULL;
 	public $role = array();
@@ -301,7 +301,7 @@ class MY_Controller extends CI_Controller
 
 	protected function addSystemLog($params)
 	{
-		$sql = "INSERT INTO " . LOG . ' (' . $this->tableAllowLog . ") VALUES (?, ?, ?, ?, ?,?, ?, ?, ?)";
+		$sql = "INSERT INTO " . LOG . ' (' . $this->tableAllowLog . ") VALUES (?, ?, ?, ?, ?,?, ?, ?, ?,?)";
 		$res = sqlsrv_query($this->conn, $sql, $params);
 		if (!empty($res)) {
 			return $res;
@@ -400,11 +400,11 @@ class MY_Controller extends CI_Controller
 
 		$tem = $this->model_system->getTemPDF()->items;
 		$doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
-
-
 		foreach ($result->lists as $key => $res) {
 			$result->lists = $res;
-			$size = count($result->lists) > 1 ? 30 : 20;
+			$size = $res['size'];
+			unset($result->lists['size']);
+
 			if ($key == 1) {
 				$data['data'] = (object)['index' => $key, 'report' => $result, 'size' => $size, 'tem' => $tem, 'doctypeLists' => $doctypeLists];
 				$html = $this->load->view('report/report_pdf', $data, TRUE);
@@ -419,8 +419,16 @@ class MY_Controller extends CI_Controller
 		$title = 'Report_' . $result->bill_info->bill_no;
 		$name = 'Report_' . $result->bill_info->bill_no;
 		$mpdf->SetTitle($title);
-		$footer = $this->load->view('footer_pdf', $data, TRUE);
-		$mpdf->WriteHTML($footer);
+		if (($result->total_page == 1 && $result->last_count > 10 && $result->last_count < 30) || ($result->total_page != 1 && $result->last_count > 20)) {
+			$footer = $this->load->view('footer_pdf_2', $data, TRUE);
+			$bank_des = $this->load->view('bank_des_page', $data, TRUE);
+			$mpdf->WriteHTML($footer);
+			$mpdf->WriteHTML($bank_des);
+		} else {
+			$footer = $this->load->view('footer_pdf', $data, TRUE);
+			$mpdf->WriteHTML($footer);
+		}
+
 		ob_clean();
 		if ($type == 'email') {
 			return $mpdf->Output($name, 'S');
@@ -441,6 +449,7 @@ class MY_Controller extends CI_Controller
 
 		$mail = new PHPMailer(true);
 		if (!empty($params)) {
+			$bccEmail = !empty($this->model_system->getbccEmail()->items) ? $this->model_system->getbccEmail()->items : (object)[];
 			$emails = [];
 			$cusType = $this->model_system->findCustomerById($params['cus_no'])->items;
 			if ($page == 'invoice' && $this->CURUSER->user[0]->user_type == 'Cus') {
@@ -479,12 +488,10 @@ class MY_Controller extends CI_Controller
 				$this->model_report->updateEmail($params['uuid']);
 				return (object)['status' => 200, 'data' => $params, 'email' => $emails];
 			}
-			// var_dump($emails);
-			// exit;
 
 			if (!empty($cusType->is_email)) {
 				if (!empty($emails[$params['cus_no']]) || !empty($emails[$params['cus_main']])) {
-
+					$bccEmail = !empty($this->model_system->getbccEmail()->items) ? $this->model_system->getbccEmail()->items : (object)[];
 					try {
 						$mail->isSMTP();
 						$mail->Mailer = "smtp";
@@ -512,14 +519,23 @@ class MY_Controller extends CI_Controller
 						$mesg = $this->load->view('report/email_tem', $data, TRUE);
 						$mail->setFrom($pdo->email->username, $title_des);
 						//'phrueksp@scg.com', 'nan_zen0003@hotmail.com', 'sakchasa@scg.com', 'npibs_pipess01@scg.com'
+						//$bccEmail
+
+						foreach (['nannattida46@gmail.com'] as $res) {
+							$mail->addAddress($res);
+						}
+
 						// foreach ($emails as $res) {
 						// 	foreach ($res as $_val) {
-						// 		$mail->addAddress($_val->email);
+						// 		$mail->addAddress(trim($_val->email));
 						// 	}
 						// }
-						foreach (['nattida.ncha@gmail.com'] as $res) {
-						    $mail->addAddress($res);
-						}
+
+						// foreach (explode(',', $bccEmail->bcc_email) as $_res) {
+						// 	if (!empty($_res)) {
+						// 		$mail->addBcc(trim($_res));
+						// 	}
+						// }
 
 						$mail->isHTML(true);
 						$mail->Subject = $title_des . ' Due วันที่ ' . date('d/m/Y', strtotime($params['mduedate']));

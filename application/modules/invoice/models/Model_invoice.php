@@ -16,11 +16,18 @@ class Model_invoice extends MY_Model
 	{
 		$doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
 
-		$select =  "" . BILLPAY . ".mcustno," . BILLPAY . ".mdoctype,SUM(" . BILLPAY . ".mnetamt) as total_mnetamt,MAX(" . BILLPAY . ".mcustname) as cus_name,MAX(" . BILLPAY . ".msaleorg) as msaleorg,MAX(" . BILLPAY . ".mduedate) as end_date,MAX(" . BILLPAY . ".mpostdate) as start_date,MAX(" . CUSTOMER . ".send_date) as mday ,MAX(" . CUSTOMER . ".type) as type ";
+		$select =  "" . BILLPAY . ".mcustno," . BILLPAY . ".mdoctype,MAX(" . BILLPAY . ".mcustname) as cus_name,MAX(" . BILLPAY . ".msaleorg) as msaleorg,MAX(" . BILLPAY . ".mduedate) as end_date,MAX(" . BILLPAY . ".mpostdate) as start_date,MAX(" . CUSTOMER . ".send_date) as mday ,MAX(" . CUSTOMER . ".type) as type, case when " . BILLPAY . ".mdoctype = 'RA' then sum(" . BILLPAY . ".mnetamt) end as RA,case when " . BILLPAY . ".mdoctype = 'RC' then sum(" . BILLPAY . ".mnetamt) end as RC,case when " . BILLPAY . ".mdoctype = 'RB' then sum(" . BILLPAY . ".mnetamt) end as RB,case when " . BILLPAY . ".mdoctype = 'DC' then sum(" . BILLPAY . ".mnetamt) end as DC,case when " . BILLPAY . ".mdoctype = 'RE' then sum(" . BILLPAY . ".mnetamt) end as RE,case when " . BILLPAY . ".mdoctype = 'DA' then sum(" . BILLPAY . ".mnetamt) end as DA,case when " . BILLPAY . ".mdoctype = 'DB' then sum(" . BILLPAY . ".mnetamt) end as DB,case when " . BILLPAY . ".mdoctype = 'DE' then sum(" . BILLPAY . ".mnetamt) end as DE,case when " . BILLPAY . ".mdoctype = 'RD' then sum(" . BILLPAY . ".mnetamt) end as RD";
 
-		$join = " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno ";
+		$join = " inner join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno ";
 
-		$sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUSTOMER . ".send_date = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'";
+		$sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where ";
+
+		// var_dump($idLists);
+		// exit;
+		if (!empty($doctypeLists)) {
+			$type = array_slice(array_keys($doctypeLists), 1);
+			$sql =  $sql . ' ((' . BILLPAY . ".mdoctype in ('" . implode("','", $type) . "') AND " . CUSTOMER . ".send_date = '$val->dateSelect') OR (" . BILLPAY . ".mdoctype = 'RA' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'" . " AND "  . CUSTOMER . ".send_date = '$val->dateSelect'))";
+		}
 
 		if (!empty($val->is_bill)) {
 			$result2 = [];
@@ -31,24 +38,9 @@ class Model_invoice extends MY_Model
 				array_push($result2, $row2["cus_no"]);
 			}
 
-			if ($val->is_bill != '3') {
-				$join = $join . " left join " . REPORT . " on " . REPORT . ".cus_no = " . BILLPAY . ".mcustno ";
-			}
-
-
-			if ($val->is_bill == '2') {
-				if (!empty($result2)) {
-					$sql = $sql . " AND " . BILLPAY . ".mcustno in (" . implode(',', $result2) . ")";
-				} else {
-					$sql = $sql . " AND " . BILLPAY . ".mcustno in ('')";
-				}
-			}
-
-
 			if ($val->is_bill == '3' && !empty($result2)) {
-				$sql = $sql . " AND " . BILLPAY . ".mcustno not in (" . implode(',', $result2) . ")";
+				$sql = $sql . " AND " . BILLPAY . ".mcustno not in ('" . implode("','", $result2) . "')";
 			}
-
 		}
 
 		if (!empty($val->type) && $val->type !== '1') {
@@ -66,10 +58,6 @@ class Model_invoice extends MY_Model
 			}
 		}
 
-		if (!empty($doctypeLists)) {
-			$sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
-		}
-
 		if (!empty($val->cus_no)) {
 			$sql = $sql . " AND " . BILLPAY . ".mcustno = '$val->cus_no'";
 		} else {
@@ -78,15 +66,18 @@ class Model_invoice extends MY_Model
 			}
 		}
 
-		$sql = $sql . " group by "  . BILLPAY . ".mdoctype,"  . BILLPAY . ".mcustno order by " . BILLPAY . ".mcustno asc";
-		// var_dump($sql);
-		// exit;
-		return $sql;
+		$sql = $sql . " group by "  . BILLPAY . ".mdoctype,"  . BILLPAY . ".mcustno ";
+		$reSultSql = "select mcustno,ISNULL(MAX(RA),0.00) as RA ,ISNULL(MAX(RC),0.00) as RC ,ISNULL(MAX(RB),0.00) as RB,
+		ISNULL(MAX(DC),0.00) as DC,ISNULL(MAX(RE),0.00) as RE ,ISNULL(MAX(DA),0.00) as DA ,ISNULL(MAX(DB),0.00) as DB ,ISNULL(MAX(DE),0.00) as DE ,ISNULL(MAX(RD),0.00) as RD ,
+		MAX(cus_name) as cus_name,MAX(msaleorg) as msaleorg
+		,MAX(end_date) as end_date,MAX(start_date) as start_date
+		,MAX(mday) as mday ,MAX(type) as type from (" . $sql . ") b group by mcustno  order by  mcustno asc  ";
+		//order by " . BILLPAY . ".mcustno asc
+		return $reSultSql;
 	}
 
 	public function queryInvoiceFindId($val)
 	{
-
 		$allLists = [];
 		$result = [];
 		$cus_main = [];
@@ -94,11 +85,19 @@ class Model_invoice extends MY_Model
 
 		$doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
 
-		$select =  "" . BILLPAY . ".mcustno,MAX(" . CUSTOMER . ".type) as type ";
+		//$select =  "" . BILLPAY . ".mcustno,MAX(" . CUSTOMER . ".type) as type," . BILLPAY . ".mdoctype";
 
-		$join = " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno ";
+		$select = $val->is_showType == '2' ? "" . BILLPAY . ".mcustno,MAX(" . CUSTOMER . ".type) as type" :  "" . BILLPAY . ".mcustno,MAX(" . CUSTOMER . ".type) as type," . BILLPAY . ".mdoctype";
 
-		$sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where " . CUSTOMER . ".send_date = '$val->dateSelect' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'";
+		$join = " inner join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno ";
+
+		$sql =  "SELECT $select FROM " . BILLPAY . "$join" . " where ";
+
+		if (!empty($doctypeLists)) {
+			$type = array_slice(array_keys($doctypeLists), 1);
+			$sql =  $sql . ' ((' . BILLPAY . ".mdoctype in ('" . implode("','", $type) . "') AND " . CUSTOMER . ".send_date = '$val->dateSelect') OR (" . BILLPAY . ".mdoctype = 'RA' AND " . BILLPAY . ".mduedate between '$val->startDate' and '$val->endDate'" . " AND "  . CUSTOMER . ".send_date = '$val->dateSelect'))";
+		}
+
 
 		if (!empty($val->is_bill)) {
 			$sql2 = "SELECT " . REPORT . ".cus_no,MAX(" . CUSTOMER . ".type) as type FROM " . REPORT . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . REPORT . ".cus_no where " . REPORT . ".send_date = '$val->dateSelect' AND " . REPORT . ".start_date = '$val->startDate' AND  " . REPORT . ".end_date = '$val->endDate' group by " . REPORT . ".cus_no";
@@ -110,23 +109,8 @@ class Model_invoice extends MY_Model
 				$result2[$row2["cus_no"]] = (object)$row2;
 			}
 
-			// var_dump($sql2);
-			// exit;
-			// if ($val->is_bill != '3') {
-			// 	$join = $join . " left join " . REPORT . " on " . REPORT . ".cus_no = " . BILLPAY . ".mcustno ";
-			// }
-
-			if ($val->is_bill == '2') {
-				if (!empty($result2)) {
-					$sql = $sql . " AND " . BILLPAY . ".mcustno in (" . implode(',', array_keys($result2)) . ")";
-				} else {
-					$sql = $sql . " AND " . BILLPAY . ".mcustno in ('')";
-				}
-			}
-
-
 			if ($val->is_bill == '3' && !empty(array_keys($result2))) {
-				$sql = $sql . " AND " . BILLPAY . ".mcustno not in (" . implode(',', array_keys($result2)) . ")";
+				$sql = $sql . " AND " . BILLPAY . ".mcustno not in ('" . implode("','", array_keys($result2)) . "')";
 			}
 		}
 
@@ -145,16 +129,14 @@ class Model_invoice extends MY_Model
 			}
 		}
 
-		if (!empty($doctypeLists)) {
-			$sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
-		}
-
 		if (!empty($val->cus_no)) {
 			$sql = $sql . " AND " . BILLPAY . ".mcustno = '$val->cus_no'";
 		}
 
+		// $sql =  $sql . " group by "  . BILLPAY . ".mcustno order by type desc,mcustno asc";
 
-		$sql = $sql . " group by "  . BILLPAY . ".mcustno order by " . BILLPAY . ".mcustno asc";
+		$sql =  $val->is_showType == '2' ?   $sql . " group by "  . BILLPAY . ".mcustno order by type desc,mcustno asc" :  "select * from (" . $sql . " group by "  . BILLPAY . ".mcustno," . BILLPAY . ".mdoctype) b where mdoctype in ('RA','RD','DA') order by type desc,mcustno asc";
+
 
 		// var_dump($sql);
 		// exit;
@@ -172,28 +154,11 @@ class Model_invoice extends MY_Model
 		} else {
 
 			while ($res = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-				// array_push($result, (object)$res);
 				$result[$res["mcustno"]] = (object)$res;
-				// if (!in_array($res["mcustno"], $result2)) {
-				// }
 			}
 
 			if (!empty($result)) {
-				// if ($val->is_bill != '3') {
-				// 	foreach ($result2 as $dataRes) {
-				// 		if (!in_array($dataRes->cus_no, array_keys($result))) {
-				// 			$dataRes->mcustno = $dataRes->cus_no;
-				// 			$result[$dataRes->cus_no] = $dataRes;
-				// 		}
-				// 	}
-				// }
 
-				usort($result, function ($a, $b) {
-					return $a->type < $b->type;
-				});
-
-				// var_dump(count($result));
-				// exit;
 				foreach ($result as $row) {
 					if (!empty($row->mcustno)) {
 						if ($row->type == 'main') {
@@ -219,7 +184,6 @@ class Model_invoice extends MY_Model
 				}
 			}
 
-
 			$output = (object)[
 				'status' => 200,
 				'items'  => $allLists,
@@ -242,82 +206,80 @@ class Model_invoice extends MY_Model
 		if (!empty($conn->dateSelect) && !empty($conn->startDate) && !empty($conn->endDate)) {
 			$sqlFindId = !empty($this->queryInvoiceFindId($conn)->items) ? $this->queryInvoiceFindId($conn)->items : [];
 
-			$sql = $this->queryInvoice($conn, $sqlFindId);
-
-			if ($conn->action != 'excel') {
-				$offset = max($conn->page - 1, 0) * $conn->limit;
-			}
-
-			$stmt2 = sqlsrv_query($this->conn, $sql);
-
-			if ($conn->action != 'excel') {
-				$stmt = sqlsrv_query($this->conn, $sql . "  offset $offset rows fetch next $conn->limit rows only");
-			}
-
-			// var_dump($sqlFindId);
-			// //var_dump($sql . "  offset $offset rows fetch next $conn->limit rows only");
-			// exit;
-
-			if (($conn->action != 'excel' && $stmt == false) || $stmt2 == false) {
-				$output = (object)[
-					'status' => 500,
-					'error'  => sqlsrv_errors(),
-					'msg'  => "Database error",
-				];
-			} else {
-				while ($res = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
-					$row = (object)$res;
-					$result2[$row->mcustno][] = $row;
-					// array_push($result2, (object)$res);
-				}
+			if (!empty($sqlFindId)) {
+				$sql = $this->queryInvoice($conn, $sqlFindId);
+				$stmt2 = sqlsrv_query($this->conn, $sql);
 
 				if ($conn->action != 'excel') {
-					while ($res = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-						$row = (object)$res;
-						var_dump($row);
-						exit;
+					$offset = max($conn->page - 1, 0) * $conn->limit;
+					$stmt = sqlsrv_query($this->conn, $sql . "  offset $offset rows fetch next $conn->limit rows only");
+				}
 
-						if (!empty($row->mcustno)) {
-							if ($row->type == 'main') {
-								// array_push($result, $row);
-								$result[$row->mcustno][] = $row;
-								array_push($cus_main, $row->mcustno);
-							} else {
-								if ($this->CURUSER->user[0]->user_type == 'Cus') {
-									// array_push($result, $row);
+				if (($conn->action != 'excel' && $stmt == false) || $stmt2 == false) {
+					$output = (object)[
+						'status' => 500,
+						'error'  => sqlsrv_errors(),
+						'msg'  => "Database error",
+					];
+				} else {
+					while ($res = sqlsrv_fetch_array($stmt2, SQLSRV_FETCH_ASSOC)) {
+						$row = (object)$res;
+						$result2[$row->mcustno][] = $row;
+						// array_push($result2, (object)$res);
+					}
+
+					if ($conn->action != 'excel') {
+						while ($res = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+							$row = (object)$res;
+							if (!empty($row->mcustno)) {
+								if ($row->type == 'main') {
 									$result[$row->mcustno][] = $row;
+									array_push($cus_main, $row->mcustno);
 								} else {
-									$main = $this->checkMainBill($row->mcustno)->items;
-									if (!empty($main->mcustno)) {
-										if (!in_array($main->mcustno, $cus_main)) {
-											// $row->mcustno = $main->mcustno;
-											// $row->cus_name = $main->cus_name;
-											// $row->send_date = $main->send_date;
-											// $row->type = $main->type;
-											// $row->msaleorg = $main->msaleorg;
-											// array_push($result, $main);
-											// var_dump($row);
-											// exit;
-											$result[$row->mcustno][] = $main;
-											array_push($cus_main, $main->mcustno);
-										}
-									} else {
+									if ($this->CURUSER->user[0]->user_type == 'Cus') {
+										// array_push($result, $row);
 										$result[$row->mcustno][] = $row;
-										array_push($cus_main, $row->mcustno);
+									} else {
+										$main = $this->checkMainBill($row->mcustno)->items;
+										if (!empty($main->mcustno)) {
+											if (!in_array($main->mcustno, $cus_main)) {
+												$row->mcustno = $main->mcustno;
+												$row->cus_name = $main->cus_name;
+												// $row->send_date = $main->send_date;
+												$row->type = $main->type;
+												$row->msaleorg = $main->msaleorg;
+												// array_push($result, $main);
+												// var_dump($row);
+												// exit;
+												$result[$row->mcustno][] = $row;
+												//($row->mcustno == $main->mcustno) ? $row : $main;
+												array_push($cus_main, $main->mcustno);
+											}
+										} else {
+											$result[$row->mcustno][] = $row;
+											array_push($cus_main, $row->mcustno);
+										}
 									}
 								}
 							}
 						}
 					}
+
+					$lists = $conn->action != 'excel' ? $this->processData($result) : $this->processData($result2);
+
+
+					$output = (object)[
+						'status' => 200,
+						'items'  => $lists,
+						'totalRecord' => !empty($result2) ? count($result2) : 0,
+						'msg'  => "success",
+					];
 				}
-
-				$lists = $conn->action != 'excel' ? $this->processData($result) : $this->processData($result2);
-
-
+			} else {
 				$output = (object)[
 					'status' => 200,
-					'items'  => $lists,
-					'totalRecord' => !empty($result2) ? count($result2) : 0,
+					'items'  => [],
+					'totalRecord' => 0,
 					'msg'  => "success",
 				];
 			}
@@ -390,42 +352,19 @@ class Model_invoice extends MY_Model
 				$data->start_date = !empty($val->start_date) ? $val->start_date : '-';
 				$data->end_date = !empty($val->end_date) ? $val->end_date : '-';
 				$data->send_date = !empty($val->send_date) ? $val->send_date : '-';
-
-				if (!empty($val->mdoctype)) {
-					if ($val->mdoctype == 'DC') {
-						$data->DC = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'RA') {
-						$data->RA = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'RB') {
-						$data->RB = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'RC') {
-						$data->RC = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'RD') {
-						$data->RD = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'RE') {
-						$data->RE = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'DA') {
-						$data->DA = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'DB') {
-						$data->DB = floatval($val->total_mnetamt);
-					}
-					if ($val->mdoctype == 'DE') {
-						$data->DE = floatval($val->total_mnetamt);
-					}
-				}
+				$data->RA = !empty($val->RA) ? $val->RA : 0.00;
+				$data->DC = !empty($val->DC) ? $val->DC : 0.00;
+				$data->RB = !empty($val->RB) ? $val->RB : 0.00;
+				$data->RC = !empty($val->RC) ? $val->RC : 0.00;
+				$data->RD = !empty($val->RD) ? $val->RD : 0.00;
+				$data->RE = !empty($val->RE) ? $val->RE : 0.00;
+				$data->DA = !empty($val->DA) ? $val->DA : 0.00;
+				$data->DB = !empty($val->DB) ? $val->DB : 0.00;
+				$data->DE = !empty($val->DE) ? $val->DE : 0.00;
 			}
 			$lists[$key] = $data;
 		}
 
-		// var_dump($this->calculateTotall($lists));
-		// exit;
 		return  $this->calculateTotall($lists);
 	}
 
@@ -448,7 +387,7 @@ class Model_invoice extends MY_Model
 	{
 		$data = [];
 		foreach ($result as $res) {
-			$total = 0;
+			$total = 0.00;
 			if (!empty($res->RA)) {
 				$total = $total + $res->RA;
 			}
@@ -515,7 +454,7 @@ class Model_invoice extends MY_Model
 	public function findCustomerDefault($condition)
 	{
 		$result = [];
-		$sql =  "SELECT MAX(mcustno) as cus_no,MAX(mcustname) as cus_name,MAX(msaleorg) as msaleorg FROM " . VW_Customer . " where mcustno = '$condition->cus_no' group by mcustno";
+		$sql =  "SELECT cus_no,cus_name,saleorg as msaleorg FROM " . CUSTOMER . " where cus_no = '$condition->cus_no' ";
 
 		$stmt = sqlsrv_query($this->conn, $sql);
 
@@ -546,14 +485,19 @@ class Model_invoice extends MY_Model
 		$result = [];
 		$doctypeLists = !empty($this->model_system->getDoctypeShow()->items) ? $this->model_system->getDoctypeShow()->items : [];
 
-		$sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno," . BILLPAY . ".mdocdate FROM " . BILLPAY . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date' AND " . CUSTOMER . ".send_date = '$condition->send_date'";
+		$sql =  "SELECT " . BILLPAY . ".macctdoc," . BILLPAY . ".mdoctype," . BILLPAY . ".mnetamt," . BILLPAY . ".msaleorg," . BILLPAY . ".mduedate," . BILLPAY . ".mbillno," . BILLPAY . ".mdocdate," . BILLPAY . ".mtext FROM " . BILLPAY . " left join " . CUSTOMER . " on " . CUSTOMER . ".cus_no = " . BILLPAY . ".mcustno  where " . BILLPAY . ".mcustno = '$condition->cus_no' ";
 
 		if (!empty($condition->type) && $condition->type !== '1') {
 			$sql =  $sql . ' AND ' . BILLPAY . ".msaleorg = " . "$condition->type";
 		}
 
+		// if (!empty($doctypeLists)) {
+		// 	$sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
+		// }
+
 		if (!empty($doctypeLists)) {
-			$sql =  $sql . ' AND ' . BILLPAY . ".mdoctype in ('" . implode("','", array_keys($doctypeLists)) . "')";
+			$type = array_slice(array_keys($doctypeLists), 1);
+			$sql =  $sql . ' AND ((' . BILLPAY . ".mdoctype in ('" . implode("','", $type) . "') AND " . CUSTOMER . ".send_date = '$condition->send_date') OR (" . BILLPAY . ".mdoctype = 'RA' AND " . BILLPAY . ".mduedate between '$condition->start_date' and '$condition->end_date'" . " AND "  . CUSTOMER . ".send_date = '$condition->send_date'))";
 		}
 
 		// echo '<pre>';
@@ -576,13 +520,8 @@ class Model_invoice extends MY_Model
 			}
 
 			usort($result, function ($a, $b) {
-				return $this->checkType($a->mdoctype) > $this->checkType($b->mdoctype);
+				return $this->checkType($a->mdoctype) > $this->checkType($b->mdoctype);;
 			});
-
-			// echo '<pre>';
-			// var_dump($result);
-			// exit;
-			// echo '</pre>';
 
 			$output = (object)[
 				'status' => 200,
@@ -637,14 +576,16 @@ class Model_invoice extends MY_Model
 			$res = $customer->type == 'main' && !empty($customer) ? $this->getCustomerChain($val->cus_no) : $this->findCustomerDefault($val)->items;
 			$child_cus = [];
 
-			foreach ($res as $bill) {
+			foreach ($res as $key => $bill) {
 				$val->cus_no = $bill->cus_no;
-				$bills = $this->getBillChild($val)->items;
+				$billsData = $this->getBillChild($val);
+				$bills = $billsData->items;
+
 				$data = (object)[
 					'info' => (object)[
 						'cus_no' => $bill->cus_no,
 						'cus_name' => $bill->cus_name,
-						'saleorg' =>  !empty($bill->saleorg) ? $bill->saleorg : $bill->msaleorg
+						'saleorg' =>  !empty($bill->saleorg) ? $bill->saleorg : $bill->msaleorg,
 					],
 					'bills' => [],
 					'balance' => (object)[
@@ -896,7 +837,7 @@ class Model_invoice extends MY_Model
 	public function checkSendtoMain($cus_no)
 	{
 		$result = [];
-		$sql =  "SELECT cus_no FROM " . SENTO_CUS . " where cus_main = '$cus_no' OR cus_no = '$cus_no' AND is_check = 1 group by cus_no";
+		$sql =  "SELECT cus_no FROM " . SENTO_CUS . " where (cus_main = '$cus_no' OR cus_no = '$cus_no') AND is_check = '1' group by cus_no";
 		$stmt = sqlsrv_query($this->conn, $sql);
 
 		if ($stmt == false) {
@@ -1002,6 +943,15 @@ class Model_invoice extends MY_Model
 		}
 		if (!empty($res == 'RE')) {
 			$sortType  = 6;
+		}
+		if (!empty($res == 'DA')) {
+			$sortType  = 7;
+		}
+		if (!empty($res == 'DB')) {
+			$sortType  = 8;
+		}
+		if (!empty($res == 'DE')) {
+			$sortType  = 9;
 		}
 		return  $sortType;
 	}

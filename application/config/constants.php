@@ -105,30 +105,31 @@ defined('LOG')      or define('LOG', 'log_notification');
 defined('DEPARTMENT')      or define('DEPARTMENT', 'master_department');
 defined('LOG_IN')      or define('LOG_IN', 'log_log_in');
 defined('DOCTYPE')      or define('DOCTYPE', 'master_doctype');
+defined('BCC_EMAIL')      or define('BCC_EMAIL', 'bcc_email');
 
 defined('CLIENT_ID') or define('CLIENT_ID', '9f716aa3b7ffb2c939483195444512d8d3b6a5ea');
 defined('CLIENT_SECRET') or define('CLIENT_SECRET', 'b34eac00d585e57c2bbc6528114908f53ab7f41b');
-defined('OPEN_JOB_NOTIFY') OR define('OPEN_JOB_NOTIFY', TRUE);
-defined('JOB_NOTIFY_TOKEN') OR define('JOB_NOTIFY_TOKEN', 'g0sJ9baxAKBiajHFzjAp4hjEoIjEv9z7tl0XkyNNyv8'); 
+defined('OPEN_JOB_NOTIFY') or define('OPEN_JOB_NOTIFY', TRUE);
+defined('JOB_NOTIFY_TOKEN') or define('JOB_NOTIFY_TOKEN', 'g0sJ9baxAKBiajHFzjAp4hjEoIjEv9z7tl0XkyNNyv8');
 
 if (ENVIRONMENT == 'production') {
-    defined('SERVERNAME') or define('SERVERNAME', '10.51.249.165');
-    defined('DATABASE') or define('DATABASE', 'NpiNotification');
-    defined('UID') or define('UID', 'Npinoti_usr01');
-    defined('PWD') or define('PWD', 'Noti22@PRD');
-    defined('HTTP')      or define('HTTP', 'invoicenotification/');
-    defined('WWW') or define('WWW', 'https://npismo.scg.com');
-    defined('API') or define('API', 'https://npismo.scg.com/api_smo/');
+	defined('SERVERNAME') or define('SERVERNAME', '10.51.249.165');
+	defined('DATABASE') or define('DATABASE', 'NpiNotification');
+	defined('UID') or define('UID', 'Npinoti_usr01');
+	defined('PWD') or define('PWD', 'Noti22@PRD');
+	defined('HTTP')      or define('HTTP', 'invoicenotification/');
+	defined('WWW') or define('WWW', 'https://npismo.scg.com');
+	defined('API') or define('API', 'https://npismo.scg.com/api_smo/');
 } else {
-    if (ENVIRONMENT == 'testing') {
-        defined('HTTP')      or define('HTTP', 'invoicenotification/');
-        defined('WWW') or define('WWW', 'https://npismodev.scg.com');
-    }
-    defined('SERVERNAME') or define('SERVERNAME', '10.51.249.87');
-    defined('DATABASE') or define('DATABASE', 'NpiNotification_Dev');
-    defined('UID') or define('UID', 'NpiNoti_usr01');
-    defined('PWD') or define('PWD', 'NpiNoti01@2022');
-    defined('HTTP')      or define('HTTP', '');
-    defined('WWW') or define('WWW', 'http://notification.com');
-    defined('API') or define('API', 'https://npismodev.scg.com/api/');
+	if (ENVIRONMENT == 'testing') {
+		defined('HTTP')      or define('HTTP', 'invoicenotification/');
+		defined('WWW') or define('WWW', 'https://npismodev.scg.com');
+	}
+	defined('SERVERNAME') or define('SERVERNAME', '10.51.249.87');
+	defined('DATABASE') or define('DATABASE', 'NpiNotification_Dev');
+	defined('UID') or define('UID', 'NpiNoti_usr01');
+	defined('PWD') or define('PWD', 'NpiNoti01@2022');
+	defined('HTTP')      or define('HTTP', '');
+	defined('WWW') or define('WWW', 'http://notification.com');
+	defined('API') or define('API', 'https://npismodev.scg.com/api/');
 }

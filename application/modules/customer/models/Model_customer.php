@@ -499,7 +499,7 @@ class Model_customer extends MY_Model
 
 	public function updateInfo($id, $params)
 	{
-		$sql = "update " . CUSTOMER . " set send_date=(?), updated_date=(?), updated_by=(?), is_email=(?), is_fax=(?) where uuid = '$id'";
+		$sql = "update " . CUSTOMER . " set send_date=(?), updated_date=(?), updated_by=(?), is_email=(?), is_fax=(?), cus_name=(?) where uuid = '$id'";
 		$res = sqlsrv_query($this->conn, $sql, $params);
 		if (!empty($res)) {
 			return $res;

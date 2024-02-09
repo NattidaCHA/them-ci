@@ -7,6 +7,7 @@ class Setting extends MY_Controller
 		parent::__construct();
 		$this->load->model('model_setting');
 		$this->load->model('model_invoice');
+		$this->load->model('model_system');
 	}
 
 
@@ -24,6 +25,7 @@ class Setting extends MY_Controller
 		$o = $this->model_system->getTypeBusiness()->items;
 		$startDefault = date('Y-m-d', strtotime("-6 month", strtotime(date('Y-m-d'))));
 		$endDefault = date('Y-m-d', strtotime("+7 year", strtotime(date('Y-m-d'))));
+		$bccEmail = !empty($this->model_system->getbccEmail()->items) ? $this->model_system->getbccEmail()->items : (object)[];
 
 		foreach ($o as $v) {
 			$this->data['types'][$v->msaleorg] = $v;
@@ -44,6 +46,7 @@ class Setting extends MY_Controller
 		$this->data['is_contact'] = $is_contact;
 		$this->data['startDefault'] = $startDefault;
 		$this->data['endDefault'] = $endDefault;
+		$this->data['bccEmail'] = $bccEmail->bcc_email;
 		$this->loadAsset(['dataTables', 'datepicker', 'select2', 'parsley']);
 		$this->view('setting_form');
 	}
@@ -164,6 +167,23 @@ class Setting extends MY_Controller
 
 				$this->model_setting->updateDocTypeDate($val->uuid, [$params['show-startDate'][$key], $params['show-endDate'][$key]]);
 			}
+
+			$output['status'] = 200;
+			$output['data'] = $params;
+			unset($output['error']);
+		}
+
+		$output['source'] = $params;
+		$this->responseJSON($output);
+	}
+
+	public function processBccEmail()
+	{
+		$output = $this->apiDefaultOutput();
+		$params = $this->input->post();
+
+		if (!empty($params)) {
+			$this->model_setting->updateBcc([trim($params['bcc_email']),date('Y-m-d H:i')]);
 
 			$output['status'] = 200;
 			$output['data'] = $params;

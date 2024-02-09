@@ -30120,3 +30120,26 @@ article .h6 {
 		width: 100%;
 	}
 }
+
+.doctype-display {
+	display: flex;
+	justify-content: space-around;
+	font-size: 12px;
+
+	@media (max-width: 840px) {
+		display: block !important;
+		justify-content: center !important;
+	}
+}
+
+
+.doctype-display-2 {
+	display: flex;
+	justify-content: center;
+	font-size: 12px;
+
+	@media (max-width: 840px) {
+		display: block !important;
+		justify-content: center !important;
+	}
+}

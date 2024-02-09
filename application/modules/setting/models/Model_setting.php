@@ -138,6 +138,18 @@ class Model_setting extends MY_Model
 		return FALSE;
 	}
 
+	public function updateBcc($params)
+	{
+		$sql = "update " . BCC_EMAIL . " set bcc_email=(?),update_date=(?) where id = 1";
+		$res = sqlsrv_query($this->conn, $sql, $params);
+
+		if (!empty($res)) {
+			return $res;
+		}
+
+		return FALSE;
+	}
+
 	public function getInvoice($val)
 	{
 

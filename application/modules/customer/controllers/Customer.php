@@ -77,10 +77,12 @@ class Customer extends MY_Controller
 		$customerChild = [];
 		$sendDate = (object) [];
 		$type = 'main';
+		$nameChange = null;
 		$isCheck = [];
 		$tels = [];
 		$emails = [];
 		$faxs = [];
+		// $changeName = false;
 		$loading = !empty($cus_no) && $action == 'create' ? true :  false;
 
 		foreach ($days as $day) {
@@ -100,12 +102,12 @@ class Customer extends MY_Controller
 						$mobile = explode(',', $customer->tel);
 						foreach ($mobile as $tel) {
 							if (!empty($tel) || trim($tel) != '-') {
-								array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+								array_push($tels, (object)['tel' => trim($tel), 'contact' => trim($customer->contact)]);
 							}
 						}
 					} else {
 						if (!empty($customer->tel) || trim($customer->tel) != '-') {
-							array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+							array_push($tels, (object)['tel' => trim($customer->tel), 'contact' => trim($customer->contact)]);
 						}
 					}
 				}
@@ -115,12 +117,12 @@ class Customer extends MY_Controller
 						$res = explode(';', $customer->email);
 						foreach ($res as $email) {
 							if (!empty($email) || trim($email) != '-') {
-								array_push($emails, (object)['email' => $email]);
+								array_push($emails, (object)['email' => trim($email)]);
 							}
 						}
 					} else {
 						if (!empty($customer->email) || trim($customer->email) != '-') {
-							array_push($emails, (object)['email' => $customer->email]);
+							array_push($emails, (object)['email' => trim($customer->email)]);
 						}
 					}
 				}
@@ -131,12 +133,12 @@ class Customer extends MY_Controller
 						$_faxs = explode(',', $customer->fax);
 						foreach ($_faxs as $fax) {
 							if (!empty($fax) || trim($fax) != '-') {
-								array_push($faxs, (object)['fax' => $fax]);
+								array_push($faxs, (object)['fax' => trim($fax)]);
 							}
 						}
 					} else {
 						if (!empty($customer->fax) || trim($customer->fax) != '-') {
-							array_push($faxs, (object)['fax' => $customer->fax]);
+							array_push($faxs, (object)['fax' => trim($customer->fax)]);
 						}
 					}
 				}
@@ -156,12 +158,12 @@ class Customer extends MY_Controller
 							$mobile = explode(',', $customer->tel);
 							foreach ($mobile as $tel) {
 								if (!empty($tel) || trim($tel) != '-') {
-									array_push($tels, (object)['tel' => $tel, 'contact' => $customer->contact]);
+									array_push($tels, (object)['tel' => trim($tel), 'contact' => trim($customer->contact)]);
 								}
 							}
 						} else {
 							if (!empty($customer->tel) || trim($customer->tel) != '-') {
-								array_push($tels, (object)['tel' => $customer->tel, 'contact' => $customer->contact]);
+								array_push($tels, (object)['tel' => trim($customer->tel), 'contact' => trim($customer->contact)]);
 							}
 						}
 					}
@@ -171,12 +173,12 @@ class Customer extends MY_Controller
 							$res = explode(';', $customer->email);
 							foreach ($res as $email) {
 								if (!empty($email) || trim($email) != '-') {
-									array_push($emails, (object)['email' => $email]);
+									array_push($emails, (object)['email' => trim($email)]);
 								}
 							}
 						} else {
 							if (!empty($customer->email) || trim($customer->email) != '-') {
-								array_push($emails, (object)['email' => $customer->email]);
+								array_push($emails, (object)['email' => trim($customer->email)]);
 							}
 						}
 					}
@@ -187,12 +189,12 @@ class Customer extends MY_Controller
 							$_faxs = explode(',', $customer->fax);
 							foreach ($_faxs as $fax) {
 								if (!empty($fax) || trim($fax) != '-') {
-									array_push($faxs, (object)['fax' => $fax]);
+									array_push($faxs, (object)['fax' => trim($fax)]);
 								}
 							}
 						} else {
 							if (!empty($customer->fax) || trim($customer->fax) != '-') {
-								array_push($faxs, (object)['fax' => $customer->fax]);
+								array_push($faxs, (object)['fax' => trim($customer->fax)]);
 							}
 						}
 					}
@@ -200,6 +202,12 @@ class Customer extends MY_Controller
 			}
 		} else {
 			$customer = $this->model_customer->customer($cus_no)->items;
+			$checkCustomerVW = !empty($this->model_system->findCustomerByIdVW($cus_no)->items) ? $this->model_system->findCustomerByIdVW($cus_no)->items : (object)[];
+
+			if (preg_match("/$customer->cus_name/i", $checkCustomerVW->mcustname) < 1) {
+				$nameChange = $checkCustomerVW->mcustname;
+			}
+
 			if ($customer->type == 'main') {
 				$customerChild = !empty($this->model_customer->findChildList($customer->cus_no)->items) ? $this->model_customer->findChildList($customer->cus_no)->items : [];
 			} else {
@@ -220,7 +228,7 @@ class Customer extends MY_Controller
 		// exit;
 
 		$this->data['page_header'] = ($action == 'create') ? 'สร้างข้อมูลลูกค้า' : 'แก้ไขข้อมูลลูกค้า';
-		// $this->data['customers'] = ($action == 'create') ? $this->model_system->getCustomer()->items : '';
+		//	$this->data['customers'] = ($action == 'create') ? $this->model_system->getCustomer()->items : '';
 		$this->data['info'] = $customer;
 		$this->data['select_customer'] = $customerChild;
 		$this->data['send_date'] = !empty($sendDate) ? $sendDate : '';
@@ -232,6 +240,8 @@ class Customer extends MY_Controller
 		$this->data['loading'] = $loading;
 		$this->data['action'] = $action;
 		$this->data['tab'] = $tab;
+		// $this->data['changeName'] = $changeName;
+		$this->data['nameChange'] = $nameChange;
 		$this->loadAsset(['parsley', 'sweetalert', 'select2']);
 		$this->view('customer_form');
 	}
@@ -240,7 +250,6 @@ class Customer extends MY_Controller
 	{
 		$output = $this->apiDefaultOutput();
 		$params = $this->input->post();
-
 
 		if (!empty($params)) {
 			array_walk_recursive($params, function (&$v) {
@@ -278,11 +287,11 @@ class Customer extends MY_Controller
 								$conatct = [
 									genRandomString(16),
 									$params['cus_no'],
-									!empty($val) ? $val : '',
+									!empty($val) ? trim($val) : '',
 									date("Y-m-d H:i:s"),
 									date("Y-m-d H:i:s"),
 									!empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
-									!empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL,
+									!empty($params['contact'][$key]) && !empty($params['contact']) ? trim($params['contact'][$key]) : NULL,
 								];
 
 								$this->model_customer->createTelContact($conatct);
@@ -295,7 +304,7 @@ class Customer extends MY_Controller
 							if (!empty($val)) {
 								$conatct = [
 									genRandomString(16),
-									!empty($params['email']) ? $val : '',
+									!empty($params['email']) ? trim($val) : '',
 									$params['cus_no'],
 									date("Y-m-d H:i:s"),
 									date("Y-m-d H:i:s")
@@ -312,7 +321,7 @@ class Customer extends MY_Controller
 								$conatct = [
 									genRandomString(16),
 									$params['cus_no'],
-									!empty($params['fax']) ? $val : '',
+									!empty($params['fax']) ? trim($val) : '',
 									date("Y-m-d H:i:s"),
 									date("Y-m-d H:i:s")
 								];
@@ -337,6 +346,7 @@ class Customer extends MY_Controller
 					$this->CURUSER->user[0]->userdisplay_th,
 					!empty($params['is_email']) ? 1 : 0,
 					!empty($params['is_fax']) ? 1 : 0,
+					!empty($params['nameChange']) ? $params['nameChange'] : $params['cus_name']
 				];
 
 				$this->model_customer->updateInfo($params['id'], $customer);
@@ -391,19 +401,19 @@ class Customer extends MY_Controller
 								$conatct = [
 									genRandomString(16),
 									$params['cus_no'],
-									$tel[$key],
+									trim($tel[$key]),
 									date("Y-m-d H:i:s"),
 									date("Y-m-d H:i:s"),
 									!empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
-									!empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL
+									!empty($params['contact'][$key]) && !empty($params['contact']) ? trim($params['contact'][$key]) : NULL
 								];
 								$this->model_customer->createTelContact($conatct);
 							} else {
 								$conatct = [
-									$tel[$key],
+									trim($tel[$key]),
 									date("Y-m-d H:i:s"),
 									!empty($params['is_call'][$key]) && !empty($params['is_call']) ? 1 : 0,
-									!empty($params['contact'][$key]) && !empty($params['contact']) ? $params['contact'][$key] : NULL
+									!empty($params['contact'][$key]) && !empty($params['contact']) ? trim($params['contact'][$key]) : NULL
 								];
 								$this->model_customer->updateTelContact($val, $conatct);
 							}
@@ -419,7 +429,7 @@ class Customer extends MY_Controller
 							if ($val == '1') {
 								$conatct = [
 									genRandomString(16),
-									$email[$key],
+									trim($email[$key]),
 									$params['cus_no'],
 									date("Y-m-d H:i:s"),
 									date("Y-m-d H:i:s")
@@ -427,7 +437,7 @@ class Customer extends MY_Controller
 								$this->model_customer->createEmailContact($conatct);
 							} else {
 								$conatct = [
-									$email[$key],
+									trim($email[$key]),
 									date("Y-m-d H:i:s"),
 								];
 								$this->model_customer->updateEmailContact($val, $conatct);
@@ -445,14 +455,14 @@ class Customer extends MY_Controller
 								$conatct = [
 									genRandomString(16),
 									$params['cus_no'],
-									$fax[$key],
+									trim($fax[$key]),
 									date("Y-m-d H:i:s"),
 									date("Y-m-d H:i:s")
 								];
 								$this->model_customer->createFaxContact($conatct);
 							} else {
 								$conatct = [
-									$fax[$key],
+									trim($fax[$key]),
 									date("Y-m-d H:i:s"),
 								];
 								$this->model_customer->updateFaxContact($val, $conatct);
